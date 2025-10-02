@@ -64,6 +64,9 @@ testpaths = [
 pythonpath = [
   "src"
 ]
+markers = [
+    "broken: marks tests as currently broken/failing"
+]
 
 # This is the dedicated section for uv"s configuration
 [dependency-groups]

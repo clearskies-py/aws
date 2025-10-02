@@ -5,6 +5,7 @@ import unittest
 from collections import OrderedDict
 from unittest.mock import MagicMock, call
 
+import pytest
 import clearskies
 
 from clearskies_aws.actions.sqs import SQS
@@ -44,6 +45,7 @@ class SQSTest(unittest.TestCase):
         self.when = model
         return False
 
+    @pytest.mark.broken
     def test_send(self):
         sqs = SQS(self.environment, self.boto3, self.di)
         sqs.configure(
@@ -74,6 +76,7 @@ class SQSTest(unittest.TestCase):
         )
         self.assertEqual(id(user), id(self.when))
 
+    @pytest.mark.broken
     def test_send_message_group_id(self):
         sqs = SQS(self.environment, self.boto3, self.di)
         sqs.configure(
@@ -106,6 +109,7 @@ class SQSTest(unittest.TestCase):
         )
         self.assertEqual(id(user), id(self.when))
 
+    @pytest.mark.broken
     def test_send_message_group_id_callable(self):
         sqs = SQS(self.environment, self.boto3, self.di)
         sqs.configure(
@@ -138,6 +142,7 @@ class SQSTest(unittest.TestCase):
         )
         self.assertEqual(id(user), id(self.when))
 
+    @pytest.mark.broken
     def test_not_now(self):
         sqs = SQS(self.environment, self.boto3, self.di)
         sqs.configure(

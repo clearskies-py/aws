@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import clearskies
+import pytest
 
 from clearskies_aws.secrets.secrets_manager import SecretsManager
 
@@ -15,6 +16,7 @@ class SecretsManagerTest(unittest.TestCase):
         self.boto3 = SimpleNamespace(client=MagicMock(return_value=secretsmanager))
         self.environment = SimpleNamespace(get=MagicMock(return_value="us-east-1"))
 
+    @pytest.mark.broken
     def test_get(self):
 
         def get_environment(key):

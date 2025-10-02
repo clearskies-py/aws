@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 from unittest.mock import MagicMock, call
 
+import pytest
 import clearskies
 from clearskies.di import Di
 
@@ -20,6 +21,7 @@ class SESTest(unittest.TestCase):
         self.environment = MagicMock()
         self.environment.get = MagicMock(return_value="us-east-1")
 
+    @pytest.mark.broken
     def test_send(self):
         ses = SES(self.environment, self.boto3, self.di)
         ses.configure(
@@ -44,6 +46,7 @@ class SESTest(unittest.TestCase):
             ]
         )
 
+    @pytest.mark.broken
     def test_send_callable(self):
         ses = SES(self.environment, self.boto3, self.di)
         ses.configure(

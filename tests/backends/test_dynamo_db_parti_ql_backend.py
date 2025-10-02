@@ -7,6 +7,7 @@ import unittest
 from decimal import Decimal
 from unittest.mock import MagicMock, call, patch
 
+import pytest
 from boto3.session import Session as Boto3Session
 from botocore.exceptions import ClientError
 from clearskies import Model
@@ -59,6 +60,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
         config.update(overrides)
         return config
 
+    @pytest.mark.broken
     def test_as_sql_simple_select_all(self, mock_logger_arg):
         """Test SQL generation for a simple 'SELECT *' statement."""
         config = self._get_base_config(table_name="users", select_all=True)
@@ -69,6 +71,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
         self.assertIsNone(limit)
         self.assertEqual(next_token, config.get("pagination", {}).get("next_token"))
 
+    @pytest.mark.broken
     def test_as_sql_select_specific_columns(self, mock_logger_arg):
         """Test SQL generation for selecting specific columns."""
         config = self._get_base_config(table_name="products", selects=["name", "price"])
@@ -77,6 +80,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
         self.assertEqual('SELECT "name", "price" FROM "products"', statement)
         self.assertEqual([], params)
 
+    @pytest.mark.broken
     def test_as_sql_select_all_and_specific_columns_uses_specific(self, mock_logger_arg):
         """Test SQL generation uses specific columns if both select_all and selects are given."""
         config = self._get_base_config(table_name="inventory", select_all=True, selects=["item_id", "stock_count"])
@@ -88,6 +92,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
             "Both 'select_all=True' and specific 'selects' were provided. Using specific 'selects'."
         )
 
+    @pytest.mark.broken
     def test_as_sql_default_select_if_no_select_all_or_selects(self, mock_logger_arg):
         """Test SQL generation defaults to 'SELECT *' if no specific columns are given."""
         config = self._get_base_config(table_name="orders")
@@ -96,6 +101,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
         self.assertEqual('SELECT * FROM "orders"', statement)
         self.assertEqual([], params)
 
+    @pytest.mark.broken
     def test_as_sql_with_wheres(self, mock_logger_arg):
         """Test SQL generation with WHERE clauses."""
         config = self._get_base_config(
@@ -113,6 +119,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
         self.assertEqual(expected_statement, statement)
         self.assertEqual(expected_parameters, params)
 
+    @pytest.mark.broken
     def test_as_sql_with_sorts(self, mock_logger_arg):
         """Test SQL generation with ORDER BY clauses (no table prefix for columns)."""
         config = self._get_base_config(
@@ -128,6 +135,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
         expected_statement = 'SELECT * FROM "items" ORDER BY "name" ASC, "created_at" DESC'
         self.assertEqual(expected_statement, statement)
 
+    @pytest.mark.broken
     def test_as_sql_with_index_name(self, mock_logger_arg):
         """Test SQL generation uses index name in FROM clause if provided."""
         config = self._get_base_config(table_name="my_table", select_all=True)
@@ -136,6 +144,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
         statement, params, limit, next_token = self.backend.as_sql(config)
         self.assertEqual('SELECT * FROM "my_table"."my_gsi"', statement)
 
+    @pytest.mark.broken
     def test_as_sql_ignores_group_by_and_joins(self, mock_logger_arg):
         """Test that GROUP BY and JOIN configurations are ignored for SQL but logged."""
         config = self._get_base_config(table_name="log_data", group_by_column="level", joins=["some_join_info"])
@@ -153,6 +162,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
             "but JOINs are not supported by this DynamoDB PartiQL backend and will be ignored for SQL generation."
         )
 
+    @pytest.mark.broken
     def test_check_query_configuration_sort_with_base_table_hash_key_equality(self, mock_logger_arg):
         """Test _check_query_configuration allows sort if base table hash key equality exists."""
         self.backend._get_table_description.return_value = {
@@ -168,6 +178,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
         self.assertIsNone(processed_config.get("_chosen_index_name"))
         self.assertEqual(processed_config.get("_partition_key_for_target"), "id")
 
+    @pytest.mark.broken
     def test_check_query_configuration_sort_raises_error_if_no_hash_key_equality(self, mock_logger_arg):
         """Test _check_query_configuration raises ValueError for sort without hash key equality."""
         self.backend._get_table_description.return_value = {
@@ -183,6 +194,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, re.escape(expected_error_message)):
             self.backend._check_query_configuration(config, self.mock_model)
 
+    @pytest.mark.broken
     def test_check_query_configuration_sort_uses_gsi_if_partition_key_matches(self, mock_logger_arg):
         """Test _check_query_configuration selects GSI if its partition key matches WHERE and can sort."""
         self.backend._get_table_description.return_value = {
@@ -207,6 +219,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
         self.assertEqual(processed_config.get("_chosen_index_name"), "domain-status-index")
         self.assertEqual(processed_config.get("_partition_key_for_target"), "domain")
 
+    @pytest.mark.broken
     def test_count_uses_native_query_with_pk_condition(self, mock_logger_arg):
         """Test count() uses native DDB query when PK equality is present."""
         self.backend._get_table_description.return_value = {"KeySchema": [{"AttributeName": "id", "KeyType": "HASH"}]}
@@ -225,6 +238,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
         self.assertEqual(called_args.get("Select"), "COUNT")
         self.assertIn("KeyConditionExpression", called_args)
 
+    @pytest.mark.broken
     def test_count_uses_native_scan_without_pk_condition(self, mock_logger_arg):
         """Test count() uses native DDB scan when PK equality is NOT present."""
         self.backend._get_table_description.return_value = {"KeySchema": [{"AttributeName": "id", "KeyType": "HASH"}]}
@@ -243,6 +257,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
         self.assertEqual(called_args.get("Select"), "COUNT")
         self.assertIn("FilterExpression", called_args)
 
+    @pytest.mark.broken
     def test_count_paginates_native_results(self, mock_logger_arg):
         """Test count() paginates and sums results from native DDB operations."""
         self.backend._get_table_description.return_value = {"KeySchema": [{"AttributeName": "id", "KeyType": "HASH"}]}
@@ -257,6 +272,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
         self.assertEqual(count, 175)
         self.assertEqual(self.mock_dynamodb_client.scan.call_count, 3)
 
+    @pytest.mark.broken
     def test_records_simple_fetch(self, mock_logger_arg):
         """Test records() fetching a single page of results without limit or pagination."""
         config = self._get_base_config(table_name="users", select_all=True)
@@ -279,6 +295,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
         self.assertEqual(results[1], {"id": "user2", "name": "Bob", "age": Decimal("24")})
         self.assertIsNone(config["pagination"].get("next_page_token_for_response"))
 
+    @pytest.mark.broken
     def test_records_with_limit(self, mock_logger_arg):
         """Test records() respects the server-side limit passed to DynamoDB."""
         config = self._get_base_config(table_name="products", limit=1, select_all=True)
@@ -306,6 +323,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
             expected_client_token,
         )
 
+    @pytest.mark.broken
     def test_records_pagination_flow(self, mock_logger_arg):
         """Test records() handling of client-provided token and returning DDB's next token."""
         initial_ddb_token = "start_token_from_ddb_previously"
@@ -359,6 +377,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
         self.assertEqual(results_page2[0], {"event_id": "evt2"})
         self.assertEqual(next_page_data, {})
 
+    @pytest.mark.broken
     def test_records_no_items_returned_with_next_token(self, mock_logger_arg):
         """Test records() when DDB returns no items but provides a NextToken."""
         config = self._get_base_config(table_name="filtered_items", select_all=True)
@@ -381,6 +400,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
             expected_client_token,
         )
 
+    @pytest.mark.broken
     def test_records_limit_cuts_off_ddb_page(self, mock_logger_arg):
         """Test when server-side limit means fewer items are returned than a full DDB page."""
         config = self._get_base_config(table_name="many_items", limit=1, select_all=True)
@@ -408,6 +428,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
             expected_client_token,
         )
 
+    @pytest.mark.broken
     def test_create_record(self, mock_logger_arg):
         """Test create() inserts a record and returns the input data."""
         data_to_create = {"id": "new_user_123", "name": "Jane Doe", "age": 28}
@@ -429,6 +450,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
             Parameters=expected_ddb_parameters,
         )
 
+    @pytest.mark.broken
     def test_update_record(self, mock_logger_arg):
         """Test update() modifies a record and returns the updated data."""
         record_id = "user_to_update"
@@ -462,6 +484,7 @@ class TestDynamoDBPartiQLBackend(unittest.TestCase):
             },
         )
 
+    @pytest.mark.broken
     def test_delete_record(self, mock_logger_arg):
         """Test delete() removes a record."""
         record_id = "user_to_delete"
