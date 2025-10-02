@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import clearskies
 
 
-class SimpleBodyRouting(clearskies.handlers.Routing):
+class SimpleBodyRouting(clearskies.Endpoint):
     def __init__(self, di):
         super().__init__(di)
 

@@ -1,37 +1,36 @@
+from __future__ import annotations
+
 import datetime
 import json
 from collections.abc import Sequence
 from types import ModuleType
-from typing import Callable, List, Optional, cast
+from typing import Callable, cast
 
-import boto3
-import clearskies
 from botocore.exceptions import ClientError
+from clearskies import Model
+from clearskies.decorators import parameters_to_properties
 from clearskies.environment import Environment
-from clearskies.models import Models
 
-from ..di import StandardDependencies
+from ..di import Di
 from .action_aws import ActionAws
 from .assume_role import AssumeRole
 
 
 class SNS(ActionAws):
-    _name = "sns"
 
-    def __init__(self, environment: Environment, boto3: boto3, di: StandardDependencies) -> None:
-        super().__init__(environment, boto3, di)
-
-    def configure(
+    @parameters_to_properties
+    def __init__(
         self,
         topic=None,
         topic_environment_key=None,
-        topic_callable: Optional[Callable] = None,
-        message_callable: Optional[Callable] = None,
-        when: Optional[Callable] = None,
-        assume_role: Optional[AssumeRole] = None,
+        topic_callable: Callable | None = None,
+        message_callable: Callable | None = None,
+        when: Callable | None = None,
+        assume_role: AssumeRole | None = None,
     ) -> None:
         """Configure the SNS action."""
-        super().configure(message_callable=message_callable, when=when, assume_role=assume_role)
+        super().__init__(service_name="sns", message_callable=message_callable, when=when, assume_role=assume_role)
+        self.finalize_and_validate_configuration()
 
         self.topic = topic
         self.topic_environment_key = topic_environment_key
@@ -48,7 +47,7 @@ class SNS(ActionAws):
         if not topics:
             raise ValueError("You must provide at least one of 'topic', 'topic_environment_key', or 'topic_callable'.")
 
-    def _execute_action(self, client: ModuleType, model: Models) -> None:
+    def _execute_action(self, client: ModuleType, model: Model) -> None:
         """Send a notification as configured."""
         topic_arn = self.get_topic_arn(model)
         if not topic_arn:
@@ -58,7 +57,7 @@ class SNS(ActionAws):
             Message=self.get_message_body(model),
         )
 
-    def get_topic_arn(self, model: Models) -> str:
+    def get_topic_arn(self, model: Model) -> str:
         if self.topic:
             return self.topic
         if self.topic_environment_key:

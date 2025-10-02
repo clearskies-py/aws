@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import base64
 import json
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal
 from urllib.parse import urlencode
 
 from aws_lambda_powertools.utilities.parser import parse
@@ -10,12 +12,12 @@ from aws_lambda_powertools.utilities.parser.models import (
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from pydantic import ValidationError
 
-import clearskies_aws
+from clearskies_aws.input_outputs import lambda_api_gateway
 
 
-class LambdaAPIGatewayV2(clearskies_aws.input_outputs.LambdaAPIGateway):
-    _event: APIGatewayProxyEventV2Model
-    _query_parameters: Optional[dict[str, str]] = None
+class LambdaAPIGatewayV2(lambda_api_gateway.LambdaAPIGateway):
+    _event: APIGatewayProxyEventV2Model  # type: ignore[assignment]
+    _query_parameters: dict[str, str] = {}  # type: ignore[assignment]
 
     def __init__(self, event: dict, context: LambdaContext):
         try:
@@ -27,7 +29,7 @@ class LambdaAPIGatewayV2(clearskies_aws.input_outputs.LambdaAPIGateway):
         self._context = context
         self._request_method = self._event.requestContext.http.method
         self._path = self._event.requestContext.http.path
-        self._query_parameters = self._event.queryStringParameters
+        self._query_parameters = self._event.queryStringParameters or {}
         self._path_parameters = self._event.pathParameters
         self._request_headers = {}
         for key, value in self._event.headers.items():

@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import base64
 import json
 from decimal import Decimal
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable
 
 import clearskies
 from boto3.dynamodb import conditions as dynamodb_conditions
@@ -181,8 +183,8 @@ class DynamoDBBackend(Backend):
         return response["Count"]
 
     def records(
-        self, configuration: Dict[str, Any], model: model.Model, next_page_data: Dict[str, str] = None
-    ) -> List[Dict[str, Any]]:
+        self, configuration: dict[str, Any], model: model.Model, next_page_data: dict[str, str] = None
+    ) -> list[dict[str, Any]]:
         response = self._dynamodb_query(configuration, model, "ALL_ATTRIBUTES")
         if "LastEvaluatedKey" in response and response["LastEvaluatedKey"] is not None and type(next_page_data) == dict:
             next_page_data["next_token"] = self.serialize_next_token_for_response(
@@ -543,7 +545,7 @@ class DynamoDBBackend(Backend):
 
         return configuration
 
-    def validate_pagination_kwargs(self, kwargs: Dict[str, Any], case_mapping: Callable) -> str:
+    def validate_pagination_kwargs(self, kwargs: dict[str, Any], case_mapping: Callable) -> str:
         extra_keys = set(kwargs.keys()) - set(self.allowed_pagination_keys())
         if len(extra_keys):
             key_name = case_mapping("next_token")
@@ -559,7 +561,7 @@ class DynamoDBBackend(Backend):
             return "The provided '{key_name}' appears to be invalid."
         return ""
 
-    def allowed_pagination_keys(self) -> List[str]:
+    def allowed_pagination_keys(self) -> list[str]:
         return ["next_token"]
 
     def restore_next_token_from_config(self, next_token):
@@ -573,13 +575,13 @@ class DynamoDBBackend(Backend):
     def serialize_next_token_for_response(self, last_evaluated_key):
         return base64.urlsafe_b64encode(json.dumps(last_evaluated_key).encode("utf-8")).decode("utf8")
 
-    def documentation_pagination_next_page_response(self, case_mapping: Callable) -> List[Any]:
+    def documentation_pagination_next_page_response(self, case_mapping: Callable) -> list[Any]:
         return [AutoDocString(case_mapping("next_token"))]
 
-    def documentation_pagination_next_page_example(self, case_mapping: Callable) -> Dict[str, Any]:
+    def documentation_pagination_next_page_example(self, case_mapping: Callable) -> dict[str, Any]:
         return {case_mapping("next_token"): ""}
 
-    def documentation_pagination_parameters(self, case_mapping: Callable) -> List[Tuple[Any]]:
+    def documentation_pagination_parameters(self, case_mapping: Callable) -> list[tuple[Any]]:
         return [(AutoDocString(case_mapping("next_token"), example=""), "A token to fetch the next page of results")]
 
     def column_from_backend(self, column, value):

@@ -1,16 +1,18 @@
+from __future__ import annotations
+
 import datetime
 import json
 from collections import OrderedDict
 from collections.abc import Sequence
 from types import ModuleType
-from typing import Callable, List, Optional, Union
+from typing import Callable
 
 import boto3
 from botocore.exceptions import ClientError
 from clearskies.environment import Environment
 from clearskies.model import Model
 
-from ..di import StandardDependencies
+from ..di import Di
 from . import assume_role
 from .action_aws import ActionAws
 
@@ -18,7 +20,7 @@ from .action_aws import ActionAws
 class SQS(ActionAws):
     _name = "sqs"
 
-    def __init__(self, environment: Environment, boto3: boto3, di: StandardDependencies) -> None:
+    def __init__(self, environment: Environment, boto3: boto3, di: Di) -> None:
         """Set up the SQS action."""
         super().__init__(environment, boto3, di)
 
@@ -26,11 +28,11 @@ class SQS(ActionAws):
         self,
         queue_url: str = "",
         queue_url_environment_key: str = "",
-        queue_url_callable: Optional[Callable] = None,
-        message_callable: Optional[Callable] = None,
-        when: Optional[Callable] = None,
-        assume_role: Optional[assume_role.AssumeRole] = None,
-        message_group_id: Optional[Union[str, Callable]] = None,
+        queue_url_callable: Callable | None = None,
+        message_callable: Callable | None = None,
+        when: Callable | None = None,
+        assume_role: assume_role.AssumeRole | None = None,
+        message_group_id: str | Callable | None = None,
     ) -> None:
         super().configure(message_callable=message_callable, when=when, assume_role=assume_role)
 

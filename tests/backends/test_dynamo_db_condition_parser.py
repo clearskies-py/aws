@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import unittest
 from decimal import Decimal
 
-from clearskies_aws.backends.dynamo_db_condition_parser import DynamoDBConditionParser
+from clearskies_aws.backends import DynamoDBConditionParser
 
 
 class TestDynamoDBConditionParser(unittest.TestCase):

@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import unittest
 from collections import OrderedDict
 
-from .lambda_api_gateway import LambdaAPIGateway
+from clearskies_aws.input_outputs import LambdaAPIGateway
 
 
 class LambdaAPIGatewayTest(unittest.TestCase):

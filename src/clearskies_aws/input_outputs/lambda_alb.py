@@ -1,18 +1,16 @@
-import base64
-import json
-from typing import Any, Literal, Optional, TypeVar, Union, cast
-from urllib.parse import urlencode
+from __future__ import annotations
+
+from typing import Literal, cast
 
 from aws_lambda_powertools.utilities.parser import parse
 from aws_lambda_powertools.utilities.parser.models import AlbModel
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from clearskies.input_outputs.input_output import InputOutput
 from pydantic import ValidationError
 
-import clearskies_aws
+from clearskies_aws.input_outputs import lambda_api_gateway
 
 
-class LambdaALB(clearskies_aws.input_outputs.LambdaAPIGateway):
+class LambdaALB(lambda_api_gateway.LambdaAPIGateway):
     # Override the parent class's type annotation
     _event: AlbModel  # type: ignore[assignment]
 
@@ -45,7 +43,7 @@ class LambdaALB(clearskies_aws.input_outputs.LambdaAPIGateway):
         }
 
         # Initialize path parameters (ALB events don't have path parameters)
-        self._path_parameters = None
+        self._path_parameters = {}
 
         # Initialize headers in the same way as parent class
         self._request_headers = {}

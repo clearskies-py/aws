@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import logging
 from types import ModuleType
@@ -41,4 +43,4 @@ class Context(CoreContext):
             utcnow=utcnow,
         )
         self.application = application
-        self.logger = logging.getLogger(__class__.__name__)
+        self.logger = logging.getLogger(self.__class__.__name__)

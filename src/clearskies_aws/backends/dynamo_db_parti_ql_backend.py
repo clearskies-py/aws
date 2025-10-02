@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import base64
 import binascii
 import json
 import logging
 import re
 from decimal import Decimal, InvalidOperation
-from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
+from typing import Any, Callable, Generator
 
 from boto3.session import Session as Boto3Session
 from botocore.exceptions import ClientError
@@ -46,10 +48,10 @@ class DynamoDBPartiQLCursor:
     def execute(
         self,
         statement: str,
-        parameters: Optional[List[AttributeValueTypeDef]] = None,
-        Limit: Optional[int] = None,
-        NextToken: Optional[str] = None,
-        ConsistentRead: Optional[bool] = None,
+        parameters: list[AttributeValueTypeDef] | None = None,
+        Limit: int | None = None,
+        NextToken: str | None = None,
+        ConsistentRead: bool | None = None,
     ) -> ExecuteStatementOutputTypeDef:
         """
         Execute a PartiQL statement against DynamoDB.
@@ -81,7 +83,7 @@ class DynamoDBPartiQLCursor:
 
             output: ExecuteStatementOutputTypeDef = self._client.execute_statement(**call_args)
         except ClientError as err:
-            error_response: Dict[str, Any] = err.response.get("Error", {})  # type: ignore
+            error_response: dict[str, Any] = err.response.get("Error", {})  # type: ignore
             error_code: str = error_response.get("Code", "UnknownCode")
             error_message: str = error_response.get("Message", "Unknown error")
 
@@ -116,7 +118,7 @@ class DynamoDBPartiQLBackend(CursorBackend):
     """
 
     _cursor: DynamoDBPartiQLCursor
-    _allowed_configs: List[str] = [
+    _allowed_configs: list[str] = [
         "table_name",
         "wheres",
         "sorts",
@@ -128,15 +130,15 @@ class DynamoDBPartiQLBackend(CursorBackend):
         "group_by_column",
         "joins",
     ]
-    _required_configs: List[str] = ["table_name"]
+    _required_configs: list[str] = ["table_name"]
 
     def __init__(self, dynamo_db_parti_ql_cursor: DynamoDBPartiQLCursor) -> None:
         """Initialize the DynamoDBPartiQLBackend."""
         super().__init__(dynamo_db_parti_ql_cursor)
         self.condition_parser: DynamoDBConditionParser = DynamoDBConditionParser()
-        self._table_descriptions_cache: Dict[str, Dict[str, Any]] = {}
+        self._table_descriptions_cache: dict[str, dict[str, Any]] = {}
 
-    def _get_table_description(self, table_name: str) -> Dict[str, Any]:
+    def _get_table_description(self, table_name: str) -> dict[str, Any]:
         """Retrieve and cache the DynamoDB table description."""
         if table_name not in self._table_descriptions_cache:
             try:
@@ -154,7 +156,7 @@ class DynamoDBPartiQLBackend(CursorBackend):
         """Return the character used to escape column names."""
         return '"'
 
-    def _finalize_table_name(self, table_name: str, index_name: Optional[str] = None) -> str:
+    def _finalize_table_name(self, table_name: str, index_name: str | None = None) -> str:
         """Escapes a table name and optionally an index name for use in a PartiQL FROM clause."""
         if not table_name:
             return ""
@@ -165,29 +167,29 @@ class DynamoDBPartiQLBackend(CursorBackend):
         return final_name
 
     def _conditions_as_wheres_and_parameters(
-        self, conditions: List[Dict[str, Any]], default_table_name: str
-    ) -> Tuple[str, List[AttributeValueTypeDef]]:
+        self, conditions: list[dict[str, Any]], default_table_name: str
+    ) -> tuple[str, list[AttributeValueTypeDef]]:
         """Convert where conditions into a PartiQL WHERE clause and parameters."""
         if not conditions:
             return "", []
 
-        where_parts: List[str] = []
-        parameters: List[AttributeValueTypeDef] = []
+        where_parts: list[str] = []
+        parameters: list[AttributeValueTypeDef] = []
 
         for where in conditions:
             if not isinstance(where, dict):
                 logger.warning(f"Skipping non-dictionary where condition: {where}")
                 continue
 
-            column: Optional[str] = where.get("column")
-            operator: Optional[str] = where.get("operator")
-            values: Optional[List[Any]] = where.get("values")
+            column: str | None = where.get("column")
+            operator: str | None = where.get("operator")
+            values: list[Any] | None = where.get("values")
 
             if not column or not operator or values is None:
                 logger.warning(f"Skipping malformed structured where condition: {where}")
                 continue
 
-            value_parts: List[str] = []
+            value_parts: list[str] = []
             for v in values:
                 if isinstance(v, str):
                     value_parts.append(f"'{v}'")
@@ -208,7 +210,7 @@ class DynamoDBPartiQLBackend(CursorBackend):
                 condition_string = f"{column} {operator} {value_parts[0] if value_parts else ''}"
 
             try:
-                parsed: Dict[str, Any] = self.condition_parser.parse_condition(condition_string)
+                parsed: dict[str, Any] = self.condition_parser.parse_condition(condition_string)
                 where_parts.append(parsed["parsed"])
                 parameters.extend(parsed["values"])
             except ValueError as e:
@@ -220,18 +222,18 @@ class DynamoDBPartiQLBackend(CursorBackend):
         return " WHERE " + " AND ".join(where_parts), parameters
 
     def as_sql(
-        self, configuration: Dict[str, Any]
-    ) -> Tuple[str, List[AttributeValueTypeDef], Optional[int], Optional[str]]:
+        self, configuration: dict[str, Any]
+    ) -> tuple[str, list[AttributeValueTypeDef], int | None, str | None]:
         """Construct a PartiQL statement and parameters from a query configuration."""
         escape: str = self._column_escape_character()
         table_name: str = configuration.get("table_name", "")
-        chosen_index_name: Optional[str] = configuration.get("_chosen_index_name")
+        chosen_index_name: str | None = configuration.get("_chosen_index_name")
 
         wheres, parameters = self._conditions_as_wheres_and_parameters(configuration.get("wheres", []), table_name)
 
         from_clause_target: str = self._finalize_table_name(table_name, chosen_index_name)
 
-        selects: Optional[List[str]] = configuration.get("selects")
+        selects: list[str] | None = configuration.get("selects")
         select_clause: str
         if selects:
             select_clause = ", ".join([f"{escape}{s.strip(escape)}{escape}" for s in selects])
@@ -241,9 +243,9 @@ class DynamoDBPartiQLBackend(CursorBackend):
             select_clause = "*"
 
         order_by: str = ""
-        sorts: Optional[List[Dict[str, str]]] = configuration.get("sorts")
+        sorts: list[dict[str, str]] | None = configuration.get("sorts")
         if sorts:
-            sort_parts: List[str] = []
+            sort_parts: list[str] = []
             for sort in sorts:
                 column_name: str = sort["column"]
                 direction: str = sort.get("direction", "ASC").upper()
@@ -268,12 +270,12 @@ class DynamoDBPartiQLBackend(CursorBackend):
                 + "but JOINs are not supported by this DynamoDB PartiQL backend and will be ignored for SQL generation."
             )
 
-        limit: Optional[int] = configuration.get("limit")
+        limit: int | None = configuration.get("limit")
         if limit is not None:
             limit = int(limit)
 
-        pagination: Dict[str, Any] = configuration.get("pagination", {})
-        next_token: Optional[str] = pagination.get("next_token")
+        pagination: dict[str, Any] = configuration.get("pagination", {})
+        next_token: str | None = pagination.get("next_token")
         if next_token is not None:
             next_token = str(next_token)
 
@@ -286,18 +288,18 @@ class DynamoDBPartiQLBackend(CursorBackend):
 
     def records(
         self,
-        configuration: Dict[str, Any],
+        configuration: dict[str, Any],
         model: ClearSkiesModel,
         next_page_data: dict[str, Any] = {},
-    ) -> Generator[Dict[str, Any], None, None]:
+    ) -> Generator[dict[str, Any], None, None]:
         """Fetch records from DynamoDB based on the provided configuration using PartiQL."""
         configuration = self._check_query_configuration(configuration, model)
 
         statement, params, limit, client_next_token_from_as_sql = self.as_sql(configuration)
 
-        ddb_token_for_this_call: Optional[str] = self.restore_next_token_from_config(client_next_token_from_as_sql)
+        ddb_token_for_this_call: str | None = self.restore_next_token_from_config(client_next_token_from_as_sql)
 
-        cursor_limit: Optional[int] = None
+        cursor_limit: int | None = None
         if limit is not None and limit > 0:
             cursor_limit = limit
 
@@ -313,21 +315,21 @@ class DynamoDBPartiQLBackend(CursorBackend):
             next_page_data = {}
             raise
 
-        items_from_response: List[Dict[str, Any]] = response.get("Items", [])
+        items_from_response: list[dict[str, Any]] = response.get("Items", [])
 
         for item_raw in items_from_response:
             yield self._map_from_boto3(item_raw)
 
-        next_token_from_ddb: Optional[str] = response.get("NextToken")
+        next_token_from_ddb: str | None = response.get("NextToken")
         if next_token_from_ddb:
             next_page_data["next_token"] = self.serialize_next_token_for_response(next_token_from_ddb)
 
     def _wheres_to_native_dynamo_expressions(
         self,
-        conditions: List[Dict[str, Any]],
-        partition_key_name: Optional[str],
-        sort_key_name: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        conditions: list[dict[str, Any]],
+        partition_key_name: str | None,
+        sort_key_name: str | None = None,
+    ) -> dict[str, Any]:
         """
         Convert 'where' conditions to DynamoDB expressions.
 
@@ -336,10 +338,10 @@ class DynamoDBPartiQLBackend(CursorBackend):
 
         This implementation is more comprehensive than the previous one.
         """
-        expression_attribute_names: Dict[str, str] = {}
-        expression_attribute_values: Dict[str, AttributeValueTypeDef] = {}
-        key_condition_parts: List[str] = []
-        filter_expression_parts: List[str] = []
+        expression_attribute_names: dict[str, str] = {}
+        expression_attribute_values: dict[str, AttributeValueTypeDef] = {}
+        key_condition_parts: list[str] = []
+        filter_expression_parts: list[str] = []
 
         name_counter = 0
         value_counter = 0
@@ -500,7 +502,7 @@ class DynamoDBPartiQLBackend(CursorBackend):
             else:
                 logger.warning(f"Skipping unsupported operator '{op}' for native DynamoDB expressions: {cond}")
 
-        result: Dict[str, Any] = {}
+        result: dict[str, Any] = {}
         if key_condition_parts:
             result["KeyConditionExpression"] = " AND ".join(key_condition_parts)
         if filter_expression_parts:
@@ -512,18 +514,18 @@ class DynamoDBPartiQLBackend(CursorBackend):
 
         return result
 
-    def count(self, configuration: Dict[str, Any], model: ClearSkiesModel) -> int:
+    def count(self, configuration: dict[str, Any], model: ClearSkiesModel) -> int:
         """Count records in DynamoDB using native Query or Scan operations."""
         configuration = self._check_query_configuration(configuration, model)
 
         table_name: str = configuration["table_name"]
-        chosen_index_name: Optional[str] = configuration.get("_chosen_index_name")
-        partition_key_for_target: Optional[str] = configuration.get("_partition_key_for_target")
+        chosen_index_name: str | None = configuration.get("_chosen_index_name")
+        partition_key_for_target: str | None = configuration.get("_partition_key_for_target")
         # Get sort key for the chosen target (base table or GSI)
-        sort_key_for_target: Optional[str] = None
+        sort_key_for_target: str | None = None
         table_description = self._get_table_description(table_name)
         if chosen_index_name:
-            gsi_definitions: List[GlobalSecondaryIndexDescriptionTypeDef] = table_description.get(
+            gsi_definitions: list[GlobalSecondaryIndexDescriptionTypeDef] = table_description.get(
                 "GlobalSecondaryIndexes", []
             )
             for gsi in gsi_definitions:
@@ -534,7 +536,7 @@ class DynamoDBPartiQLBackend(CursorBackend):
                             break
                     break
         else:
-            base_table_key_schema: List[KeySchemaElementTypeDef] = table_description.get("KeySchema", [])
+            base_table_key_schema: list[KeySchemaElementTypeDef] = table_description.get("KeySchema", [])
             for key_element in base_table_key_schema:
                 if key_element["KeyType"] == "RANGE":
                     sort_key_for_target = key_element["AttributeName"]
@@ -546,7 +548,7 @@ class DynamoDBPartiQLBackend(CursorBackend):
             wheres_config, partition_key_for_target, sort_key_for_target
         )
 
-        params_for_native_call: Dict[str, Any] = {
+        params_for_native_call: dict[str, Any] = {
             "TableName": table_name,
             "Select": "COUNT",
         }
@@ -584,7 +586,7 @@ class DynamoDBPartiQLBackend(CursorBackend):
             params_for_native_call["ExpressionAttributeValues"] = native_expressions["ExpressionAttributeValues"]
 
         total_count = 0
-        exclusive_start_key: Optional[Dict[str, AttributeValueTypeDef]] = None
+        exclusive_start_key: dict[str, AttributeValueTypeDef] | None = None
 
         while True:
             if exclusive_start_key:
@@ -610,7 +612,7 @@ class DynamoDBPartiQLBackend(CursorBackend):
 
         return total_count
 
-    def create(self, data: Dict[str, Any], model: ClearSkiesModel) -> Dict[str, Any]:
+    def create(self, data: dict[str, Any], model: ClearSkiesModel) -> dict[str, Any]:
         """Create a new record in DynamoDB using PartiQL INSERT."""
         table_name: str = self._finalize_table_name(model.get_table_name())
 
@@ -619,10 +621,10 @@ class DynamoDBPartiQLBackend(CursorBackend):
             return {}
 
         # Prepare parameters
-        parameters: List[AttributeValueTypeDef] = []
+        parameters: list[AttributeValueTypeDef] = []
 
         # Build the 'VALUE {key: ?, key: ?}' part and collect parameters
-        value_struct_parts: List[str] = []
+        value_struct_parts: list[str] = []
         for key, value in data.items():
             # Use single quotes around the key to match PartiQL documentation examples
             value_struct_parts.append(f"'{key}': ?")
@@ -642,7 +644,7 @@ class DynamoDBPartiQLBackend(CursorBackend):
             logger.error(f"Error executing INSERT PartiQL statement: {statement}, data: {data}, error: {e}")
             raise
 
-    def update(self, id_value: Any, data: Dict[str, Any], model: ClearSkiesModel) -> Dict[str, Any]:
+    def update(self, id_value: Any, data: dict[str, Any], model: ClearSkiesModel) -> dict[str, Any]:
         """Update an existing record in DynamoDB using PartiQL UPDATE."""
         table_name: str = self._finalize_table_name(model.get_table_name())
         id_column_name: str = model.id_column_name
@@ -652,8 +654,8 @@ class DynamoDBPartiQLBackend(CursorBackend):
             logger.warning(f"Update called with empty data for ID {id_value}. Returning ID only.")
             return {id_column_name: id_value}
 
-        set_clauses: List[str] = []
-        parameters: List[AttributeValueTypeDef] = []
+        set_clauses: list[str] = []
+        parameters: list[AttributeValueTypeDef] = []
         col_esc: str = self._column_escape_character()
 
         for key, value in data.items():
@@ -693,7 +695,7 @@ class DynamoDBPartiQLBackend(CursorBackend):
         id_column_name: str = model.id_column_name
         escaped_id_column: str = f"{self._column_escape_character()}{id_column_name}{self._column_escape_character()}"
 
-        parameters: List[AttributeValueTypeDef] = [self.condition_parser.to_dynamodb_attribute_value(id_value)]
+        parameters: list[AttributeValueTypeDef] = [self.condition_parser.to_dynamodb_attribute_value(id_value)]
         statement: str = f"DELETE FROM {table_name} WHERE {escaped_id_column} = ?"
 
         try:
@@ -703,7 +705,7 @@ class DynamoDBPartiQLBackend(CursorBackend):
             logger.error(f"Error executing DELETE PartiQL statement: {statement}, id: {id_value}, error: {e}")
             raise
 
-    def _map_from_boto3(self, record: Dict[str, Any]) -> Dict[str, Any]:
+    def _map_from_boto3(self, record: dict[str, Any]) -> dict[str, Any]:
         """
         Convert DynamoDB record to Python-native dictionary.
 
@@ -773,7 +775,7 @@ class DynamoDBPartiQLBackend(CursorBackend):
         logger.warning(f"Unrecognized DynamoDB attribute type: {attribute_value}")
         return attribute_value
 
-    def _check_query_configuration(self, configuration: Dict[str, Any], model: ClearSkiesModel) -> Dict[str, Any]:
+    def _check_query_configuration(self, configuration: dict[str, Any], model: ClearSkiesModel) -> dict[str, Any]:
         """
         Validate and update query configuration.
 
@@ -817,22 +819,26 @@ class DynamoDBPartiQLBackend(CursorBackend):
 
             wheres = configuration.get("wheres", [])
             sorts = configuration.get("sorts")
-            sort_column = sorts[0]["column"] if sorts and len(sorts) > 0 and sorts[0] is not None and "column" in sorts[0] else None
+            sort_column = (
+                sorts[0]["column"]
+                if sorts and len(sorts) > 0 and sorts[0] is not None and "column" in sorts[0]
+                else None
+            )
 
-            key_to_check_for_equality: Optional[str] = None
+            key_to_check_for_equality: str | None = None
             target_name_for_error_msg: str = table_name_from_config
-            chosen_index_for_query: Optional[str] = None
-            partition_key_for_chosen_target: Optional[str] = None
+            chosen_index_for_query: str | None = None
+            partition_key_for_chosen_target: str | None = None
 
-            gsi_definitions: List[GlobalSecondaryIndexDescriptionTypeDef] = table_description.get(
+            gsi_definitions: list[GlobalSecondaryIndexDescriptionTypeDef] = table_description.get(
                 "GlobalSecondaryIndexes", []
             )
             if gsi_definitions:
                 for gsi in gsi_definitions:
                     gsi_name: str = gsi["IndexName"]
-                    gsi_key_schema: List[KeySchemaElementTypeDef] = gsi["KeySchema"]
-                    gsi_partition_key: Optional[str] = None
-                    gsi_sort_key: Optional[str] = None
+                    gsi_key_schema: list[KeySchemaElementTypeDef] = gsi["KeySchema"]
+                    gsi_partition_key: str | None = None
+                    gsi_sort_key: str | None = None
 
                     for key_element in gsi_key_schema:
                         if key_element["KeyType"] == "HASH":
@@ -866,7 +872,7 @@ class DynamoDBPartiQLBackend(CursorBackend):
                             break
 
             if not chosen_index_for_query:
-                base_table_key_schema: List[KeySchemaElementTypeDef] = table_description.get("KeySchema", [])
+                base_table_key_schema: list[KeySchemaElementTypeDef] = table_description.get("KeySchema", [])
                 if base_table_key_schema:
                     for key_element in base_table_key_schema:
                         if key_element["KeyType"] == "HASH":
@@ -896,7 +902,7 @@ class DynamoDBPartiQLBackend(CursorBackend):
                         )
         return configuration
 
-    def validate_pagination_kwargs(self, kwargs: Dict[str, Any], case_mapping: Callable[[str], str]) -> str:
+    def validate_pagination_kwargs(self, kwargs: dict[str, Any], case_mapping: Callable[[str], str]) -> str:
         """Validate pagination keyword arguments."""
         extra_keys: set[str] = set(kwargs.keys()) - set(self.allowed_pagination_keys())
         key_name: str = case_mapping("next_token")
@@ -913,11 +919,11 @@ class DynamoDBPartiQLBackend(CursorBackend):
             return f"The provided '{key_name}' appears to be invalid."
         return ""
 
-    def allowed_pagination_keys(self) -> List[str]:
+    def allowed_pagination_keys(self) -> list[str]:
         """Return a list of allowed keys for pagination."""
         return ["next_token"]
 
-    def restore_next_token_from_config(self, next_token: Optional[str]) -> Optional[Any]:
+    def restore_next_token_from_config(self, next_token: str | None) -> Any | None:
         """Decode a base64 encoded JSON string (next_token) into its original form."""
         if not next_token or not isinstance(next_token, str):
             return None
@@ -929,7 +935,7 @@ class DynamoDBPartiQLBackend(CursorBackend):
             logger.warning(f"Failed to restore next_token: {next_token}")
             return None
 
-    def serialize_next_token_for_response(self, ddb_next_token: Optional[str]) -> Optional[str]:
+    def serialize_next_token_for_response(self, ddb_next_token: str | None) -> str | None:
         """Serialize a DynamoDB PartiQL NextToken string into a base64 encoded JSON string."""
         if ddb_next_token is None:
             return None
@@ -941,17 +947,17 @@ class DynamoDBPartiQLBackend(CursorBackend):
             logger.error(f"Error serializing DDB next_token: {ddb_next_token}, error: {e}")
             return None
 
-    def documentation_pagination_next_page_response(self, case_mapping: Callable[[str], str]) -> List[AutoDocString]:
+    def documentation_pagination_next_page_response(self, case_mapping: Callable[[str], str]) -> list[AutoDocString]:
         """Provide documentation for the 'next_page' (pagination token) in API responses."""
         return [AutoDocString(case_mapping("next_token"))]
 
-    def documentation_pagination_next_page_example(self, case_mapping: Callable[[str], str]) -> Dict[str, str]:
+    def documentation_pagination_next_page_example(self, case_mapping: Callable[[str], str]) -> dict[str, str]:
         """Provide an example value for the 'next_page' (pagination token) in API responses."""
         return {case_mapping("next_token"): ""}
 
     def documentation_pagination_parameters(
         self, case_mapping: Callable[[str], str]
-    ) -> List[Tuple[AutoDocString, str]]:
+    ) -> list[tuple[AutoDocString, str]]:
         """Provide documentation for pagination parameters in API requests."""
         return [
             (

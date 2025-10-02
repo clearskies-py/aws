@@ -1,9 +1,11 @@
-import clearskies
+from __future__ import annotations
 
-import clearskies_aws
+from clearskies import contexts
+
+from clearskies_aws.contexts import context
 
 
-class Cli(clearskies_aws.contexts.Context, clearskies.contexts.Cli):
+class Cli(context.Context, contexts.Cli):
     """
     Run an application via a CLI command.
 
