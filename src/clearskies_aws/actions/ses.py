@@ -1,74 +1,82 @@
+from __future__ import annotations
+
 import datetime
-from collections.abc import Sequence
-from types import ModuleType
-from typing import Any, Callable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable
 
-import boto3
 import clearskies
-from botocore.exceptions import ClientError
-from clearskies.environment import Environment
-from clearskies.models import Models
+import jinja2
+from clearskies import Model
+from clearskies.configs import Any as AnyConfig
+from clearskies.configs import Email, EmailOrEmailListOrCallable, String
+from clearskies.decorators import parameters_to_properties
+from types_boto3_ses import SESClient
 
-from ..di import StandardDependencies
-from .action_aws import ActionAws
-from .assume_role import AssumeRole
+from clearskies_aws.actions import action_aws
+
+if TYPE_CHECKING:
+    from clearskies_aws.actions import AssumeRole
 
 
-class SES(ActionAws):
-    _name = "ses"
+class SES(action_aws.ActionAws[SESClient]):
 
-    def __init__(self, environment: Environment, boto3: boto3, di: StandardDependencies) -> None:
-        """Set up the SES action."""
-        super().__init__(environment, boto3, di)
+    sender = Email(required=True)
+    to = EmailOrEmailListOrCallable(required=False)
+    cc = EmailOrEmailListOrCallable(required=False)
+    bcc = EmailOrEmailListOrCallable(required=False)
+    subject = String(required=False)
+    message = String(required=False)
+    subject_template = AnyConfig(required=False)
+    message_template = AnyConfig(required=False)
+    subject_template_file = String(required=False)
+    message_template_file = String(required=False)
+    dependencies_for_template: list[Any] = []
 
-    def configure(
+    destinations: dict[str, list[str | Callable]] = {
+        "to": [],
+        "cc": [],
+        "bcc": [],
+    }
+
+    @parameters_to_properties
+    def __init__(
         self,
-        sender,
-        to: Optional[Union[list, str, Callable]] = None,
-        cc: Optional[Union[list, str, Callable]] = None,
-        bcc: Optional[Union[list, str, Callable]] = None,
-        subject: Optional[str] = None,
-        message: Optional[str] = None,
-        subject_template: Optional[str] = None,
-        message_template: Optional[str] = None,
-        subject_template_file: Optional[str] = None,
-        message_template_file: Optional[str] = None,
-        assume_role: Optional[AssumeRole] = None,
-        dependencies_for_template: Optional[list[Any]] = None,
-        when: Optional[Callable] = None,
+        sender: str,
+        to: list | str | Callable | None = None,
+        cc: list | str | Callable | None = None,
+        bcc: list | str | Callable | None = None,
+        subject: str | None = None,
+        message: str | None = None,
+        subject_template: jinja2.Template | None = None,
+        message_template: jinja2.Template | None = None,
+        subject_template_file: str | None = None,
+        message_template_file: str | None = None,
+        assume_role: AssumeRole | None = None,
+        dependencies_for_template: list[Any] = [],
+        when: Callable | None = None,
     ) -> None:
         """Configure the rules for this email notification."""
-        super().configure(message_callable=None, when=when, assume_role=assume_role)
-        self.destinations = {
-            "to": [],
-            "cc": [],
-            "bcc": [],
-        }
+        super().__init__(service_name="ses", assume_role=assume_role, when=when)
+
+    def configure(self):
         # this just moves the data from the various "to" inputs (to, cc, bcc) into the self.destinations
         # dictionary, after normalizing it so that it is always a list.
+        if not self.to and not self.cc and not self.bcc:
+            raise ValueError("You must configure at least one 'to' address or one 'cc' address or one 'bcc' address")
+
         for key in self.destinations.keys():
-            destination_values = locals()[key]
+            destination_values = getattr(self, key, None)
             if not destination_values:
                 continue
             if type(destination_values) == str or callable(destination_values):
                 self.destinations[key] = [destination_values]
             else:
                 self.destinations[key] = destination_values
-        self.subject = subject
-        self.message = message
-        self.sender = sender
-        self.subject_template = None
-        self.message_template = None
-        self.dependencies_for_template = dependencies_for_template if dependencies_for_template else []
-
-        if not to and not cc:
-            raise ValueError("You must configure at least one 'to' address or one 'cc' address")
         num_subjects = 0
         num_messages = 0
-        for source in [subject, subject_template, subject_template_file]:
+        for source in [self.subject, self.subject_template, self.subject_template_file]:
             if source:
                 num_subjects += 1
-        for source in [message, message_template, message_template_file]:
+        for source in [self.message, self.message_template, self.message_template_file]:
             if source:
                 num_messages += 1
         if num_subjects > 1:
@@ -80,27 +88,21 @@ class SES(ActionAws):
                 "More than one of 'message', 'message_template', or 'message_template_file' was set, but only one of these may be set."
             )
 
-        if subject_template_file:
-            import jinja2
-
-            with open(subject_template_file, "r", encoding="utf-8") as template:
+        if self.subject_template_file:
+            with open(self.subject_template_file, "r", encoding="utf-8") as template:
                 self.subject_template = jinja2.Template(template.read())
-        elif subject_template:
-            import jinja2
+        elif self.subject_template:
+            self.subject_template = jinja2.Template(self.subject_template)
 
-            self.subject_template = jinja2.Template(subject_template)
+        if self.message_template_file:
 
-        if message_template_file:
-            import jinja2
-
-            with open(message_template_file, "r", encoding="utf-8") as template:
+            with open(self.message_template_file, "r", encoding="utf-8") as template:
                 self.message_template = jinja2.Template(template.read())
-        elif message_template:
-            import jinja2
+        elif self.message_template:
+            self.message_template = jinja2.Template(self.message_template)
+        self.finalize_and_validate_configuration(self)
 
-            self.message_template = jinja2.Template(message_template)
-
-    def _execute_action(self, client: ModuleType, model: Models) -> None:
+    def _execute_action(self, client: SESClient, model: Model) -> None:
         """Send a notification as configured."""
         utcnow = self.di.build("utcnow")
 
@@ -129,7 +131,7 @@ class SES(ActionAws):
             Source=self.sender,
         )
 
-    def _resolve_destination(self, name: str, model: clearskies.Model) -> List[str]:
+    def _resolve_destination(self, name: str, model: clearskies.Model) -> list[str]:
         """
         Return a list of to/cc/bcc addresses.
 
@@ -159,7 +161,7 @@ class SES(ActionAws):
             if "@" in destination:
                 resolved.append(destination)
                 continue
-            resolved.append(model.get(destination))
+            resolved.append(getattr(model, destination))
         return resolved
 
     def _resolve_message_as_html(self, model: clearskies.Model, now: datetime.datetime) -> str:

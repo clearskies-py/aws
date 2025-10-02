@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any, Callable
 
 import clearskies.backends.backend
@@ -6,7 +8,7 @@ import clearskies.query
 from clearskies.autodoc.schema import Schema as AutoDocSchema
 
 
-class DummyBackend(clearskies.backends.backend.Backend):
+class Backend(clearskies.backends.backend.Backend):
     """
     Connect models to their data since 2020.
 

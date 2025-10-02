@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 import json
 
 import botocore
 import clearskies
-from clearskies.handlers.base import Base
-from clearskies.handlers.exceptions import ClientError
+from clearskies import Endpoint, Schema
+from clearskies.exceptions import ClientError
 
 
-class SecretsManagerRotation(Base, clearskies.handlers.SchemaHelper):
+class SecretsManagerRotation(Endpoint, Schema):
     _steps = ["createSecret", "setSecret", "testSecret", "finishSecret"]
 
     current = "AWSCURRENT"

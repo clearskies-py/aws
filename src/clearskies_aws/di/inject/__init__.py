@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from clearskies_aws.di.inject.boto3 import Boto3
 from clearskies_aws.di.inject.boto3_session import Boto3Session
 

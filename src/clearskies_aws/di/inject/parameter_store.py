@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from clearskies.di.injectable import Injectable
 
 from clearskies_aws.secrets.parameter_store import (
@@ -12,4 +14,4 @@ class ParameterStore(Injectable):
     def __get__(self, instance, parent) -> ParameterStoreDependency:
         if instance is None:
             return self  # type: ignore
-        return self._di.build_from_name("parameter_store", cache=self.cache)
+        return self._di.build_from_class(ParameterStoreDependency, cache=self.cache)

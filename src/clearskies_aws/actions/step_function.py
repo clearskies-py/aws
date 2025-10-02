@@ -1,11 +1,14 @@
+from __future__ import annotations
+
 from types import ModuleType
-from typing import Callable, List, Optional, cast
+from typing import Callable, cast
 
 import boto3
+from clearskies import Model
 from clearskies.environment import Environment
-from clearskies.models import Models
 
-from ..di import StandardDependencies
+from clearskies_aws.di import Di
+
 from .action_aws import ActionAws
 from .assume_role import AssumeRole
 
@@ -13,18 +16,18 @@ from .assume_role import AssumeRole
 class StepFunction(ActionAws):
     _name = "stepfunctions"
 
-    def __init__(self, environment: Environment, boto3: boto3, di: StandardDependencies) -> None:
+    def __init__(self, environment: Environment, boto3: boto3, di: Di) -> None:
         super().__init__(environment, boto3, di)
 
     def configure(
         self,
-        arn: Optional[str] = None,
-        arn_environment_key: Optional[str] = None,
-        arn_callable: Optional[Callable] = None,
-        column_to_store_execution_arn: Optional[str] = None,
-        message_callable: Optional[Callable] = None,
-        when: Optional[Callable] = None,
-        assume_role: Optional[AssumeRole] = None,
+        arn: str | None = None,
+        arn_environment_key: str | None = None,
+        arn_callable: Callable | None = None,
+        column_to_store_execution_arn: str | None = None,
+        message_callable: Callable | None = None,
+        when: Callable | None = None,
+        assume_role: AssumeRole | None = None,
     ) -> None:
         """Configure the Step Function action."""
         super().configure(message_callable=message_callable, when=when, assume_role=assume_role)
@@ -45,7 +48,7 @@ class StepFunction(ActionAws):
         if not arns:
             raise ValueError("You must provide at least one of 'arn', 'arn_environment_key', or 'arn_callable'.")
 
-    def _execute_action(self, client: ModuleType, model: Models) -> None:
+    def _execute_action(self, client: ModuleType, model: Model) -> None:
         """Send a notification as configured."""
         arn = self.get_arn(model)
         default_region = self.default_region()
@@ -60,7 +63,7 @@ class StepFunction(ActionAws):
         if self.column_to_store_execution_arn:
             model.save({self.column_to_store_execution_arn: response["executionArn"]})
 
-    def get_arn(self, model: Models) -> str:
+    def get_arn(self, model: Model) -> str:
         if self.arn:
             return self.arn
         if self.arn_environment_key:
