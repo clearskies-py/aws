@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from __future__ import annotations
-
-from clearskies.di.inject import Environment
+from clearskies.di.inject import Di, Environment
 from clearskies.secrets import Secrets as BaseSecrets
 
 from clearskies_aws.di import inject
 
 
 class Secrets(BaseSecrets):
+    di = Di()
     boto3 = inject.Boto3()
     environment = Environment()
 

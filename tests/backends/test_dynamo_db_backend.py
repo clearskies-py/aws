@@ -8,8 +8,7 @@ from unittest.mock import MagicMock
 
 import clearskies
 from boto3.dynamodb import conditions as dynamodb_conditions
-
-from clearskies_aws.di import Di
+from clearskies.di import Di
 
 
 class User(clearskies.Model):

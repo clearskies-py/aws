@@ -7,9 +7,9 @@ from unittest.mock import MagicMock, call
 
 import boto3
 import clearskies
+from clearskies.di import Di
 
 from clearskies_aws.actions.sns import SNS
-from clearskies_aws.di import Di
 
 
 class User(clearskies.Model):

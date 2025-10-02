@@ -4,9 +4,9 @@ import unittest
 from unittest.mock import MagicMock, call
 
 import clearskies
+from clearskies.di import Di
 
 from clearskies_aws.actions.ses import SES
-from clearskies_aws.di import Di
 
 
 class SESTest(unittest.TestCase):
