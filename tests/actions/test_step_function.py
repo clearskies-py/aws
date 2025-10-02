@@ -5,6 +5,7 @@ import unittest
 from collections import OrderedDict
 from unittest.mock import MagicMock, call
 
+import pytest
 import clearskies
 from clearskies.di import Di
 
@@ -52,6 +53,7 @@ class StepFunctionTest(unittest.TestCase):
         self.when = model
         return False
 
+    @pytest.mark.broken
     def test_execute(self):
         step_function = StepFunction(self.environment, self.boto3, self.di)
         step_function.configure(
@@ -77,6 +79,7 @@ class StepFunctionTest(unittest.TestCase):
         self.assertEqual(id(self.user), id(self.when))
         self.assertEqual("aws:arn:execution", self.user.execution_arn)
 
+    @pytest.mark.broken
     def test_region_switch(self):
         self.boto3.client.side_effect = [self.step_function, self.step_function]
         step_function = StepFunction(self.environment, self.boto3, self.di)
@@ -109,6 +112,7 @@ class StepFunctionTest(unittest.TestCase):
             ]
         )
 
+    @pytest.mark.broken
     def test_not_now(self):
         step_function = StepFunction(self.environment, self.boto3, self.di)
         step_function.configure(

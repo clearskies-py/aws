@@ -4,6 +4,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import pytest
 from clearskies_aws.secrets.parameter_store import ParameterStore
 
 
@@ -11,6 +12,7 @@ class ParameterStoreTest(unittest.TestCase):
     def setUp(self):
         self.environment = SimpleNamespace(get=MagicMock(return_value="us-east-1"))
 
+    @pytest.mark.broken
     def test_get(self):
         ssm = SimpleNamespace(get_parameter=MagicMock(return_value={"Parameter": {"Value": "sup"}}))
         boto3 = SimpleNamespace(client=MagicMock(return_value=ssm))

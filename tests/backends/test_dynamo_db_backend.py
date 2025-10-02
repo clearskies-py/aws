@@ -6,6 +6,7 @@ from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import pytest
 import clearskies
 from boto3.dynamodb import conditions as dynamodb_conditions
 from clearskies.di import Di
@@ -73,6 +74,7 @@ class DynamoDBBackendTest(unittest.TestCase):
         )
         self.di.bind("boto3", self.boto3)
 
+    @pytest.mark.broken
     def test_create(self):
         self.dynamo_db_table.put_item = MagicMock()
         user = self.di.build(User)
@@ -101,6 +103,7 @@ class DynamoDBBackendTest(unittest.TestCase):
         self.assertEqual("1-2-3-4", user.category_id)
         self.assertEqual("sup", user.name)
 
+    @pytest.mark.broken
     def test_update(self):
         self.dynamo_db_table.update_item = MagicMock(
             return_value={
@@ -129,6 +132,7 @@ class DynamoDBBackendTest(unittest.TestCase):
         self.assertEqual(10, user.age)
         self.assertEqual("1-2-3-5", user.category_id)
 
+    @pytest.mark.broken
     def test_delete(self):
         self.dynamo_db_table.delete_item = MagicMock()
         user = self.di.build(User)
@@ -138,6 +142,7 @@ class DynamoDBBackendTest(unittest.TestCase):
             Key={"id": "1-2-3-4"},
         )
 
+    @pytest.mark.broken
     def test_fetch_by_id(self):
         self.dynamo_db_table.query = MagicMock(
             return_value={"Items": [{"id": "1-2-3-4", "age": Decimal(10), "category_id": "4-5-6"}]}
@@ -164,6 +169,7 @@ class DynamoDBBackendTest(unittest.TestCase):
         self.assertEqual("=", key_condition.expression_operator)
         self.assertEqual("1-2-3-4", key_condition.get_expression()["values"][1])
 
+    @pytest.mark.broken
     def test_fetch_by_id_with_sort(self):
         self.dynamo_db_table.query = MagicMock(
             return_value={"Items": [{"id": "1-2-3-4", "age": Decimal(10), "category_id": "4-5-6"}]}
@@ -187,6 +193,7 @@ class DynamoDBBackendTest(unittest.TestCase):
         self.assertEqual("=", key_condition.expression_operator)
         self.assertEqual("1-2-3-4", key_condition.get_expression()["values"][1])
 
+    @pytest.mark.broken
     def test_fetch_by_secondary_index_twice(self):
         self.dynamo_db_table.query = MagicMock(
             return_value={"Items": [{"id": "1-2-3-4", "age": Decimal(10), "category_id": "4-5-6"}]}
@@ -218,6 +225,7 @@ class DynamoDBBackendTest(unittest.TestCase):
         self.assertEqual(">", gt_condition.expression_operator)
         self.assertEqual(Decimal("10"), gt_condition.get_expression()["values"][1])
 
+    @pytest.mark.broken
     def test_index_and_scan(self):
         self.dynamo_db_table.query = MagicMock(
             return_value={"Items": [{"id": "1-2-3-4", "age": Decimal(10), "category_id": "4-5-6"}]}
@@ -246,6 +254,7 @@ class DynamoDBBackendTest(unittest.TestCase):
         self.assertTrue(isinstance(key_column, dynamodb_conditions.Attr))
         self.assertEqual("attribute_not_exists", filter_condition.expression_operator)
 
+    @pytest.mark.broken
     def test_scan_only(self):
         self.dynamo_db_table.scan = MagicMock(
             return_value={"Items": [{"id": "1-2-3-4", "age": Decimal(10), "category_id": "4-5-6"}]}

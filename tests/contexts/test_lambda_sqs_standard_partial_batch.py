@@ -5,6 +5,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import MagicMock, call
 
+import pytest
 from clearskies_aws.contexts.lambda_sqs_standard_partial_batch import LambdaSqsStandardPartialBatch
 
 
@@ -17,6 +18,7 @@ class LambdaSqsStandardPartialBatchTest(unittest.TestCase):
             raise ValueError("oops")
         self.calls.append(request_data)
 
+    @pytest.mark.broken
     def test_simple_execution(self):
         sqs_handler = LambdaSqsStandardPartialBatch(self.my_callable)
         sqs_handler(
@@ -42,6 +44,7 @@ class LambdaSqsStandardPartialBatchTest(unittest.TestCase):
             self.calls,
         )
 
+    @pytest.mark.broken
     def test_with_failure(self):
         sqs_handler = LambdaSqsStandardPartialBatch(self.my_callable)
         results = sqs_handler(

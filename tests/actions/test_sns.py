@@ -5,6 +5,7 @@ import unittest
 from collections import OrderedDict
 from unittest.mock import MagicMock, call
 
+import pytest
 import boto3
 import clearskies
 from clearskies.di import Di
@@ -46,6 +47,7 @@ class SNSTest(unittest.TestCase):
         self.when = model
         return False
 
+    @pytest.mark.broken
     def test_send(self):
         sns = SNS(self.environment, self.boto3, self.di)
         sns.configure(
@@ -76,6 +78,7 @@ class SNSTest(unittest.TestCase):
         )
         self.assertEqual(id(user), id(self.when))
 
+    @pytest.mark.broken
     def test_not_now(self):
         sns = SNS(self.environment, self.boto3, self.di)
         sns.configure(

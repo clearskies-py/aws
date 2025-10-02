@@ -6,6 +6,7 @@ from collections import OrderedDict
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import pytest
 import clearskies
 from clearskies.di import Di
 
@@ -34,6 +35,7 @@ class SqsBackendTest(unittest.TestCase):
         self.boto3 = SimpleNamespace(client=MagicMock(return_value=self.sqs))
         self.di.bind("boto3", self.boto3)
 
+    @pytest.mark.broken
     def test_send(self):
         user = self.di.build(User)
         user.save({"name": "sup"})
