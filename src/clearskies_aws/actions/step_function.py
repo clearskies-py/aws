@@ -7,8 +7,6 @@ import boto3
 from clearskies import Model
 from clearskies.environment import Environment
 
-from clearskies_aws.di import Di
-
 from .action_aws import ActionAws
 from .assume_role import AssumeRole
 
@@ -16,7 +14,7 @@ from .assume_role import AssumeRole
 class StepFunction(ActionAws):
     _name = "stepfunctions"
 
-    def __init__(self, environment: Environment, boto3: boto3, di: Di) -> None:
+    def __init__(self, environment: Environment, boto3: boto3, di) -> None:
         super().__init__(environment, boto3, di)
 
     def configure(

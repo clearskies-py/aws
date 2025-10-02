@@ -7,9 +7,9 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import clearskies
+from clearskies.di import Di
 
 from clearskies_aws.backends.sqs_backend import SqsBackend
-from clearskies_aws.di import Di
 
 
 class User(clearskies.Model):

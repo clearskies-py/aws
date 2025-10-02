@@ -4,7 +4,6 @@ from botocore.exceptions import ClientError
 from clearskies.secrets.exceptions.not_found import NotFound
 from types_boto3_ssm import SSMClient
 
-from clearskies_aws.di import inject
 from clearskies_aws.secrets import secrets
 
 

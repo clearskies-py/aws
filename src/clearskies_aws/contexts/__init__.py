@@ -14,7 +14,6 @@ from clearskies_aws.contexts.lambda_sns import LambdaSns
 from clearskies_aws.contexts.lambda_sqs_standard_partial_batch import (
     LambdaSqsStandardPartialBatch,
 )
-from clearskies_aws.contexts.wsgi import Wsgi
 
 __all__ = [
     "Cli",
@@ -27,5 +26,4 @@ __all__ = [
     "LambdaInvocation",
     "LambdaSns",
     "LambdaSqsStandardPartialBatch",
-    "Wsgi",
 ]

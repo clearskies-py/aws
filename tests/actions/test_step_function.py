@@ -6,9 +6,9 @@ from collections import OrderedDict
 from unittest.mock import MagicMock, call
 
 import clearskies
+from clearskies.di import Di
 
 from clearskies_aws.actions.step_function import StepFunction
-from clearskies_aws.di import Di
 
 
 class User(clearskies.Model):

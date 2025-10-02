@@ -11,7 +11,6 @@ from clearskies import Model
 from clearskies.decorators import parameters_to_properties
 from clearskies.environment import Environment
 
-from ..di import Di
 from .action_aws import ActionAws
 from .assume_role import AssumeRole
 
