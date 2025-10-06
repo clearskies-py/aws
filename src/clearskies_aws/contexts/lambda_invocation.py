@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from clearskies.authentication import Public
+from clearskies.contexts.context import Context
 
-from clearskies_aws.contexts.context import Context
 from clearskies_aws.input_outputs import LambdaInvocation as LambdaInvocationInputOutput
 
 

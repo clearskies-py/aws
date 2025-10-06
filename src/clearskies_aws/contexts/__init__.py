@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from clearskies_aws.contexts.cli import Cli
 from clearskies_aws.contexts.cli_web_socket_mock import CLIWebSocketMock
-from clearskies_aws.contexts.context import Context
 from clearskies_aws.contexts.lambda_alb import LambdaALB
 from clearskies_aws.contexts.lambda_api_gateway import LambdaAPIGateway
 from clearskies_aws.contexts.lambda_api_gateway_web_socket import (

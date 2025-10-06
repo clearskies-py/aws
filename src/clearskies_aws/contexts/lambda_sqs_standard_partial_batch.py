@@ -3,8 +3,8 @@ from __future__ import annotations
 import traceback
 
 from clearskies.authentication import Public
+from clearskies.contexts.context import Context
 
-from clearskies_aws.contexts.context import Context
 from clearskies_aws.input_outputs import LambdaSqsStandard as LambdaSqsStandardInputOutput
 
 
