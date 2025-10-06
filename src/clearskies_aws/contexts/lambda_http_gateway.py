@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from clearskies_aws.contexts.context import Context
+from clearskies.contexts.context import Context
+
 from clearskies_aws.input_outputs import LambdaHTTPGateway as LambdaHTTPGatewayInputOutput
 
 

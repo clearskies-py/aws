@@ -11,11 +11,11 @@ from clearskies_aws.secrets import secrets
 
 
 class SecretsManager(secrets.Secrets):
-    _secrets_manager: SecretsManagerClient
+    secrets_manager: SecretsManagerClient
 
     def __init__(self):
         super().__init__()
-        self._secrets_manager = self.boto3.client("secretsmanager", region_name=self.environment.get("AWS_REGION"))
+        self.secrets_manager = self.boto3.client("secretsmanager", region_name=self.environment.get("AWS_REGION"))
 
     def create(self, secret_id: str, value: Any, kms_key_id: str | None = None) -> bool:
         calling_parameters = {
@@ -24,7 +24,7 @@ class SecretsManager(secrets.Secrets):
             "KmsKeyId": kms_key_id,
         }
         calling_parameters = {key: value for (key, value) in calling_parameters.items() if value}
-        result = self._secrets_manager.create_secret(**calling_parameters)
+        result = self.secrets_manager.create_secret(**calling_parameters)
         return bool(result.get("ARN"))
 
     def get(  # type: ignore[override]
@@ -43,7 +43,7 @@ class SecretsManager(secrets.Secrets):
             calling_parameters["VersionStage"] = version_stage
 
         try:
-            result = self._secrets_manager.get_secret_value(**calling_parameters)
+            result = self.secrets_manager.get_secret_value(**calling_parameters)
         except ClientError as e:
             error = e.response.get("Error", {})
             if error.get("Code") == "ResourceNotFoundException":
@@ -58,7 +58,7 @@ class SecretsManager(secrets.Secrets):
         return result.get("SecretBinary")
 
     def list_secrets(self, path: str) -> list[SecretListEntryTypeDef]:  # type: ignore[override]
-        results = self._secrets_manager.list_secrets(
+        results = self.secrets_manager.list_secrets(
             Filters=[
                 {
                     "Key": "name",
@@ -77,7 +77,7 @@ class SecretsManager(secrets.Secrets):
             # If no KMS key is provided, we should not include it in the parameters
             calling_parameters["KmsKeyId"] = kms_key_id
 
-        result = self._secrets_manager.update_secret(**calling_parameters)
+        result = self.secrets_manager.update_secret(**calling_parameters)
         return bool(result.get("ARN"))
 
     def upsert(self, secret_id: str, value: str, kms_key_id: str | None = None) -> bool:  # type: ignore[override]
@@ -89,7 +89,7 @@ class SecretsManager(secrets.Secrets):
             # If no KMS key is provided, we should not include it in the parameters
             calling_parameters["KmsKeyId"] = kms_key_id
 
-        result = self._secrets_manager.put_secret_value(**calling_parameters)
+        result = self.secrets_manager.put_secret_value(**calling_parameters)
         return bool(result.get("ARN"))
 
     def list_sub_folders(self, path: str, value: str) -> list[str]:  # type: ignore[override]

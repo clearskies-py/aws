@@ -14,23 +14,10 @@ class SecretsManagerTest(unittest.TestCase):
     def setUp(self):
         secretsmanager = SimpleNamespace(get_secret_value=MagicMock(return_value={"SecretString": "sup"}))
         self.boto3 = SimpleNamespace(client=MagicMock(return_value=secretsmanager))
+        self.botocore = SimpleNamespace(client=SimpleNamespace(ClientError=Exception))
         self.environment = SimpleNamespace(get=MagicMock(return_value="us-east-1"))
 
-    @pytest.mark.broken
     def test_get(self):
-
-        def get_environment(key):
-            if key == "AWS_REGION":
-                return "us-east-1"
-            raise KeyError("Oops")
-
-        def get_boto3_secrets_manager(key):
-            if key == "/my/item":
-                return {"SecretString": "sup"}
-            raise KeyError("Oops")
-
-        boto3 = SimpleNamespace(client=MagicMock(return_value=get_boto3_secrets_manager))
-
         def test_secrets_manager(secrets_manager: SecretsManager):
             secrets_manager.get("/my/item")
             return secrets_manager
@@ -38,6 +25,6 @@ class SecretsManagerTest(unittest.TestCase):
         context = clearskies.contexts.Context(
             clearskies.endpoints.Callable(test_secrets_manager),
             classes=[SecretsManager],
-            bindings={"boto3": boto3, "environment": get_environment},
+            bindings={"boto3": self.boto3, "environment": self.environment},
         )
         (status_code, response_data, response_headers) = context()
