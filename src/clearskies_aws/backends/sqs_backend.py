@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Callable
+from typing import Any
 
-from clearskies import model
-from clearskies.backends.backend import Backend
+from clearskies import query
+from types_boto3_sqs import SQSClient
+
+from clearskies_aws.backends import backend
 
 
-class SqsBackend(Backend):
+class SqsBackend(backend.Backend):
     """
     SQS backend for clearskies.
 
@@ -22,33 +24,19 @@ class SqsBackend(Backend):
     See the SQS context in this library for processing your queue data.
     """
 
-    _boto3 = None
-    _environment = None
-    _sqs = None
+    sqs: SQSClient
 
-    _allowed_configs = [
-        "table_name",
-        "model_columns",
-    ]
+    def __init__(self):
+        super().__init__()
 
-    _required_configs = [
-        "table_name",
-    ]
-
-    def __init__(self, boto3, environment):
-        self._boto3 = boto3
-        self._environment = environment
-        if not environment.get("AWS_REGION", True):
+        if not self.environment.get("AWS_REGION", True):
             raise ValueError("To use SQS you must use set AWS_REGION in the .env file or an environment variable")
 
-        self._sqs = self._boto3.client("sqs", region_name=environment.get("AWS_REGION", True))
-
-    def configure(self):
-        pass
+        self.sqs = self.boto3.client("sqs", region_name=self.environment.get("AWS_REGION", True))
 
     def create(self, data, model):
-        self._sqs.send_message(
-            QueueUrl=model.table_name(),
+        self.sqs.send_message(
+            QueueUrl=model.destination_name(),
             MessageBody=json.dumps(data),
         )
         return {**data}
@@ -63,22 +51,8 @@ class SqsBackend(Backend):
         raise ValueError("The SQS backend only supports the create operation")
 
     def records(
-        self, configuration: dict[str, Any], model: model.Model, next_page_data: dict[str, str] = None
+        self,
+        query: query.Query,
+        next_page_data: dict[str, str | int] | None = None,
     ) -> list[dict[str, Any]]:
         raise ValueError("The SQS backend only supports the create operation")
-        return []
-
-    def validate_pagination_kwargs(self, kwargs: dict[str, Any], case_mapping: Callable) -> str:
-        return ""
-
-    def allowed_pagination_keys(self) -> list[str]:
-        return []
-
-    def documentation_pagination_next_page_response(self, case_mapping: Callable) -> list[Any]:
-        return []
-
-    def documentation_pagination_next_page_example(self, case_mapping: Callable) -> dict[str, Any]:
-        return {}
-
-    def documentation_pagination_parameters(self, case_mapping: Callable) -> list[tuple[Any]]:
-        return []

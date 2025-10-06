@@ -9,15 +9,15 @@ import clearskies
 from boto3.dynamodb import conditions as dynamodb_conditions
 from clearskies import model
 from clearskies.autodoc.schema import String as AutoDocString
-from clearskies.backends.backend import Backend
 from clearskies.columns.boolean import Boolean
 from clearskies.columns.float import Float
 from clearskies.columns.integer import Integer
+from types_boto3_dynamodb import DynamoDBServiceResource
 
-import clearskies_aws
+from clearskies_aws.backends import backend
 
 
-class DynamoDBBackend(Backend):
+class DynamoDBBackend(backend.Backend):
     """
     DynamoDB is complicated.
 
@@ -75,11 +75,7 @@ class DynamoDBBackend(Backend):
     Any other filter/sort options will become unreliable as soon as the table grows past the maximum result size.
     """
 
-    boto3 = clearskies_aws.di.inject.Boto3()
-
-    environment = clearskies.di.inject.Environment()
-
-    _dynamodb = None
+    dynamodb: DynamoDBServiceResource
 
     _allowed_configs = [
         "table_name",
@@ -127,7 +123,7 @@ class DynamoDBBackend(Backend):
         if not self.environment.get("AWS_REGION", True):
             raise ValueError("To use DynamoDB you must use set AWS_REGION in the .env file or an environment variable")
 
-        self._dynamodb = self.boto3.resource("dynamodb", region_name=self.environment.get("AWS_REGION", True))
+        self.dynamodb = self.boto3.resource("dynamodb", region_name=self.environment.get("AWS_REGION", True))
         self._table_indexes = {}
         self._model_columns_cache = {}
 
@@ -140,12 +136,12 @@ class DynamoDBBackend(Backend):
         # when we run an update column we must include the sort column on the primary
         # index (if it exists)
         sort_column_name = self._find_primary_sort_column(model)
-        key = {model.id_column_name: model.__getattr__(model.id_column_name)}
+        key = {model.id_column_name: model.get_columns()[model.id_column_name]}
         if sort_column_name:
             key[sort_column_name] = data.get(
-                sort_column_name, model.columns()[sort_column_name].to_backend(model._data)
+                sort_column_name, model.get_columns()[sort_column_name].to_backend(model._data)
             )
-        table = self._dynamodb.Table(model.table_name())
+        table = self.dynamodb.Table(model.destination_name())
 
         data = self.excessive_type_casting(data)
 
@@ -163,7 +159,7 @@ class DynamoDBBackend(Backend):
         return self._map_from_boto3(updated["Attributes"])
 
     def create(self, data, model):
-        table = self._dynamodb.Table(model.table_name())
+        table = self.dynamodb.Table(model.destination_name())
         table.put_item(Item=data)
         return {**data}
 
@@ -174,18 +170,18 @@ class DynamoDBBackend(Backend):
         return data
 
     def delete(self, id, model):
-        table = self._dynamodb.Table(model.table_name())
+        table = self.dynamodb.Table(model.table_name())
         table.delete_item(Key={model.id_column_name: model.__getattr__(model.id_column_name)})
         return True
 
     def count(self, configuration, model):
-        response = self._dynamodb_query(configuration, model, "COUNT")
+        response = self.dynamodb_query(configuration, model, "COUNT")
         return response["Count"]
 
     def records(
         self, configuration: dict[str, Any], model: model.Model, next_page_data: dict[str, str] = None
     ) -> list[dict[str, Any]]:
-        response = self._dynamodb_query(configuration, model, "ALL_ATTRIBUTES")
+        response = self.dynamodb_query(configuration, model, "ALL_ATTRIBUTES")
         if "LastEvaluatedKey" in response and response["LastEvaluatedKey"] is not None and type(next_page_data) == dict:
             next_page_data["next_token"] = self.serialize_next_token_for_response(
                 self._map_from_boto3(response["LastEvaluatedKey"])
@@ -196,7 +192,7 @@ class DynamoDBBackend(Backend):
         [filter_expression, key_condition_expression, index_name, scan_index_forward] = (
             self._create_dynamodb_query_parameters(configuration, model)
         )
-        table = self._dynamodb.Table(model.table_name())
+        table = self.dynamodb.Table(model.table_name())
 
         # so we want to put together the kwargs for scan/query:
         kwargs = {
@@ -484,7 +480,7 @@ class DynamoDBBackend(Backend):
         # and then is further subdivided for columns that have RANGE/Sort attributes, giving you
         # the index name for that HASH+RANGE combination.
         table_indexes = {}
-        table = self._dynamodb.Table(model.table_name())
+        table = self.dynamodb.Table(model.table_name())
         schemas = []
         # the primary index for the table doesn't have a name, and it will be used by default
         # if we don't specify an index name. Therefore, we just pass around None for it's name
