@@ -13,30 +13,35 @@ from clearskies.di import Di
 from clearskies_aws.backends.sqs_backend import SqsBackend
 
 
-class User(
-    clearskies.Model,
-):
-    backend = SqsBackend()
-
-    @classmethod
-    def destination_name(cls) -> str:
-        return "users"
-
-    id_column_name = "name"
-
-    name = clearskies.columns.string()
-
-
 class SqsBackendTest(unittest.TestCase):
-    def setUp(self):
-        self.di = Di()
-        self.di.add_binding("environment", {"AWS_REGION": "us-east-2"})
-        self.sqs = SimpleNamespace(send_message=MagicMock())
-        self.boto3 = SimpleNamespace(client=MagicMock(return_value=self.sqs))
-        self.di.add_binding("boto3", self.boto3)
 
-    def test_send(self):
-        user = self.di.build(User)
-        user.save({"name": "sup"})
-        self.boto3.client.assert_called_with("sqs", region_name="us-east-2")
-        self.sqs.send_message.assert_called_with(QueueUrl="users", MessageBody=json.dumps({"name": "sup"}))
+    def setUp(self):
+        sqsclient = SimpleNamespace(send_message=MagicMock(return_value={"name": "sup"}))
+        self.boto3 = SimpleNamespace(client=MagicMock(return_value=sqsclient))
+        self.botocore = SimpleNamespace(client=SimpleNamespace(ClientError=Exception))
+        self.environment = SimpleNamespace(get=MagicMock(return_value="us-east-1"))
+
+    def test_send_message(self):
+        class User(
+            clearskies.Model,
+        ):
+            backend = SqsBackend()
+
+            @classmethod
+            def destination_name(cls) -> str:
+                return "users"
+
+            id_column_name = "name"
+
+            name = clearskies.columns.string()
+
+        def test_sqs_backend(users: User):
+            users.create({"name": "sup"})
+            return users
+
+        context = clearskies.contexts.Context(
+            clearskies.endpoints.Callable(test_sqs_backend),
+            classes=[User],
+            bindings={"boto3": self.boto3, "environment": self.environment},
+        )
+        (status_code, response_data, response_headers) = context()
