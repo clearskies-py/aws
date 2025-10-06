@@ -6,36 +6,35 @@ from collections import OrderedDict
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-import pytest
 import clearskies
+import pytest
 from clearskies.di import Di
 
 from clearskies_aws.backends.sqs_backend import SqsBackend
 
 
-class User(clearskies.Model):
-    def __init__(self, sqs_backend: SqsBackend, columns):
-        super().__init__(sqs_backend, columns)
+class User(
+    clearskies.Model,
+):
+    backend = SqsBackend()
+
+    @classmethod
+    def destination_name(cls) -> str:
+        return "users"
 
     id_column_name = "name"
 
-    def columns_configuration(self):
-        return OrderedDict(
-            [
-                clearskies.column_types.string("name"),
-            ]
-        )
+    name = clearskies.columns.string()
 
 
 class SqsBackendTest(unittest.TestCase):
     def setUp(self):
         self.di = Di()
-        self.di.bind("environment", {"AWS_REGION": "us-east-2"})
+        self.di.add_binding("environment", {"AWS_REGION": "us-east-2"})
         self.sqs = SimpleNamespace(send_message=MagicMock())
         self.boto3 = SimpleNamespace(client=MagicMock(return_value=self.sqs))
-        self.di.bind("boto3", self.boto3)
+        self.di.add_binding("boto3", self.boto3)
 
-    @pytest.mark.broken
     def test_send(self):
         user = self.di.build(User)
         user.save({"name": "sup"})

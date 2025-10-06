@@ -221,9 +221,7 @@ class DynamoDBPartiQLBackend(CursorBackend):
             return "", []
         return " WHERE " + " AND ".join(where_parts), parameters
 
-    def as_sql(
-        self, configuration: dict[str, Any]
-    ) -> tuple[str, list[AttributeValueTypeDef], int | None, str | None]:
+    def as_sql(self, configuration: dict[str, Any]) -> tuple[str, list[AttributeValueTypeDef], int | None, str | None]:
         """Construct a PartiQL statement and parameters from a query configuration."""
         escape: str = self._column_escape_character()
         table_name: str = configuration.get("table_name", "")

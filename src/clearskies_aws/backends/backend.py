@@ -2,13 +2,16 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-import clearskies.backends.backend
+import clearskies
 import clearskies.model
 import clearskies.query
 from clearskies.autodoc.schema import Schema as AutoDocSchema
+from clearskies.di import inject
+
+from clearskies_aws.di.inject import boto3
 
 
-class Backend(clearskies.backends.backend.Backend):
+class Backend(clearskies.Configurable, clearskies.backends.Backend, clearskies.di.InjectableProperties):
     """
     Connect models to their data since 2020.
 
@@ -24,6 +27,9 @@ class Backend(clearskies.backends.backend.Backend):
 
     supports_n_plus_one = False
     can_count = True
+
+    boto3 = boto3.Boto3()
+    environment = inject.Environment()
 
     def update(self, id: int | str, data: dict[str, Any], model: clearskies.model.Model) -> dict[str, Any]:
         """Update the record with the given id with the information from the data dictionary."""
