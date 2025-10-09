@@ -1,41 +1,79 @@
 from __future__ import annotations
 
-import base64
-import json
-from typing import Any, Literal
-from urllib.parse import urlencode
+from typing import Any
 
-from aws_lambda_powertools.utilities.parser import parse
-from aws_lambda_powertools.utilities.parser.models import (
-    APIGatewayWebSocketConnectEventModel,
-)
-from aws_lambda_powertools.utilities.typing import LambdaContext
-from pydantic import ValidationError
+from clearskies.configs import String
+from clearskies.input_outputs import Headers
 
-from clearskies_aws.input_outputs import lambda_api_gateway
+from clearskies_aws.input_outputs import lambda_input_output
 
 
-class LambdaAPIGatewayWebSocket(lambda_api_gateway.LambdaAPIGateway):
-    _event: APIGatewayWebSocketConnectEventModel  # type: ignore[assignment]
-    _request_method: str  # type: ignore[assignment]
+class LambdaAPIGatewayWebSocket(lambda_input_output.LambdaInputOutput):
+    """API Gateway WebSocket specific Lambda input/output handler."""
 
-    def __init__(self, event: dict, context: LambdaContext):
-        try:
-            # Manually parse the incoming event into MyEvent model
-            self._event = parse(model=APIGatewayWebSocketConnectEventModel, event=event)
-        except ValidationError as e:
-            # Catch validation errors and return a 400 response
-            raise ValueError(f"Failed to parse event from APIGatewayWebSocketConnectEventModel: {e}")
-        self._context = context
-        self._request_method = self._event.request_context.route_key
-        self._path = ""
-        self._query_parameters = {}
-        self._path_parameters = {}
-        self._request_headers = {}
+    route_key = String(default="")
+    connection_id = String(default="")
 
-    def context_specifics(self):
+    def __init__(self, event: dict[str, Any], context: dict[str, Any]):
+        # Call parent constructor
+        super().__init__(event, context)
+
+        # WebSocket specific initialization
+        request_context = event.get("requestContext", {})
+
+        # WebSocket uses route_key instead of HTTP method
+        self.route_key = request_context.get("routeKey", "")
+        self.request_method = self.route_key.upper()  # For compatibility
+
+        # WebSocket connection ID
+        self.connection_id = request_context.get("connectionId", "")
+
+        # WebSocket events typically don't have query parameters or path parameters
+        self.query_parameters = event.get("queryStringParameters") or {}
+        self.routing_data = event.get("pathParameters") or {}
+
+        # Extract headers
+        headers_dict = {}
+        for key, value in event.get("headers", {}).items():
+            headers_dict[key.lower()] = str(value)
+
+        self.request_headers = Headers(headers_dict)
+
+    def get_client_ip(self) -> str:
+        """Get the client IP address from WebSocket request context."""
+        request_context = self.event.get("requestContext", {})
+        identity = request_context.get("identity", {})
+
+        if "sourceIp" in identity:
+            return identity["sourceIp"]
+
+        # Fall back to X-Forwarded-For header
+        forwarded_for = self.request_headers.get("x-forwarded-for")
+        if forwarded_for:
+            return forwarded_for
+
+        # Final fallback
+        return "127.0.0.1"
+
+    def respond(self, body: Any, status_code: int = 200) -> dict[str, Any]:
+        """Create WebSocket specific response format."""
+        # WebSocket responses are simpler than HTTP responses
         return {
-            "event": self._event,
-            "context": self._context,
-            "connection_id": self._event.request_context.connection_id,
+            "statusCode": status_code,
+        }
+
+    def context_specifics(self) -> dict[str, Any]:
+        """Provide WebSocket specific context data."""
+        request_context = self.event.get("requestContext", {})
+
+        return {
+            **super().context_specifics(),
+            "connection_id": self.connection_id,
+            "route_key": self.route_key,
+            "stage": request_context.get("stage"),
+            "request_id": request_context.get("requestId"),
+            "api_id": request_context.get("apiId"),
+            "domain_name": request_context.get("domainName"),
+            "event_type": request_context.get("eventType"),
+            "connected_at": request_context.get("connectedAt"),
         }

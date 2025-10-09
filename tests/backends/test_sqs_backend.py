@@ -33,7 +33,7 @@ class SqsBackendTest(unittest.TestCase):
 
             id_column_name = "name"
 
-            name = clearskies.columns.string()
+            name = clearskies.columns.String()
 
         def test_sqs_backend(users: User):
             users.create({"name": "sup"})

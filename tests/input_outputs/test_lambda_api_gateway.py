@@ -4,10 +4,14 @@ import unittest
 from collections import OrderedDict
 
 import pytest
+from clearskies.input_outputs import Headers
+
 from clearskies_aws.input_outputs import LambdaAPIGateway
 
 
 class LambdaAPIGatewayTest(unittest.TestCase):
+    request_headers = Headers({"Content-Type": "application/json; charset=UTF-8"})
+
     dummy_event = {
         "httpMethod": "GET",
         "path": "/test",
@@ -19,10 +23,11 @@ class LambdaAPIGatewayTest(unittest.TestCase):
 
     @pytest.mark.broken
     def test_respond(self):
-        aws_lambda = LambdaAPIGateway(self.dummy_event, {})
-        aws_lambda.set_headers({"bob": "hey", "jane": "kay"})
-        aws_lambda.set_header("hey", "sup")
-        aws_lambda.clear_header("bob")
+        response_headers = Headers({"Content-Type": "application/json; charset=UTF-8"})
+        response_headers.add("jane", "kay")
+        response_headers.add("hey", "sup")
+        aws_lambda = LambdaAPIGateway()
+
         response = aws_lambda.respond({"some": "data"}, 200)
         self.assertEqual(
             {
