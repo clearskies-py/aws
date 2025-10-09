@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from types import ModuleType
 
 from clearskies import Model
 
-from ...actions.sqs import SQS as BaseSQS
+from clearskies_aws.actions.sqs import SQS as BaseSQS
 
 
 class SQS(BaseSQS):

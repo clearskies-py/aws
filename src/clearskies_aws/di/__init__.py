@@ -1,4 +1,6 @@
-from clearskies_aws.di import inject
-from clearskies_aws.di.di import Di
+from __future__ import annotations
 
-__all__ = ["Di", "inject"]
+from clearskies_aws.di import inject
+from clearskies_aws.di.aws_additional_config_auto_import import AwsAdditionalConfigAutoImport
+
+__all__ = ["inject", "AwsAdditionalConfigAutoImport"]

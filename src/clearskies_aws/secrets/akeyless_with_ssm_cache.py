@@ -1,19 +1,17 @@
+from __future__ import annotations
+
 import re
+from typing import Any
 
-from clearskies.secrets import AKeyless
+from clearskies.secrets.akeyless import Akeyless
+from types_boto3_ssm import SSMClient
+
+from clearskies_aws.secrets import parameter_store
 
 
-class AkeylessWithSsmCache(AKeyless):
-    _boto3 = None
+class AkeylessWithSsmCache(parameter_store.ParameterStore, Akeyless):
 
-    def __init__(self, requests, environment, boto3):
-        super().__init__(requests, environment)
-        self._boto3 = boto3
-        if not self._environment.get("AWS_REGION", True):
-            raise ValueError("To use parameter store you must use set the 'AWS_REGION' environment variable")
-
-    def get(self, path, refresh=False):
-        ssm = self._boto3.client("ssm", region_name="us-east-1")
+    def get(self, path: str, refresh: bool = False) -> str | None:  # type: ignore[override]
         # AWS SSM parameter paths only allow a-z, A-Z, 0-9, -, _, ., /, @, and :
         # Replace any disallowed characters with hyphens
         ssm_name = re.sub(r"[^a-zA-Z0-9\-_\./@:]", "-", path)
@@ -21,20 +19,20 @@ class AkeylessWithSsmCache(AKeyless):
         if not refresh:
             missing = False
             try:
-                response = ssm.get_parameter(Name=ssm_name, WithDecryption=True)
-            except ssm.exceptions.ParameterNotFound:
+                response = self.ssm.get_parameter(Name=ssm_name, WithDecryption=True)
+            except self.ssm.exceptions.ParameterNotFound:
                 missing = True
             if not missing:
-                value = response["Parameter"]["Value"]
+                value = response["Parameter"].get("Value", "")
                 if value:
                     return value
 
         # otherwise get it out of Akeyless
-        value = super().get(path)
+        value = str(super().get(path))
 
         # and make sure and store the new value in parameter store
         if value:
-            ssm.put_parameter(
+            self.ssm.put_parameter(
                 Name=ssm_name,
                 Value=value,
                 Type="SecureString",
@@ -42,3 +40,22 @@ class AkeylessWithSsmCache(AKeyless):
             )
 
         return value
+
+    def update(self, path: str, value: Any) -> bool:  # type: ignore[override]
+        res = self._api.update_secret_val(
+            self.akeyless.UpdateSecretVal(name=path, value=str(value), token=self._get_token())
+        )
+        self.ssm.put_parameter(
+            Name=re.sub(r"[^a-zA-Z0-9\-_\./@:]", "-", path),
+            Value=value,
+            Type="SecureString",
+            Overwrite=True,
+        )
+        return True
+
+    def upsert(self, path: str, value: Any) -> bool:  # type: ignore[override]
+        try:
+            self.update(path, value)
+        except Exception as e:
+            self.create(path, value)
+        return True

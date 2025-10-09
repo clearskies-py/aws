@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from types import ModuleType
 
 from clearskies import Model
 
-from ...actions.sns import SNS as BaseSNS
+from clearskies_aws.actions.sns import SNS as BaseSNS
 
 
 class SNS(BaseSNS):

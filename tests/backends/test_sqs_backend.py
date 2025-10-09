@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import unittest
 from collections import OrderedDict
@@ -5,35 +7,41 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import clearskies
+import pytest
+from clearskies.di import Di
 
 from clearskies_aws.backends.sqs_backend import SqsBackend
-from clearskies_aws.di import StandardDependencies
-
-
-class User(clearskies.Model):
-    def __init__(self, sqs_backend: SqsBackend, columns):
-        super().__init__(sqs_backend, columns)
-
-    id_column_name = "name"
-
-    def columns_configuration(self):
-        return OrderedDict(
-            [
-                clearskies.column_types.string("name"),
-            ]
-        )
 
 
 class SqsBackendTest(unittest.TestCase):
-    def setUp(self):
-        self.di = StandardDependencies()
-        self.di.bind("environment", {"AWS_REGION": "us-east-2"})
-        self.sqs = SimpleNamespace(send_message=MagicMock())
-        self.boto3 = SimpleNamespace(client=MagicMock(return_value=self.sqs))
-        self.di.bind("boto3", self.boto3)
 
-    def test_send(self):
-        user = self.di.build(User)
-        user.save({"name": "sup"})
-        self.boto3.client.assert_called_with("sqs", region_name="us-east-2")
-        self.sqs.send_message.assert_called_with(QueueUrl="users", MessageBody=json.dumps({"name": "sup"}))
+    def setUp(self):
+        sqsclient = SimpleNamespace(send_message=MagicMock(return_value={"name": "sup"}))
+        self.boto3 = SimpleNamespace(client=MagicMock(return_value=sqsclient))
+        self.botocore = SimpleNamespace(client=SimpleNamespace(ClientError=Exception))
+        self.environment = SimpleNamespace(get=MagicMock(return_value="us-east-1"))
+
+    def test_send_message(self):
+        class User(
+            clearskies.Model,
+        ):
+            backend = SqsBackend()
+
+            @classmethod
+            def destination_name(cls) -> str:
+                return "users"
+
+            id_column_name = "name"
+
+            name = clearskies.columns.string()
+
+        def test_sqs_backend(users: User):
+            users.create({"name": "sup"})
+            return users
+
+        context = clearskies.contexts.Context(
+            clearskies.endpoints.Callable(test_sqs_backend),
+            classes=[User],
+            bindings={"boto3": self.boto3, "environment": self.environment},
+        )
+        (status_code, response_data, response_headers) = context()

@@ -2,20 +2,20 @@
 
 clearskies bindings for working in AWS, which means additional:
 
- - backends (DynamoDB, SQS)
- - Secret/environment integrations (parameter store/secret manager)
- - DB connectivity via IAM auth
- - Contexts (ALB, HTTP API Gateway, Rest API Gateway, direct Lambda invocation, lambda+SQS)
+- backends (DynamoDB, SQS)
+- Secret/environment integrations (parameter store/secret manager)
+- DB connectivity via IAM auth
+- Contexts (ALB, HTTP API Gateway, Rest API Gateway, direct Lambda invocation, lambda+SQS)
 
-# Installation, Documentation, and Usage
+## Installation, Documentation, and Usage
 
 To install:
 
-```
+```shell
 pip3 install clear-skies-aws
 ```
 
-# Usage
+## Usage
 
 Anytime you use a context from `clearskies-aws`, the default dependencies are adjust to:
 
@@ -24,17 +24,17 @@ Anytime you use a context from `clearskies-aws`, the default dependencies are ad
 
 In both cases you must provide the AWS region for your resources, which you do by setting the `AWS_REGION` environment variable (either in an actual environment variable or in your `.env` file).
 
-## Paramter Store
+### Parameter Store
 
 To use the SSM parameter store you just inject the `secrets` variable into your callables:
 
-```
+```python
 import clearskies_aws
 
 def parameter_store_demo(secrets):
     return secrets.get('/path/to/parameter')
 
-execute_demo_in_elb = clearskies_aws.contexts.lambda_elb(parameter_store_demo)
+execute_demo_in_elb = clearskies_aws.contexts.lambda_alb(parameter_store_demo)
 
 def lambda_handler(event, context):
     return execute_demo_in_elb(event, context)
@@ -42,14 +42,14 @@ def lambda_handler(event, context):
 
 Also, per default behavior, clearskies can fetch things from your secret manager if specified in your environment/.env file.  For instance, if your database password is stored in parameter store, then you can reference it from your `.env` file with a standard cursor backend:
 
-```
+```env
 db_host = "path-to-aws.rds"
 db_username = "sql_username"
 db_password = "secret://path/to/password/in/parameter/store"
 db_database = "sql_database_name"
 ```
 
-## Secret Manager
+### Secret Manager
 
 If desired, you can swap out the parameter store integration for secret manager.  Just remember that you can configure parameter store to fetch secrets from secret manager, so you might be best off doing that and sticking with the default parameter store integration.  Still, if you want to use secret manager, you just configure it in your application or context:
 
@@ -68,7 +68,7 @@ def lambda_handler(event, context):
     return execute_demo_in_elb(event, context)
 ```
 
-## Contexts
+### Contexts
 
 clearskies_aws adds the following contexts:
 
@@ -80,7 +80,7 @@ clearskies_aws adds the following contexts:
 | `clearskies_aws.contexts.lambda_inocation`                  | Lambdas invoked directly          |
 | `clearskies_aws.contexts.lambda_sqs_standard_partial_batch` | Lambdas attached to an SQS queue  |
 
-### Lambdas+SQS
+#### Lambdas+SQS
 
 Here's a simple example of using the Lambda+SQS context:
 
@@ -100,7 +100,7 @@ See [the AWS docs](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html).
 
 Note that, unlike other contexts, the Lambda+SQS context really only works with a simple callable.  Routing and other handlers don't make much sense here.  Keep in mind that, before invoking the Lambda, AWS may batch up records together in arbitrary ways.  The context will take care of this and will invoke your callable once **for each record in the AWS event** - not once for the event.  `request_data` will be populated with the actual message for the event.  In addition, it assumes that a JSON message was sent to the queue, so `request_data` will be an object/list/etc, rather than a string.  This is intended to be used with [partial batching](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html#services-sqs-batchfailurereporting).  Therefore, if your function raises an error, the context will catch it, return a failure response for the cooresponding message, and then continue processing any other messages in the batch.
 
-## SQS Backend
+### SQS Backend
 
 To use the SQS backend just declare it for your model, set the table name to return the queue url, and execute a "create" operation to send data to the queue.  Note that the SQS backend is write-only: you can "create" records (resulting in a message being sent to the queue), but you can't read data back out.  The way the queue system in SQS works is just too different than a standard database for that to make sense in the context of a clearskies model.
 
@@ -139,7 +139,7 @@ if __name__ == '__main__':
     cli()
 ```
 
-## IAM DB Auth
+### IAM DB Auth
 
 For non-serverless RDS databases, AWS supports login via IAM.  You have to provide a few additional details in your environment to make this work:
 
@@ -170,6 +170,6 @@ def lambda_handler(event, context):
 
 Of course normally you wouldn't want to interact with it directly.  Adding `IAMDBAuth` to your `additional_configs` and setting up the necessary environemnt variables will be sufficient that any models that use the `cursor_backend` will connect via IAM DB Auth, rather than using hard-coded passwords.
 
-## IAM DB Auth with SSM Bastion
+### IAM DB Auth with SSM Bastion
 
 Coming shortly

@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from __future__ import annotations
+
 import json
 
 import clearskies
@@ -11,7 +15,7 @@ class WebSocketConnectionModel(clearskies.Model):
     connection_id = clearskies.columns.String()
 
     boto3 = clearskies_aws.di.inject.Boto3()
-    backend = clearskies_aws.backends.DummyBackend()
+    backend = clearskies_aws.backends.Backend()
     input_output = clearskies.di.inject.ByClass(clearskies_aws.input_outputs.LambdaAPIGatewayWebSocket)
 
     def send(self, message):

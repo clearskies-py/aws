@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 
-from clearskies.handlers.exceptions import ClientError
+from clearskies.exceptions import ClientError
 
 from .lambda_api_gateway import LambdaAPIGateway
 

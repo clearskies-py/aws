@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from types import ModuleType
-from typing import Optional
 
 
 class AssumeRole:
@@ -77,7 +76,7 @@ class AssumeRole:
     external_id = ""
     role_session_name = ""
     duration = 3600
-    source: Optional[AssumeRole] = None
+    source: AssumeRole | None = None
 
     def __init__(
         self,
@@ -85,7 +84,7 @@ class AssumeRole:
         external_id: str = "",
         role_session_name: str = "",
         duration: int = 3600,
-        source: Optional[AssumeRole] = None,
+        source: AssumeRole | None = None,
     ):
         """Assume a role."""
         self.role_arn = role_arn

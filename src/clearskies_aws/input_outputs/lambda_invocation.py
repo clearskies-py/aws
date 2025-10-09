@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 
-from clearskies.handlers.exceptions import ClientError
+from clearskies.exceptions import ClientError
 
 from .lambda_api_gateway import LambdaAPIGateway
 
@@ -36,3 +38,6 @@ class LambdaInvocation(LambdaAPIGateway):
 
     def respond(self, body, status_code=200):
         return body.decode("utf-8") if type(body) == bytes else body
+
+    def get_request_headers(self) -> dict[str, str]:
+        return self._request_headers

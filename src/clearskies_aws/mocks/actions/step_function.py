@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from types import ModuleType
 
 from clearskies import Model
 
-from ...actions.step_function import StepFunction as BaseStepFunction
+from clearskies_aws.actions.step_function import StepFunction as BaseStepFunction
 
 
 class StepFunction(BaseStepFunction):

@@ -1,90 +1,90 @@
+from __future__ import annotations
+
 import json
 import logging
 from abc import ABC
 from collections import OrderedDict
-from typing import Callable, Optional
+from types import ModuleType
+from typing import Callable, Generic, TypeVar
 
-import boto3
-from boto3 import client
+from botocore.client import BaseClient
 from botocore.exceptions import ClientError
-from clearskies.environment import Environment
+from clearskies.configs import Actions, Boolean, String
+from clearskies.configs import Callable as ConfigCallable
+from clearskies.decorators import parameters_to_properties
+from clearskies.di.inject import Di, Environment
 from clearskies.functional import string
-from clearskies.models import Models
+from clearskies.model import Model
 
-from ..di import StandardDependencies
+from clearskies_aws.di import inject
+
 from .assume_role import AssumeRole
 
+ClientType = TypeVar("ClientType", bound=BaseClient)
 
-class ActionAws(ABC):
-    _logging = logging.getLogger(__name__)
-    _client: Optional[boto3.client] = None
-    _name: Optional[str] = None
 
-    def __init__(self, environment: Environment, boto3: boto3, di: StandardDependencies) -> None:
-        """Set up the AWS action."""
-        self.environment = environment
-        self.boto3 = boto3
-        self.di = di
+class ActionAws(Generic[ClientType], Actions):
+    logging = logging.getLogger(__name__)
+    boto3 = inject.Boto3()
+    environment = Environment()
+    di = Di()
 
-    def configure(
+    client: ClientType
+
+    service_name = String(required=True)
+
+    message_callable = ConfigCallable(required=False)
+
+    when = ConfigCallable(required=False)
+
+    assume_role: AssumeRole | None = None
+
+    region = String(required=False)
+
+    can_cache = Boolean(default=True)
+
+    @parameters_to_properties
+    def __init__(
         self,
-        message_callable: Optional[Callable] = None,
-        when: Optional[Callable] = None,
-        assume_role: Optional[AssumeRole] = None,
+        service_name: str,
+        message_callable: Callable | None = None,
+        when: Callable | None = None,
+        assume_role: AssumeRole | None = None,
+        region: str | None = None,
     ) -> None:
-        """Configues the Action."""
-        self.when = when
-        self.message_callable = message_callable
-        self.assume_role = assume_role
+        """Set up the AWS action."""
 
-        if self.message_callable and not callable(self.message_callable):
-            raise ValueError(
-                "'message_callable' should be a callable that returns the message for the queue, but a callable was not passed."
-            )
-
-        if when and not callable(when):
-            raise ValueError("'when' must be a callable but something else was found")
-
-        if not self._name:
-            raise ValueError(f"Name of client not set.")
-
-        if not self.environment.get("AWS_REGION", True) and not self.environment.get("AWS_DEFAULT_REGION", True):
-            raise ValueError(
-                "You must set either the AWS_REGION or AWS_DEFAULT_REGION environment variable when using AWS actions"
-            )
-
-    def __call__(self, model: Models) -> None:
+    def __call__(self, model: Model) -> None:
         """Send a notification as configured."""
         if self.when and not self.di.call_function(self.when, model=model):
             return
 
         try:
-            client = self._getClient()
+            client = self._get_client()
             self._execute_action(client, model)
         except ClientError as e:
-            self._logging.exception(f"Failed to retrieve client for {self._name}")
+            self.logging.exception(f"Failed to retrieve client for {self.__class__.__name__} action.")
             raise e
 
-    def _getClient(self, region=None) -> boto3.client:
+    def _get_client(self) -> ClientType:
         """Retrieve the boto3 client."""
-        can_cache = not region
-        if self._client and can_cache:
-            return self._client
+        if self.client and self.can_cache:
+            return self.client
 
         if self.assume_role:
             boto3 = self.assume_role(self.boto3)
         else:
             boto3 = self.boto3
 
-        if not region:
-            region = self.default_region()
-        if region:
-            client = boto3.client(self._name, region_name=region)
+        if not self.region:
+            self.region = self.default_region()
+        if self.region:
+            client = boto3.client(self.service_name, region_name=self.region)
         else:
-            client = boto3.client(self._name)
+            client = boto3.client(self.service_name)
 
-        if can_cache:
-            self._client = client
+        if self.can_cache:
+            self.client = client
         return client
 
     def default_region(self):
@@ -96,11 +96,11 @@ class ActionAws(ABC):
             return region
         return None
 
-    def _execute_action(self, client: boto3.client, model: Models) -> None:
+    def _execute_action(self, client: ClientType, model: Model) -> None:
         """Run the action."""
         pass
 
-    def get_message_body(self, model: Models) -> str:
+    def get_message_body(self, model: Model) -> str:
         """Retrieve the message for the action."""
         if self.message_callable:
             result = self.di.call_function(self.message_callable, model=model)
@@ -114,7 +114,7 @@ class ActionAws(ABC):
             return result
 
         model_data = OrderedDict()
-        for column_name, column in model.columns().items():
+        for column_name, column in model.get_columns().items():
             if not column.is_readable:
                 continue
             model_data.update(column.to_json(model))

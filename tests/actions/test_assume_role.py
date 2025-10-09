@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import unittest
 from unittest.mock import MagicMock, call
 
-from clearskies_aws.actions.assume_role import AssumeRole
+from clearskies_aws.actions import AssumeRole
 
 
 class AssumeRoleTest(unittest.TestCase):

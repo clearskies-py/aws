@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import base64
 import json
 import logging
 from decimal import Decimal, DecimalException
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
-from clearskies import ConditionParser
+from clearskies import Validator
 
 # Ensure AttributeValueTypeDef is imported from the correct boto3 types package
 # This is crucial for the "ideal fix".
@@ -13,7 +15,7 @@ from types_boto3_dynamodb.type_defs import AttributeValueTypeDef
 logger = logging.getLogger(__name__)
 
 
-class DynamoDBConditionParser(ConditionParser):
+class DynamoDBConditionParser(Validator):
     """
     Parses string conditions into a structured format suitable for DynamoDB PartiQL queries.
 
@@ -22,7 +24,7 @@ class DynamoDBConditionParser(ConditionParser):
     to convert Python values into the DynamoDB AttributeValue format.
     """
 
-    operator_lengths: Dict[str, int] = {
+    operator_lengths: dict[str, int] = {
         "<>": 2,
         "<=": 2,
         ">=": 2,
@@ -41,7 +43,7 @@ class DynamoDBConditionParser(ConditionParser):
         "contains": 9,
         "begins_with": 12,
     }
-    operators: List[str] = [
+    operators: list[str] = [
         # Longer operators first to help with matching
         "is not null",
         "is not missing",
@@ -61,7 +63,7 @@ class DynamoDBConditionParser(ConditionParser):
         "=",
         "in",
     ]
-    operators_for_matching: Dict[str, str] = {
+    operators_for_matching: dict[str, str] = {
         "like": " like ",
         "in": " in ",
         "is not missing": " is not missing",
@@ -73,7 +75,7 @@ class DynamoDBConditionParser(ConditionParser):
         "begins_with": " begins_with",
         "contains": " contains",
     }
-    operators_with_simple_placeholders: Dict[str, bool] = {
+    operators_with_simple_placeholders: dict[str, bool] = {
         "<>": True,
         "<=": True,
         ">=": True,
@@ -88,17 +90,17 @@ class DynamoDBConditionParser(ConditionParser):
         "is not missing",
         "is missing",
     }
-    operator_needs_remap: Dict[str, str] = {
+    operator_needs_remap: dict[str, str] = {
         "is not null": "is not missing",
         "is null": "is missing",
     }
     operators_with_special_placeholders: set[str] = {"begins_with", "contains"}
 
-    def parse_condition(self, condition: str) -> Dict[str, Any]:
+    def parse_condition(self, condition: str) -> dict[str, Any]:
         """
         Parse a string condition into a structured dictionary.
 
-        The "values" key in the returned dictionary will contain List[AttributeValueTypeDef].
+        The "values" key in the returned dictionary will contain list[AttributeValueTypeDef].
 
         Args:
             condition: The condition string to parse.
@@ -140,7 +142,7 @@ class DynamoDBConditionParser(ConditionParser):
             if (first_char == "'" and last_char == "'") or (first_char == '"' and last_char == '"'):
                 value = value[1:-1]
 
-        raw_values: List[str] = []
+        raw_values: list[str] = []
 
         if matching_operator == "in":
             raw_values = self._parse_condition_list(value) if value else []
@@ -174,8 +176,8 @@ class DynamoDBConditionParser(ConditionParser):
         else:
             final_column_name = column.replace('"', "").replace("`", "")
 
-        # This list will now correctly be List[AttributeValueTypeDef]
-        parameters: List[AttributeValueTypeDef] = []
+        # This list will now correctly be list[AttributeValueTypeDef]
+        parameters: list[AttributeValueTypeDef] = []
         if matching_operator.lower() not in self.operators_without_placeholders:
             for val_item in raw_values:
                 parameters.append(self.to_dynamodb_attribute_value(val_item))
@@ -198,15 +200,15 @@ class DynamoDBConditionParser(ConditionParser):
         self,
         column: str,
         operator: str,
-        values: List[AttributeValueTypeDef],  # Parameter 'values' is List[AttributeValueTypeDef]
+        values: list[AttributeValueTypeDef],  # Parameter 'values' is list[AttributeValueTypeDef]
         escape: bool = True,
         escape_character: str = '"',
     ) -> str:
         """Format a SQL fragment with placeholders for a given column, operator, and parameters."""
         quoted_column = column
         if escape:
-            parts: List[str] = column.split(".", 1)
-            cleaned_parts: List[str] = [part.strip('"`') for part in parts]
+            parts: list[str] = column.split(".", 1)
+            cleaned_parts: list[str] = [part.strip('"`') for part in parts]
             if len(cleaned_parts) == 2:
                 quoted_column = (
                     f"{escape_character}{cleaned_parts[0]}{escape_character}"
@@ -256,7 +258,7 @@ class DynamoDBConditionParser(ConditionParser):
         elif isinstance(value, bytes):
             return {"B": base64.b64encode(value).decode("utf-8")}
         elif isinstance(value, list):
-            # Each item will be AttributeValueTypeDef, so the list is List[AttributeValueTypeDef]
+            # Each item will be AttributeValueTypeDef, so the list is list[AttributeValueTypeDef]
             return {"L": [self.to_dynamodb_attribute_value(item) for item in value]}
         elif isinstance(value, dict):
             # Each value in the map will be AttributeValueTypeDef
@@ -274,7 +276,7 @@ class DynamoDBConditionParser(ConditionParser):
         else:
             raise TypeError(f"Unsupported Python type for DynamoDB conversion: {type(value)}")
 
-    def _parse_condition_list(self, list_string: str) -> List[str]:
+    def _parse_condition_list(self, list_string: str) -> list[str]:
         """Parse a string representation of a list into a list of strings."""
         if not list_string.strip():
             return []
@@ -284,7 +286,7 @@ class DynamoDBConditionParser(ConditionParser):
             if not list_string.strip():
                 return []
 
-        items: List[str] = []
+        items: list[str] = []
         current_item: str = ""
         in_quotes: bool = False
         quote_char: str = ""
