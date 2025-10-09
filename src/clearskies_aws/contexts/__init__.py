@@ -6,7 +6,6 @@ from clearskies_aws.contexts.lambda_api_gateway import LambdaAPIGateway
 from clearskies_aws.contexts.lambda_api_gateway_web_socket import (
     LambdaAPIGatewayWebSocket,
 )
-from clearskies_aws.contexts.lambda_http_gateway import LambdaHTTPGateway
 from clearskies_aws.contexts.lambda_invocation import LambdaInvocation
 from clearskies_aws.contexts.lambda_sns import LambdaSns
 from clearskies_aws.contexts.lambda_sqs_standard_partial_batch import (
@@ -14,13 +13,10 @@ from clearskies_aws.contexts.lambda_sqs_standard_partial_batch import (
 )
 
 __all__ = [
-    "Cli",
     "CLIWebSocketMock",
-    "Context",
     "LambdaALB",
     "LambdaAPIGateway",
     "LambdaAPIGatewayWebSocket",
-    "LambdaHTTPGateway",
     "LambdaInvocation",
     "LambdaSns",
     "LambdaSqsStandardPartialBatch",
