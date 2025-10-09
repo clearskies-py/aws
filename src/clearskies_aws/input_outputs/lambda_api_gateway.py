@@ -11,43 +11,52 @@ from aws_lambda_powertools.utilities.parser.models import (
 )
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from clearskies.input_outputs.input_output import InputOutput
+from clearskies.input_outputs.headers import Headers
 from pydantic import ValidationError
 from pydantic.networks import IPvAnyNetwork
 
 
 class LambdaAPIGateway(InputOutput):
-    _event: APIGatewayProxyEventModel
-    _context: LambdaContext
-    _request_headers: dict[str, str]
-    _request_method: Literal["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-    _resource = None
-    _query_parameters: dict[str, str | list[str]] = {}
-    _path_parameters: dict[str, str] | None = {}
+    event: APIGatewayProxyEventModel
+    context: LambdaContext
+    resource = configs.String()
+    path = configs.String()
     _cached_body = None
     _body_was_cached = False
 
     def __init__(self, event: dict, context: LambdaContext):
         try:
             # Manually parse the incoming event into MyEvent model
-            self._event = parse(model=APIGatewayProxyEventModel, event=event)
+            self.event = parse(model=APIGatewayProxyEventModel, event=event)
         except ValidationError as e:
             # Catch validation errors and return a 400 response
             raise ValueError(f"Failed to parse event from ApiGateway: {e}")
-        self._context = context
-        self._request_method = self._event.httpMethod
-        self._path = self._event.path
-        self._resource = self._event.resource
-        self._query_parameters = {
-            **(self._event.queryStringParameters or {}),
-            **(self._event.multiValueQueryStringParameters or {}),
+        self.context = context
+        if self.event.version == "1.0":
+            self.parse_event_v1()
+        elif self.event.version == "2.0":
+            self.parse_event_v2()
+        else:
+            raise ValueError(f"Unsupported API Gateway event version: {self._event.version}")
+
+        super().__init__()
+
+    def parse_event_v1(self):
+        self.request_method = self.event.httpMethod.upper()
+        self.path = self.event.path
+        self.resource = self.event.resource
+        self.query_parameters = {
+            **(self.event.queryStringParameters or {}),
+            **(self.event.multiValueQueryStringParameters or {}),
         }
-        self._path_parameters = self._event.pathParameters if self._event.pathParameters else {}
-        self._request_headers = {}
+        self.path_parameters = self.event.pathParameters if self.event.pathParameters else {}
+        request_headers = {}
         for key, value in {
-            **self._event.headers,
-            **self._event.multiValueHeaders,
+            **self.event.headers,
+            **self.event.multiValueHeaders,
         }.items():
-            self._request_headers[key.lower()] = str(value)
+            request_headers[key.lower()] = str(value)
+        self.request_headers = Headers(request_headers)
 
     def respond(self, body: Any, status_code: int = 200) -> dict[str, Any]:
         if "content-type" not in self.response_headers:
@@ -76,55 +85,22 @@ class LambdaAPIGateway(InputOutput):
     def get_body(self) -> Any:
         if not self._body_was_cached:
             self._cached_body = self._event.body
+            self._body_was_cached = True
             if self._cached_body is not None and self._event.isBase64Encoded and isinstance(self._cached_body, str):
                 self._cached_body = base64.decodebytes(self._cached_body.encode("utf-8")).decode("utf-8")
         return self._cached_body
 
-    def get_request_method(self) -> str:
-        return self._request_method
-
-    def get_script_name(self) -> str:
-        return ""
-
-    def get_path_info(self) -> str:
-        return self._path
-
-    def get_query_string(self) -> str:
-        return urlencode(self._query_parameters) if self._query_parameters else ""
-
-    def get_content_type(self) -> str:
-        return str(self.get_request_header("content-type", True))
-
     def get_protocol(self) -> str:
         return "https"
 
-    def has_request_header(self, header_name: str) -> bool:
-        return header_name.lower() in self._request_headers
-
-    def get_request_header(self, header_name: str, silent: bool = False) -> list[str] | str:
-        if header_name.lower() not in self._request_headers:
-            if not silent:
-                raise KeyError(f"HTTP header '{header_name}' was not found in request")
-            return ""
-        return self._request_headers[header_name.lower()]
-
-    def get_query_parameter(self, key: str) -> list[str]:
-        if not self._query_parameters or key not in self._query_parameters:
-            return []
-
-        # Convert to list if it's a string
-        value = self._query_parameters[key]
-        if isinstance(value, str):
-            return [value]
-        return value
-
-    def get_query_parameters(self) -> dict[str, str | list[str]]:
-        return self._query_parameters
+    def get_full_path(self):
+        return self.path
 
     def context_specifics(self) -> dict[str, Any]:
         return {
-            "event": self._event,
-            "context": self._context,
+            "event": self.event,
+            "context": self.context,
+            "resource": self.resource,
         }
 
     def get_client_ip(self) -> IPvAnyNetwork:
