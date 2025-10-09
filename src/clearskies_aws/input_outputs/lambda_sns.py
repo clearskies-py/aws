@@ -22,7 +22,6 @@ class LambdaSns(lambda_input_output.LambdaInputOutput):
 
         # SNS events don't have query parameters or path parameters
         self.query_parameters = {}
-        self.routing_data = {}
 
         # SNS events don't have headers
         self.request_headers = Headers({})

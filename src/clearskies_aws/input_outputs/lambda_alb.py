@@ -22,9 +22,6 @@ class LambdaALB(lambda_input_output.LambdaInputOutput):
         # Extract query parameters (ALB only has single value query parameters)
         self.query_parameters = event.get("queryStringParameters") or {}
 
-        # ALB events don't support path parameters, so routing_data stays empty
-        self.routing_data = {}
-
         # Extract headers (ALB only has single value headers)
         headers_dict = {}
         for key, value in event.get("headers", {}).items():

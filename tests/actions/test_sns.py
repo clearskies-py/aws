@@ -5,9 +5,9 @@ import unittest
 from collections import OrderedDict
 from unittest.mock import MagicMock, call
 
-import pytest
 import boto3
 import clearskies
+import pytest
 from clearskies.di import Di
 
 from clearskies_aws.actions.sns import SNS

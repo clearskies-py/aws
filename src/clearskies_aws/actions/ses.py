@@ -18,7 +18,6 @@ if TYPE_CHECKING:
 
 
 class SES(action_aws.ActionAws[SESClient]):
-
     sender = Email(required=True)
     to = EmailOrEmailListOrCallable(required=False)
     cc = EmailOrEmailListOrCallable(required=False)
@@ -95,7 +94,6 @@ class SES(action_aws.ActionAws[SESClient]):
             self.subject_template = jinja2.Template(self.subject_template)
 
         if self.message_template_file:
-
             with open(self.message_template_file, "r", encoding="utf-8") as template:
                 self.message_template = jinja2.Template(template.read())
         elif self.message_template:

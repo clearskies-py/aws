@@ -16,7 +16,6 @@ from .assume_role import AssumeRole
 
 
 class SNS(ActionAws):
-
     @parameters_to_properties
     def __init__(
         self,

@@ -5,8 +5,8 @@ import unittest
 from collections import OrderedDict
 from unittest.mock import MagicMock, call
 
-import pytest
 import clearskies
+import pytest
 
 from clearskies_aws.actions.sqs import SQS
 

@@ -25,7 +25,6 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
 
         # SQS events don't have query parameters or path parameters
         self.query_parameters = {}
-        self.routing_data = {}
 
         # SQS events don't have headers
         self.request_headers = Headers({})

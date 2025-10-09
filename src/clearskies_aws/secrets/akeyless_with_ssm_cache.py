@@ -10,7 +10,6 @@ from clearskies_aws.secrets import parameter_store
 
 
 class AkeylessWithSsmCache(parameter_store.ParameterStore, Akeyless):
-
     def get(self, path: str, refresh: bool = False) -> str | None:  # type: ignore[override]
         # AWS SSM parameter paths only allow a-z, A-Z, 0-9, -, _, ., /, @, and :
         # Replace any disallowed characters with hyphens
