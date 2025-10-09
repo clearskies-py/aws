@@ -8,7 +8,6 @@ from ..input_outputs import (
 
 
 class LambdaAPIGatewayWebSocket(Context):
-
     def __call__(self, event, context):
         if self.execute_application is None:
             raise ValueError("Cannot execute LambdaAPIGatewayWebSocket context without first configuring it")

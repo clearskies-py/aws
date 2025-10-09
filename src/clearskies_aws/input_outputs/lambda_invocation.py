@@ -28,7 +28,6 @@ class LambdaInvocation(lambda_input_output.LambdaInputOutput):
 
         # Direct invocations don't have query parameters or path parameters
         self.query_parameters = {}
-        self.routing_data = {}
 
         # Direct invocations don't have headers
         self.request_headers = Headers({})

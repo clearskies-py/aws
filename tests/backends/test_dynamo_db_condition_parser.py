@@ -4,6 +4,7 @@ import unittest
 from decimal import Decimal
 
 import pytest
+
 from clearskies_aws.backends import DynamoDBConditionParser
 
 

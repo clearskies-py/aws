@@ -6,8 +6,8 @@ from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-import pytest
 import clearskies
+import pytest
 from boto3.dynamodb import conditions as dynamodb_conditions
 from clearskies.di import Di
 

@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
+
 from clearskies_aws.secrets.parameter_store import ParameterStore
 
 

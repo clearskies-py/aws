@@ -30,7 +30,6 @@ class LambdaAPIGatewayWebSocket(lambda_input_output.LambdaInputOutput):
 
         # WebSocket events typically don't have query parameters or path parameters
         self.query_parameters = event.get("queryStringParameters") or {}
-        self.routing_data = event.get("pathParameters") or {}
 
         # Extract headers
         headers_dict = {}

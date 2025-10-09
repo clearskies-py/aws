@@ -3,8 +3,8 @@ from __future__ import annotations
 import unittest
 from unittest.mock import MagicMock, call
 
-import pytest
 import clearskies
+import pytest
 from clearskies.di import Di
 
 from clearskies_aws.actions.ses import SES

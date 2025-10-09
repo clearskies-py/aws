@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, call
 
 import pytest
+
 from clearskies_aws.contexts.lambda_sqs_standard_partial_batch import LambdaSqsStandardPartialBatch
 
 

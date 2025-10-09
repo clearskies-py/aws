@@ -49,9 +49,6 @@ class LambdaAPIGateway(lambda_input_output.LambdaInputOutput):
             **(event.get("multiValueQueryStringParameters") or {}),
         }
 
-        # Extract path parameters as routing_data
-        self.routing_data = event.get("pathParameters") or {}
-
         # Extract headers (v1 has both single and multi-value)
         headers_dict = {}
         for key, value in {
@@ -74,9 +71,6 @@ class LambdaAPIGateway(lambda_input_output.LambdaInputOutput):
 
         # Extract query parameters (v2 only has single values)
         self.query_parameters = event.get("queryStringParameters") or {}
-
-        # Extract path parameters as routing_data
-        self.routing_data = event.get("pathParameters") or {}
 
         # Extract headers (v2 only has single value headers)
         headers_dict = {}

@@ -174,16 +174,6 @@ class LambdaAPIGatewayTest(unittest.TestCase):
         expected = {"q": "hello", "name": "world"}
         self.assertEqual(expected, aws_lambda.query_parameters)
 
-    def test_path_parameters_v1(self):
-        """Test path parameter parsing for API Gateway v1."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v1, {})
-        self.assertEqual({"id": "123"}, aws_lambda.routing_data)
-
-    def test_path_parameters_v2(self):
-        """Test path parameter parsing for API Gateway v2."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v2, {})
-        self.assertEqual({"id": "456"}, aws_lambda.routing_data)
-
     def test_resource_v1(self):
         """Test resource extraction for API Gateway v1."""
         aws_lambda = LambdaAPIGateway(self.dummy_event_v1, {})

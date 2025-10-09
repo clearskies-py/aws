@@ -14,7 +14,6 @@ from clearskies_aws.backends.sqs_backend import SqsBackend
 
 
 class SqsBackendTest(unittest.TestCase):
-
     def setUp(self):
         sqsclient = SimpleNamespace(send_message=MagicMock(return_value={"name": "sup"}))
         self.boto3 = SimpleNamespace(client=MagicMock(return_value=sqsclient))
