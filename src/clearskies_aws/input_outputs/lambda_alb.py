@@ -1,54 +1,55 @@
 from __future__ import annotations
 
-from typing import Literal, cast
+from typing import Any
 
-from aws_lambda_powertools.utilities.parser import parse
-from aws_lambda_powertools.utilities.parser.models import AlbModel
-from aws_lambda_powertools.utilities.typing import LambdaContext
-from pydantic import ValidationError
+from clearskies.configs import String
+from clearskies.input_outputs import Headers
 
-from clearskies_aws.input_outputs import lambda_api_gateway
+from clearskies_aws.input_outputs import lambda_input_output
 
 
-class LambdaALB(lambda_api_gateway.LambdaAPIGateway):
-    # Override the parent class's type annotation
-    _event: AlbModel  # type: ignore[assignment]
+class LambdaALB(lambda_input_output.LambdaInputOutput):
+    """Application Load Balancer specific Lambda input/output handler."""
 
-    def __init__(self, event: dict, context: LambdaContext):
-        try:
-            # Manually parse the incoming event into AlbModel
-            self._event = parse(model=AlbModel, event=event)
-        except ValidationError as e:
-            # Catch validation errors and return a 400 response
-            raise ValueError(f"Failed to parse event from ApiGateway: {e}")
-        self._context = context
+    def __init__(self, event: dict[str, Any], context: dict[str, Any]):
+        # Call parent constructor
+        super().__init__(event, context)
 
-        # Ensure the method is one of the allowed literals
-        http_method = self._event.httpMethod.upper()
-        valid_methods = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-        if http_method in valid_methods:
-            self._request_method = cast(
-                Literal["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"],
-                http_method,
-            )
-        else:
-            raise ValueError(f"Unsupported HTTP method: {http_method}")
+        # ALB specific initialization
+        self.request_method = event.get("httpMethod", "GET").upper()
+        self.path = event.get("path", "/")
 
-        self._path = self._event.path
+        # Extract query parameters (ALB only has single value query parameters)
+        self.query_parameters = event.get("queryStringParameters") or {}
 
-        # Initialize query parameters to match parent class pattern
-        # ALB events don't have multiValueQueryStringParameters, so we only use queryStringParameters
-        self._query_parameters = {
-            **(self._event.queryStringParameters or {}),
+        # ALB events don't support path parameters, so routing_data stays empty
+        self.routing_data = {}
+
+        # Extract headers (ALB only has single value headers)
+        headers_dict = {}
+        for key, value in event.get("headers", {}).items():
+            headers_dict[key.lower()] = str(value)
+
+        self.request_headers = Headers(headers_dict)
+
+    def get_client_ip(self) -> str:
+        """Get the client IP address from ALB headers."""
+        # ALB always provides client IP via X-Forwarded-For header
+        forwarded_for = self.request_headers.get("x-forwarded-for")
+        if forwarded_for:
+            # X-Forwarded-For can contain multiple IPs, take the first one
+            return forwarded_for.split(",")[0].strip()
+
+        # Final fallback
+        return "127.0.0.1"
+
+    def context_specifics(self) -> dict[str, Any]:
+        """Provide ALB specific context data."""
+        request_context = self.event.get("requestContext", {})
+        elb = request_context.get("elb", {})
+
+        return {
+            **super().context_specifics(),
+            "path": self.path,
+            "target_group_arn": elb.get("targetGroupArn"),
         }
-
-        # Initialize path parameters (ALB events don't have path parameters)
-        self._path_parameters = {}
-
-        # Initialize headers in the same way as parent class
-        self._request_headers = {}
-        for key, value in self._event.headers.items():
-            self._request_headers[key.lower()] = value
-
-    def get_client_ip(self):
-        return self.get_request_header("x-forwarded-for")

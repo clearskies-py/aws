@@ -1,47 +1,76 @@
 from __future__ import annotations
 
-import base64
-import json
-from typing import Any, Literal
-from urllib.parse import urlencode
+from typing import Any
 
-from aws_lambda_powertools.utilities.parser import parse
-from aws_lambda_powertools.utilities.parser.models import (
-    APIGatewayProxyEventV2Model,
-)
-from aws_lambda_powertools.utilities.typing import LambdaContext
-from pydantic import ValidationError
+from clearskies.input_outputs import Headers
 
-from clearskies_aws.input_outputs import lambda_api_gateway
+from clearskies_aws.input_outputs import lambda_input_output
 
 
-class LambdaAPIGatewayV2(lambda_api_gateway.LambdaAPIGateway):
-    _event: APIGatewayProxyEventV2Model  # type: ignore[assignment]
-    _query_parameters: dict[str, str] = {}  # type: ignore[assignment]
+class LambdaAPIGatewayV2(lambda_input_output.LambdaInputOutput):
+    """API Gateway v2 specific Lambda input/output handler."""
 
-    def __init__(self, event: dict, context: LambdaContext):
-        try:
-            # Manually parse the incoming event into MyEvent model
-            self._event = parse(model=APIGatewayProxyEventV2Model, event=event)
-        except ValidationError as e:
-            # Catch validation errors and return a 400 response
-            raise ValueError(f"Failed to parse event from ApiGateway: {e}")
-        self._context = context
-        self._request_method = self._event.requestContext.http.method
-        self._path = self._event.requestContext.http.path
-        self._query_parameters = self._event.queryStringParameters or {}
-        self._path_parameters = self._event.pathParameters
-        self._request_headers = {}
-        for key, value in self._event.headers.items():
-            self._request_headers[key.lower()] = value
+    def __init__(self, event: dict[str, Any], context: dict[str, Any]):
+        # Call parent constructor
+        super().__init__(event, context)
 
-    def get_protocol(self):
-        return self._event.requestContext.http.protocol
+        # API Gateway v2 specific initialization
+        request_context = event.get("requestContext", {})
+        http_context = request_context.get("http", {})
 
-    def get_client_ip(self):
-        # I haven't actually tested with an API gateway yet to figure out which of these works...
-        if hasattr(self._event, "requestContext") and hasattr(self._event.requestContext, "http"):
-            if hasattr(self._event.requestContext.http, "sourceIp"):
-                return self._event.requestContext.http.sourceIp
+        self.request_method = http_context.get("method", "GET").upper()
+        self.path = http_context.get("path", "/")
 
-        return self.get_request_header("x-forwarded-for", silent=True)
+        # Extract query parameters (API Gateway v2 only has single values)
+        self.query_parameters = event.get("queryStringParameters") or {}
+
+        # Extract path parameters as routing_data (clearskies convention)
+        self.routing_data = event.get("pathParameters") or {}
+
+        # Extract headers (API Gateway v2 only has single value headers)
+        headers_dict = {}
+        for key, value in event.get("headers", {}).items():
+            headers_dict[key.lower()] = str(value)
+
+        self.request_headers = Headers(headers_dict)
+
+    def get_client_ip(self) -> str:
+        """Get the client IP address from API Gateway v2 event."""
+        request_context = self.event.get("requestContext", {})
+        http_context = request_context.get("http", {})
+
+        if "sourceIp" in http_context:
+            return http_context["sourceIp"]
+
+        # Fall back to X-Forwarded-For header
+        forwarded_for = self.request_headers.get("x-forwarded-for")
+        if forwarded_for:
+            return forwarded_for
+
+        # Final fallback
+        return "127.0.0.1"
+
+    def get_protocol(self) -> str:
+        """Get the protocol from API Gateway v2 request context."""
+        request_context = self.event.get("requestContext", {})
+        http_context = request_context.get("http", {})
+        protocol = http_context.get("protocol", "HTTP/1.1")
+
+        # Return just the protocol part (https/http)
+        return "https" if protocol.startswith("HTTPS") else "http"
+
+    def context_specifics(self) -> dict[str, Any]:
+        """Provide API Gateway v2 specific context data."""
+        request_context = self.event.get("requestContext", {})
+        http_context = request_context.get("http", {})
+
+        return {
+            **super().context_specifics(),
+            "path": self.path,
+            "stage": request_context.get("stage"),
+            "request_id": request_context.get("requestId"),
+            "api_id": request_context.get("apiId"),
+            "domain_name": request_context.get("domainName"),
+            "protocol": http_context.get("protocol"),
+            "user_agent": http_context.get("userAgent"),
+        }

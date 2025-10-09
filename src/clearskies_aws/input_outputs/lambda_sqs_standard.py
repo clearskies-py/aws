@@ -1,60 +1,80 @@
 from __future__ import annotations
 
 import json
+from typing import Any
 
 from clearskies.exceptions import ClientError
+from clearskies.input_outputs import Headers
 
-from .lambda_api_gateway import LambdaAPIGateway
+from clearskies_aws.input_outputs import lambda_input_output
 
 
-class LambdaSqsStandard(LambdaAPIGateway):
-    def __init__(self, record, event, context, url=None, method=None):
+class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
+    """SQS standard queue specific Lambda input/output handler."""
+
+    def __init__(self, record: dict, event: dict, context: dict[str, Any], url: str = "", method: str = "POST"):
+        # Call parent constructor with the full event
+        super().__init__(event, context)
+
+        # Store the individual SQS record
         self._record = record
-        self._context = context
-        self._event = event
-        self._path = url if url else ""
-        self._request_method = method.upper() if method else "GET"
 
-    def respond(self, body, status_code=200):
-        pass
+        # SQS specific initialization
+        self.path = url
+        self.request_method = method.upper()
 
-    def get_body(self):
-        return self._record
+        # SQS events don't have query parameters or path parameters
+        self.query_parameters = {}
+        self.routing_data = {}
 
-    def has_body(self):
-        return True
+        # SQS events don't have headers
+        self.request_headers = Headers({})
 
-    def request_data(self, required=True, allow_non_json_bodies=False):
-        return self.json_body(required=required, allow_non_json_bodies=allow_non_json_bodies)
+    def respond(self, body: Any, status_code: int = 200) -> dict[str, Any]:
+        """SQS events don't return responses."""
+        return {}
 
-    def json_body(self, required=True, allow_non_json_bodies=False):
-        if not self._record:
-            if required:
-                raise ClientError("SQS message was not valid JSON")
-            return {}
+    def get_body(self) -> str:
+        """Get the SQS message body."""
+        return self._record.get("body", "")
+
+    def has_body(self) -> bool:
+        """Check if SQS message has a body."""
+        return bool(self._record.get("body"))
+
+    def get_client_ip(self) -> str:
+        """SQS events don't have client IP information."""
+        return "127.0.0.1"
+
+    def get_protocol(self) -> str:
+        """SQS events don't have a protocol."""
+        return "sqs"
+
+    def get_full_path(self) -> str:
+        """Return the configured path."""
+        return self.path
+
+    def context_specifics(self) -> dict[str, Any]:
+        """Provide SQS specific context data."""
+        return {
+            **super().context_specifics(),
+            "sqs_message_id": self._record.get("messageId"),
+            "sqs_receipt_handle": self._record.get("receiptHandle"),
+            "sqs_source_arn": self._record.get("eventSourceARN"),
+            "sqs_sent_timestamp": self._record.get("attributes", {}).get("SentTimestamp"),
+            "sqs_approximate_receive_count": self._record.get("attributes", {}).get("ApproximateReceiveCount"),
+            "sqs_message_attributes": self._record.get("messageAttributes", {}),
+            "sqs_record": self._record,
+        }
+
+    @property
+    def request_data(self) -> dict[str, Any] | list[Any] | None:
+        """Return the SQS message body as parsed JSON."""
+        body = self.get_body()
+        if not body:
+            return None
 
         try:
-            return json.loads(self._record)
+            return json.loads(body)
         except json.JSONDecodeError:
-            raise ClientError("SQS message was not valid JSON")
-
-    def get_query_string(self):
-        raise NotImplementedError("The query string doesn't exist in an SQS context")
-
-    def get_content_type(self):
-        raise NotImplementedError("Content type doesn't exist in an SQS context")
-
-    def get_protocol(self):
-        raise NotImplementedError("A request protocol is not defined in an SQS context")
-
-    def has_request_header(self, header_name):
-        raise NotImplementedError("SQS contexts don't have request headers")
-
-    def get_request_header(self, header_name, silent=True):
-        raise NotImplementedError("SQS contexts don't have request headers")
-
-    def get_query_parameter(self, key):
-        raise NotImplementedError("SQS contexts don't have query parameters")
-
-    def get_query_parameters(self):
-        raise NotImplementedError("SQS contexts don't have query parameters")
+            raise ClientError("SQS message body was not valid JSON")

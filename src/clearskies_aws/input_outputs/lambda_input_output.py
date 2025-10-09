@@ -2,48 +2,34 @@ from __future__ import annotations
 
 import base64
 import json
-from typing import Any, Literal, cast
+from abc import abstractmethod
+from typing import Any, cast
 from urllib.parse import urlencode
 
-from aws_lambda_powertools.utilities.parser import parse
-from aws_lambda_powertools.utilities.parser.models import (
-    APIGatewayProxyEventModel,
-)
-from aws_lambda_powertools.utilities.typing import LambdaContext
+from clearskies.configs import AnyDict, String
 from clearskies.input_outputs import InputOutput
-from pydantic import ValidationError
-from pydantic.networks import IPvAnyNetwork
 
 
 class LambdaInputOutput(InputOutput):
-    _context: LambdaContext
-    _request_headers: dict[str, str]
-    _request_method: Literal["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-    _resource = None
-    _query_parameters: dict[str, str | list[str]] = {}
-    _path_parameters: dict[str, str] = {}
+    """Base class for Lambda input/output handlers that provides common Lambda functionality."""
+
+    event = AnyDict(default={})
+    context = AnyDict(default={})
+    path = String(default="/")
+
     _cached_body = None
     _body_was_cached = False
 
-    def __init__(self, event: dict, context: LambdaContext):
-        self._event = event
+    def __init__(self, event: dict[str, Any], context: dict[str, Any]):
+        # Store event and context
+        self.event = event
         self._context = context
-        self._request_method = self._event.httpMethod
-        self._path = self._event.path
-        self._resource = self._event.resource
-        self._query_parameters = {
-            **(self._event.queryStringParameters or {}),
-            **(self._event.multiValueQueryStringParameters or {}),
-        }
-        self._path_parameters = self._event.pathParameters if self._event.pathParameters else {}
-        self._request_headers = {}
-        for key, value in {
-            **self._event.headers,
-            **self._event.multiValueHeaders,
-        }.items():
-            self._request_headers[key.lower()] = str(value)
+
+        # Initialize the base class
+        super().__init__()
 
     def respond(self, body: Any, status_code: int = 200) -> dict[str, Any]:
+        """Create standard Lambda HTTP response format."""
         if "content-type" not in self.response_headers:
             self.response_headers.content_type = "application/json; charset=UTF-8"
 
@@ -60,71 +46,43 @@ class LambdaInputOutput(InputOutput):
         return {
             "isBase64Encoded": is_base64,
             "statusCode": status_code,
-            "headers": self.response_headers,
+            "headers": dict(self.response_headers),
             "body": final_body,
         }
 
     def has_body(self) -> bool:
         return bool(self.get_body())
 
-    def get_body(self) -> Any:
+    def get_body(self) -> str:
+        """Get request body with base64 decoding if needed."""
         if not self._body_was_cached:
-            self._cached_body = self._event.body
-            if self._cached_body is not None and self._event.isBase64Encoded and isinstance(self._cached_body, str):
+            self._body_was_cached = True
+            self._cached_body = self.event.get("body", "")
+            if (
+                self._cached_body is not None
+                and self.event.get("isBase64Encoded", False)
+                and isinstance(self._cached_body, str)
+            ):
                 self._cached_body = base64.decodebytes(self._cached_body.encode("utf-8")).decode("utf-8")
-        return self._cached_body
+        return self._cached_body or ""
 
-    def get_request_method(self) -> str:
-        return self._request_method
-
-    def get_script_name(self) -> str:
-        return ""
-
-    def get_path_info(self) -> str:
-        return self._path
-
-    def get_query_string(self) -> str:
-        return urlencode(self._query_parameters) if self._query_parameters else ""
-
-    def get_content_type(self) -> str:
-        return str(self.get_request_header("content-type", True))
+    def get_client_ip(self) -> str:
+        """Get client IP - can be overridden by subclasses for event-specific logic."""
+        return "127.0.0.1"
 
     def get_protocol(self) -> str:
+        """Get protocol."""
+        # Default to HTTPS for most Lambda HTTP events
         return "https"
 
-    def has_request_header(self, header_name: str) -> bool:
-        return header_name.lower() in self._request_headers
-
-    def get_request_header(self, header_name: str, silent: bool = False) -> list[str] | str:
-        if header_name.lower() not in self._request_headers:
-            if not silent:
-                raise KeyError(f"HTTP header '{header_name}' was not found in request")
-            return ""
-        return self._request_headers[header_name.lower()]
-
-    def get_query_parameter(self, key: str) -> list[str]:
-        if not self._query_parameters or key not in self._query_parameters:
-            return []
-
-        # Convert to list if it's a string
-        value = self._query_parameters[key]
-        if isinstance(value, str):
-            return [value]
-        return value
-
-    def get_query_parameters(self) -> dict[str, str | list[str]]:
-        return self._query_parameters
+    def get_full_path(self) -> str:
+        """Get full path with query string."""
+        query_string = urlencode(self.query_parameters) if self.query_parameters else ""
+        return f"{self.path}?{query_string}" if query_string else self.path
 
     def context_specifics(self) -> dict[str, Any]:
+        """Provide Lambda-specific context."""
         return {
-            "event": self._event,
-            "context": self._context,
+            "event": self.event,
+            "context": self.context,
         }
-
-    def get_client_ip(self) -> IPvAnyNetwork:
-        # I haven't actually tested with an API gateway yet to figure out which of these works...
-        if hasattr(self._event, "requestContext") and hasattr(self._event.requestContext, "identity"):
-            if hasattr(self._event.requestContext.identity, "sourceIp"):
-                return cast(IPvAnyNetwork, self._event.requestContext.identity.sourceIp)
-
-        return cast(IPvAnyNetwork, self.get_request_header("x-forwarded-for", silent=True))
