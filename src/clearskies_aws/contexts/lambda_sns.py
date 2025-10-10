@@ -7,12 +7,6 @@ from clearskies_aws.input_outputs import LambdaSns as LambdaSnsInputOutput
 
 
 class LambdaSns(Context):
-    def finalize_handler_config(self, config):
-        return {
-            "authentication": Public(),
-            **config,
-        }
-
     def __call__(self, event, context, method=None, url=None):
         if self.execute_application is None:
             raise ValueError("Cannot execute LambdaSnsEvent context without first configuring it")
