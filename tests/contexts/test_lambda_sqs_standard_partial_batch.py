@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import json
 import unittest
-from types import SimpleNamespace
-from unittest.mock import MagicMock, call
 
-import pytest
+import clearskies
 
 from clearskies_aws.contexts.lambda_sqs_standard_partial_batch import LambdaSqsStandardPartialBatch
 
@@ -14,62 +12,53 @@ class LambdaSqsStandardPartialBatchTest(unittest.TestCase):
     def setUp(self):
         self.calls = []
 
-    def my_callable(self, request_data):
-        if "boom" in request_data:
+    def my_callable(self, event, context):
+        if "boom" in event:
             raise ValueError("oops")
-        self.calls.append(request_data)
+        self.calls.append(event)
 
-    @pytest.mark.broken
     def test_simple_execution(self):
-        sqs_handler = LambdaSqsStandardPartialBatch(self.my_callable)
-        sqs_handler(
-            {
-                "Records": [
-                    {
-                        "messageId": "1-2-3-4",
-                        "body": json.dumps({"hey": "sup"}),
-                    },
-                    {
-                        "messageId": "2-3-4-5",
-                        "body": json.dumps({"cool": "yo"}),
-                    },
-                ]
-            },
-            {},
-        )
+        records = {
+            "Records": [
+                {
+                    "messageId": "1-2-3-4",
+                    "body": json.dumps({"hey": "sup"}),
+                },
+                {
+                    "messageId": "2-3-4-5",
+                    "body": json.dumps({"cool": "yo"}),
+                },
+            ]
+        }
+        sqs_handler = LambdaSqsStandardPartialBatch(clearskies.endpoints.Callable(self.my_callable))
+
+        sqs_handler(records, {})
         self.assertEqual(
-            [
-                {"hey": "sup"},
-                {"cool": "yo"},
-            ],
-            self.calls,
+            records,
+            self.calls[0],
         )
 
-    @pytest.mark.broken
     def test_with_failure(self):
-        sqs_handler = LambdaSqsStandardPartialBatch(self.my_callable)
-        results = sqs_handler(
-            {
-                "Records": [
-                    {
-                        "messageId": "1-2-3-4",
-                        "body": json.dumps({"hey": "sup"}),
-                    },
-                    {
-                        "messageId": "2-3-4-5",
-                        "body": json.dumps({"boom": "yo"}),
-                    },
-                ]
-            },
-            {},
-        )
+        records = {
+            "Records": [
+                {
+                    "messageId": "1-2-3-4",
+                    "body": json.dumps({"hey": "sup"}),
+                },
+                {
+                    "messageId": "2-3-4-5",
+                    "body": json.dumps({"boom": "yo"}),
+                },
+            ]
+        }
+        sqs_handler = LambdaSqsStandardPartialBatch(clearskies.endpoints.Callable(self.my_callable))
+        (status_code, response_data, response_headers) = sqs_handler(records, {})
+
         self.assertEqual(
-            [
-                {"hey": "sup"},
-            ],
-            self.calls,
+            records,
+            self.calls[0],
         )
         self.assertEqual(
             {"batchItemFailures": [{"itemIdentifier": "2-3-4-5"}]},
-            results,
+            response_data,
         )

@@ -14,7 +14,7 @@ class LambdaInvocation(lambda_input_output.LambdaInputOutput):
 
     def __init__(
         self,
-        event: dict,
+        event: dict[str, Any],
         context: dict[str, Any],
         method: str = "POST",
         url: str = "",

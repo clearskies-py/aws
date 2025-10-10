@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from clearskies.configs import AnyDict, String
 from clearskies.exceptions import ClientError
 from clearskies.input_outputs import Headers
 
@@ -12,16 +13,21 @@ from clearskies_aws.input_outputs import lambda_input_output
 class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
     """SQS standard queue specific Lambda input/output handler."""
 
-    def __init__(self, record: dict, event: dict, context: dict[str, Any], url: str = "", method: str = "POST"):
+    record = AnyDict(default={})
+    path = String(default="/")
+
+    def __init__(
+        self, record: str, event: dict[str, Any], context: dict[str, Any], url: str = "", method: str = "POST"
+    ):
         # Call parent constructor with the full event
         super().__init__(event, context)
 
         # Store the individual SQS record
-        self._record = record
-
+        self.record = json.loads(record)
+        print("SQS record:", self.record)
         # SQS specific initialization
-        self.path = url
-        self.request_method = method.upper()
+        self.path = url if url else "/"
+        self.request_method = method.upper() if method else "POST"
 
         # SQS events don't have query parameters or path parameters
         self.query_parameters = {}
@@ -35,11 +41,11 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
 
     def get_body(self) -> str:
         """Get the SQS message body."""
-        return self._record.get("body", "")
+        return json.dumps(self.record)
 
     def has_body(self) -> bool:
         """Check if SQS message has a body."""
-        return bool(self._record.get("body"))
+        return True
 
     def get_client_ip(self) -> str:
         """SQS events don't have client IP information."""
@@ -57,22 +63,21 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
         """Provide SQS specific context data."""
         return {
             **super().context_specifics(),
-            "sqs_message_id": self._record.get("messageId"),
-            "sqs_receipt_handle": self._record.get("receiptHandle"),
-            "sqs_source_arn": self._record.get("eventSourceARN"),
-            "sqs_sent_timestamp": self._record.get("attributes", {}).get("SentTimestamp"),
-            "sqs_approximate_receive_count": self._record.get("attributes", {}).get("ApproximateReceiveCount"),
-            "sqs_message_attributes": self._record.get("messageAttributes", {}),
-            "sqs_record": self._record,
+            "sqs_message_id": self.record.get("messageId"),
+            "sqs_receipt_handle": self.record.get("receiptHandle"),
+            "sqs_source_arn": self.record.get("eventSourceARN"),
+            "sqs_sent_timestamp": self.record.get("attributes", {}).get("SentTimestamp"),
+            "sqs_approximate_receive_count": self.record.get("attributes", {}).get("ApproximateReceiveCount"),
+            "sqs_message_attributes": self.record.get("messageAttributes", {}),
+            "sqs_record": self.record,
         }
 
     @property
-    def request_data(self) -> dict[str, Any] | list[Any] | None:
+    def request_data(self) -> dict[str, Any]:
         """Return the SQS message body as parsed JSON."""
         body = self.get_body()
         if not body:
-            return None
-
+            return {}
         try:
             return json.loads(body)
         except json.JSONDecodeError:

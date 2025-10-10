@@ -9,18 +9,11 @@ from clearskies_aws.input_outputs import LambdaSqsStandard as LambdaSqsStandardI
 
 
 class LambdaSqsStandardPartialBatch(Context):
-    def finalize_handler_config(self, config):
-        return {
-            "authentication": Public(),
-            **config,
-        }
 
-    def __call__(self, event, context, url=None, method=None):
-        if self.execute_application is None:
-            raise ValueError("Cannot execute LambdaELB context without first configuring it")
-
+    def __call__(self, event, context, url="", method="POST"):
         item_failures = []
         for record in event["Records"]:
+            print("Processing message " + record["messageId"], record["body"])
             try:
                 self.execute_application(
                     LambdaSqsStandardInputOutput(record["body"], event, context, url=url, method=method)
