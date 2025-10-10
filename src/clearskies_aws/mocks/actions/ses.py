@@ -1,26 +1,26 @@
 from __future__ import annotations
 
+from typing import Any
+
+from clearskies import Model
+from types_boto3_ses import SESClient
+
 from clearskies_aws.actions.ses import SES as BaseSES
 
 
 class SES(BaseSES):
-    calls = None
-
-    def __init__(self, environment, boto3, di):
-        super().__init__(environment, boto3, di)
+    calls: list[dict[str, Any]] | None = None
 
     @classmethod
     def mock(cls, di):
         cls.calls = []
         di.mock_class(BaseSES, SES)
 
-    def __call__(self, model) -> None:
+    def _execute_action(self, client: SESClient, model: Model) -> None:
         """Send a notification as configured."""
-        if SES.calls == None:
+        if SES.calls is None:
             SES.calls = []
         utcnow = self.di.build("utcnow")
-        if self.when and not self.di.call_function(self.when, model=model):
-            return
 
         SES.calls.append(
             {

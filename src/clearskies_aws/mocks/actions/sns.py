@@ -1,26 +1,24 @@
 from __future__ import annotations
 
-from types import ModuleType
+from typing import Any
 
 from clearskies import Model
+from types_boto3_sns import SNSClient
 
 from clearskies_aws.actions.sns import SNS as BaseSNS
 
 
 class SNS(BaseSNS):
-    calls = None
-
-    def __init__(self, environment, boto3, di):
-        super().__init__(environment, boto3, di)
+    calls: list[dict[str, Any]] | None = None
 
     @classmethod
     def mock(cls, di):
         cls.calls = []
         di.mock_class(BaseSNS, SNS)
 
-    def _execute_action(self, client: ModuleType, model: Model) -> None:
+    def _execute_action(self, client: SNSClient, model: Model) -> None:
         """Send a notification as configured."""
-        if SNS.calls == None:
+        if SNS.calls is None:
             SNS.calls = []
 
         SNS.calls.append(

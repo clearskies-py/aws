@@ -1,21 +1,22 @@
 from __future__ import annotations
 
-import datetime
-import json
-from collections.abc import Sequence
-from types import ModuleType
-from typing import Callable, cast
+from typing import Callable
 
-from botocore.exceptions import ClientError
 from clearskies import Model
+from clearskies.configs import Callable as CallableConfig
+from clearskies.configs import String
 from clearskies.decorators import parameters_to_properties
-from clearskies.environment import Environment
+from types_boto3_sns import SNSClient
 
 from .action_aws import ActionAws
 from .assume_role import AssumeRole
 
 
-class SNS(ActionAws):
+class SNS(ActionAws[SNSClient]):
+    topic = String(required=False)
+    topic_environment_key = String(required=False)
+    topic_callable = CallableConfig(required=False)
+
     @parameters_to_properties
     def __init__(
         self,
@@ -28,14 +29,11 @@ class SNS(ActionAws):
     ) -> None:
         """Configure the SNS action."""
         super().__init__(service_name="sns", message_callable=message_callable, when=when, assume_role=assume_role)
+
+    def configure(self):
         self.finalize_and_validate_configuration()
-
-        self.topic = topic
-        self.topic_environment_key = topic_environment_key
-        self.topic_callable = topic_callable
-
         topics = 0
-        for value in [topic, topic_environment_key, topic_callable]:
+        for value in [self.topic, self.topic_environment_key, self.topic_callable]:
             if value:
                 topics += 1
         if topics > 1:
@@ -45,7 +43,7 @@ class SNS(ActionAws):
         if not topics:
             raise ValueError("You must provide at least one of 'topic', 'topic_environment_key', or 'topic_callable'.")
 
-    def _execute_action(self, client: ModuleType, model: Model) -> None:
+    def _execute_action(self, client: SNSClient, model: Model) -> None:
         """Send a notification as configured."""
         topic_arn = self.get_topic_arn(model)
         if not topic_arn:

@@ -1,23 +1,26 @@
 from __future__ import annotations
 
-from types import ModuleType
-from typing import Callable, cast
+from typing import Callable
 
 import boto3
 from clearskies import Model
-from clearskies.environment import Environment
+from clearskies.configs import Callable as CallableConfig
+from clearskies.configs import String
+from clearskies.decorators import parameters_to_properties
+from types_boto3_stepfunctions import SFNClient
 
 from .action_aws import ActionAws
 from .assume_role import AssumeRole
 
 
-class StepFunction(ActionAws):
-    _name = "stepfunctions"
+class StepFunction(ActionAws[SFNClient]):
+    arn = String(required=False)
+    arn_environment_key = String(required=False)
+    arn_callable = CallableConfig(required=False)
+    column_to_store_execution_arn = String(required=False)
 
-    def __init__(self, environment: Environment, boto3: boto3, di) -> None:
-        super().__init__(environment, boto3, di)
-
-    def configure(
+    @parameters_to_properties
+    def __init__(
         self,
         arn: str | None = None,
         arn_environment_key: str | None = None,
@@ -28,15 +31,15 @@ class StepFunction(ActionAws):
         assume_role: AssumeRole | None = None,
     ) -> None:
         """Configure the Step Function action."""
-        super().configure(message_callable=message_callable, when=when, assume_role=assume_role)
+        super().__init__(
+            service_name="stepfunctions", message_callable=message_callable, when=when, assume_role=assume_role
+        )
 
-        self.arn = arn
-        self.arn_environment_key = arn_environment_key
-        self.arn_callable = arn_callable
-        self.column_to_store_execution_arn = column_to_store_execution_arn
+    def configure(self):
+        self.finalize_and_validate_configuration()
 
         arns = 0
-        for value in [arn, arn_environment_key, arn_callable]:
+        for value in [self.arn, self.arn_environment_key, self.arn_callable]:
             if value:
                 arns += 1
         if arns > 1:
@@ -46,13 +49,14 @@ class StepFunction(ActionAws):
         if not arns:
             raise ValueError("You must provide at least one of 'arn', 'arn_environment_key', or 'arn_callable'.")
 
-    def _execute_action(self, client: ModuleType, model: Model) -> None:
+    def _execute_action(self, client: SFNClient, model: Model) -> None:
         """Send a notification as configured."""
         arn = self.get_arn(model)
         default_region = self.default_region()
         arn_region = arn.split(":")[3]
         if default_region and default_region != arn_region:
-            client = self._getClient(region=arn_region)
+            self.region = arn_region
+            client = self._get_client()
         response = client.start_execution(
             stateMachineArn=self.get_arn(model),
             input=self.get_message_body(model),
