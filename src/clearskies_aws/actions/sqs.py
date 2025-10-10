@@ -1,29 +1,25 @@
 from __future__ import annotations
 
-import datetime
-import json
-from collections import OrderedDict
-from collections.abc import Sequence
-from types import ModuleType
 from typing import Callable
 
-import boto3
-from botocore.exceptions import ClientError
-from clearskies.environment import Environment
+from clearskies.configs import Callable as CallableConfig
+from clearskies.configs import String
+from clearskies.decorators import parameters_to_properties
 from clearskies.model import Model
+from types_boto3_sqs import SQSClient
 
 from . import assume_role
 from .action_aws import ActionAws
 
 
-class SQS(ActionAws):
-    _name = "sqs"
+class SQS(ActionAws[SQSClient]):
+    queue_url = String(required=False)
+    queue_url_environment_key = String(required=False)
+    queue_url_callable = CallableConfig(required=False)
+    message_group_id = CallableConfig(required=False)
 
-    def __init__(self, environment: Environment, boto3: boto3, di) -> None:
-        """Set up the SQS action."""
-        super().__init__(environment, boto3, di)
-
-    def configure(
+    @parameters_to_properties
+    def __init__(
         self,
         queue_url: str = "",
         queue_url_environment_key: str = "",
@@ -33,15 +29,13 @@ class SQS(ActionAws):
         assume_role: assume_role.AssumeRole | None = None,
         message_group_id: str | Callable | None = None,
     ) -> None:
-        super().configure(message_callable=message_callable, when=when, assume_role=assume_role)
+        """Set up the SQS action."""
+        super().__init__(service_name="sqs", message_callable=message_callable, when=when, assume_role=assume_role)
 
-        self.queue_url = queue_url
-        self.queue_url_environment_key = queue_url_environment_key
-        self.queue_url_callable = queue_url_callable
-        self.message_group_id = message_group_id
-
+    def configure(self):
+        self.finalize_and_validate_configuration()
         queue_urls = 0
-        for value in [queue_url, queue_url_environment_key, queue_url_callable]:
+        for value in [self.queue_url, self.queue_url_environment_key, self.queue_url_callable]:
             if value:
                 queue_urls += 1
         if queue_urls > 1:
@@ -52,12 +46,12 @@ class SQS(ActionAws):
             raise ValueError(
                 "You must provide at least one of 'queue_url', 'queue_url_environment_key', or 'queue_url_callable'."
             )
-        if message_group_id and not callable(message_group_id) and not isinstance(message_group_id, str):
+        if self.message_group_id and not callable(self.message_group_id) and not isinstance(self.message_group_id, str):
             raise ValueError(
                 "If provided, 'message_group_id' must be a string or callable, but the provided value was neither."
             )
 
-    def _execute_action(self, client: ModuleType, model: Model) -> None:
+    def _execute_action(self, client: SQSClient, model: Model) -> None:
         """Send a notification as configured."""
         params = {
             "QueueUrl": self.get_queue_url(model),

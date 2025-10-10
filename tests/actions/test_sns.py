@@ -14,22 +14,18 @@ from clearskies_aws.actions.sns import SNS
 
 
 class User(clearskies.Model):
-    def __init__(self, memory_backend, columns):
-        super().__init__(memory_backend, columns)
+    backend = clearskies.backends.MemoryBackend()
+    id_column_name = "id"
 
-    def columns_configuration(self):
-        return OrderedDict(
-            [
-                clearskies.column_types.string("name"),
-                clearskies.column_types.email("email"),
-            ]
-        )
+    id = clearskies.columns.String("id")
+    name = clearskies.columns.String("name")
+    email = clearskies.columns.Email("email")
 
 
 class SNSTest(unittest.TestCase):
     def setUp(self):
         self.di = Di()
-        self.di.bind("environment", {"AWS_REGION": "us-east-2"})
+        self.di.add_binding("environment", {"AWS_REGION": "us-east-2"})
         self.users = self.di.build(User)
         self.sns = MagicMock()
         self.sns.publish = MagicMock()
@@ -47,13 +43,27 @@ class SNSTest(unittest.TestCase):
         self.when = model
         return False
 
-    @pytest.mark.broken
     def test_send(self):
-        sns = SNS(self.environment, self.boto3, self.di)
-        sns.configure(
+        sns = SNS(
             topic="arn:aws:my-topic",
             when=self.always,
         )
+
+        # Manually inject dependencies (bypassing clearskies DI for testing)
+        sns.environment = self.environment
+        sns.boto3 = self.boto3
+
+        # Configure the action
+        sns.configure()
+
+        # Mock the DI for callable resolution
+        sns.di = MagicMock()
+
+        def mock_call_function(func, **kwargs):
+            return func(kwargs.get("model"))
+
+        sns.di.call_function = mock_call_function
+
         user = self.users.model(
             {
                 "id": "1-2-3-4",
@@ -68,9 +78,9 @@ class SNSTest(unittest.TestCase):
                     TopicArn="arn:aws:my-topic",
                     Message=json.dumps(
                         {
+                            "email": "jane@example.com",
                             "id": "1-2-3-4",
                             "name": "Jane",
-                            "email": "jane@example.com",
                         }
                     ),
                 ),
@@ -78,13 +88,27 @@ class SNSTest(unittest.TestCase):
         )
         self.assertEqual(id(user), id(self.when))
 
-    @pytest.mark.broken
     def test_not_now(self):
-        sns = SNS(self.environment, self.boto3, self.di)
-        sns.configure(
+        sns = SNS(
             topic="arn:aws:my-topic",
             when=self.never,
         )
+
+        # Manually inject dependencies (bypassing clearskies DI for testing)
+        sns.environment = self.environment
+        sns.boto3 = self.boto3
+
+        # Configure the action
+        sns.configure()
+
+        # Mock the DI for callable resolution
+        sns.di = MagicMock()
+
+        def mock_call_function(func, **kwargs):
+            return func(kwargs.get("model"))
+
+        sns.di.call_function = mock_call_function
+
         user = self.users.model(
             {
                 "id": "1-2-3-4",

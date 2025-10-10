@@ -9,10 +9,13 @@ from typing import Callable, Generic, TypeVar
 
 from botocore.client import BaseClient
 from botocore.exceptions import ClientError
-from clearskies.configs import Actions, Boolean, String
-from clearskies.configs import Callable as ConfigCallable
+from clearskies.action import Action
+from clearskies.configs import Boolean, String
+from clearskies.configs import Callable as CallableConfig
+from clearskies.configurable import Configurable
 from clearskies.decorators import parameters_to_properties
 from clearskies.di.inject import Di, Environment
+from clearskies.di.injectable_properties import InjectableProperties
 from clearskies.functional import string
 from clearskies.model import Model
 
@@ -23,7 +26,7 @@ from .assume_role import AssumeRole
 ClientType = TypeVar("ClientType", bound=BaseClient)
 
 
-class ActionAws(Generic[ClientType], Actions):
+class ActionAws(Generic[ClientType], Action, Configurable, InjectableProperties):
     logging = logging.getLogger(__name__)
     boto3 = inject.Boto3()
     environment = Environment()
@@ -33,9 +36,9 @@ class ActionAws(Generic[ClientType], Actions):
 
     service_name = String(required=True)
 
-    message_callable = ConfigCallable(required=False)
+    message_callable = CallableConfig(required=False, default=None)
 
-    when = ConfigCallable(required=False)
+    when = CallableConfig(required=False, default=None)
 
     assume_role: AssumeRole | None = None
 
@@ -54,6 +57,16 @@ class ActionAws(Generic[ClientType], Actions):
     ) -> None:
         """Set up the AWS action."""
 
+    # def configure(self, **kwargs):
+    #     """Configure the action with additional parameters."""
+    #     # Finalize configuration properties from Configurable
+    #     Configurable.finalize_and_validate_configuration(self)
+
+    #     # Handle any additional kwargs by setting them as attributes
+    #     for key, value in kwargs.items():
+    #         if hasattr(self, key):
+    #             setattr(self, key, value)
+
     def __call__(self, model: Model) -> None:
         """Send a notification as configured."""
         if self.when and not self.di.call_function(self.when, model=model):
@@ -68,7 +81,7 @@ class ActionAws(Generic[ClientType], Actions):
 
     def _get_client(self) -> ClientType:
         """Retrieve the boto3 client."""
-        if self.client and self.can_cache:
+        if hasattr(self, "client") and self.client and self.can_cache:
             return self.client
 
         if self.assume_role:
@@ -107,9 +120,10 @@ class ActionAws(Generic[ClientType], Actions):
             if isinstance(result, dict) or isinstance(result, list):
                 return json.dumps(result, default=string.datetime_to_iso)
             if not isinstance(result, str):
+                callable_name = getattr(self.message_callable, "__name__", str(self.message_callable))
                 raise TypeError(
                     f"The return value from the message callable for the {__name__} action must be a string, dictionary, or list. I received a "
-                    + f"{type(result)} after calling '{self.message_callable.__name__}'"
+                    + f"{type(result)} after calling '{callable_name}'"
                 )
             return result
 

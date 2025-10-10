@@ -212,7 +212,7 @@ dev = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
-    { name = "types-boto3", extra = ["boto3", "essential", "secretsmanager", "ses", "ssm"] },
+    { name = "types-boto3", extra = ["boto3", "essential", "secretsmanager", "ses", "ssm", "stepfunctions"] },
     { name = "types-requests" },
 ]
 
@@ -235,7 +235,7 @@ dev = [
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-cov", specifier = ">=6.2.1" },
     { name = "ruff", specifier = ">=0.12.10" },
-    { name = "types-boto3", extras = ["boto3", "essential", "secretsmanager", "ses", "ssm"], specifier = ">=1.40.40" },
+    { name = "types-boto3", extras = ["boto3", "essential", "secretsmanager", "ses", "ssm", "stepfunctions"], specifier = ">=1.40.40" },
     { name = "types-requests", specifier = ">=2.32.4" },
 ]
 
@@ -1012,6 +1012,9 @@ sqs = [
 ssm = [
     { name = "types-boto3-ssm" },
 ]
+stepfunctions = [
+    { name = "types-boto3-stepfunctions" },
+]
 
 [[package]]
 name = "types-boto3-cloudformation"
@@ -1143,6 +1146,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/49/51/12bd952e2799e9c6e11d02b7056e2a65d8bff31bc47597cf2754ed8f8de2/types_boto3_ssm-1.40.37.tar.gz", hash = "sha256:f3ec44345d7c62ae52dbbb4f96c733228666024a1879ea14cb155370b47cfa73", size = 94608 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/3a/e5/0a51e10e8840852317dc518532401342aaf48c72f1d04efce043709df29f/types_boto3_ssm-1.40.37-py3-none-any.whl", hash = "sha256:9397d4868f90cb127dea0ceaf738e27bf262fe0c939155d7ee688e5efc39966a", size = 96116 },
+]
+
+[[package]]
+name = "types-boto3-stepfunctions"
+version = "1.40.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/54/77/9affedbeb58d363f3497b76043ef169562216bbad8a99922e108c7edd5c3/types_boto3_stepfunctions-1.40.0.tar.gz", hash = "sha256:3e6d119807fcd8109d0d7fcac1ac775c21f4d233f787c02d1eb462fc57e65db0", size = 31283 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5a/d5/046567162dbf8fe5e79ef52fd283726e59df2121537f0054e4374977ee6d/types_boto3_stepfunctions-1.40.0-py3-none-any.whl", hash = "sha256:5df632298219d05f251479a274c040c52e9711f96cc6640bc62663603ef2e8c5", size = 35835 },
 ]
 
 [[package]]

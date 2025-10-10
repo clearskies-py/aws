@@ -1,26 +1,24 @@
 from __future__ import annotations
 
-from types import ModuleType
+from typing import Any
 
 from clearskies import Model
+from types_boto3_stepfunctions import SFNClient
 
 from clearskies_aws.actions.step_function import StepFunction as BaseStepFunction
 
 
 class StepFunction(BaseStepFunction):
-    calls = None
-
-    def __init__(self, environment, boto3, di):
-        super().__init__(environment, boto3, di)
+    calls: list[dict[str, Any]] | None = None
 
     @classmethod
     def mock(cls, di):
-        StepFunction.calls = []
+        cls.calls = []
         di.mock_class(BaseStepFunction, StepFunction)
 
-    def _execute_action(self, client: ModuleType, model: Model) -> None:
+    def _execute_action(self, client: SFNClient, model: Model) -> None:
         """Send a notification as configured."""
-        if StepFunction.calls == None:
+        if StepFunction.calls is None:
             StepFunction.calls = []
 
         StepFunction.calls.append(

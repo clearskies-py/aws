@@ -81,6 +81,6 @@ dev = [
     "pytest>=8.4.1",
     "pytest-cov>=6.2.1",
     "ruff>=0.12.10",
-    "types-boto3[boto3,essential,secretsmanager,ses,ssm]>=1.40.40",
+    "types-boto3[boto3,essential,secretsmanager,ses,ssm,stepfunctions]>=1.40.40",
     "types-requests>=2.32.4",
 ]

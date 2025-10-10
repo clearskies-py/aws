@@ -57,6 +57,9 @@ class SES(action_aws.ActionAws[SESClient]):
         super().__init__(service_name="ses", assume_role=assume_role, when=when)
 
     def configure(self):
+        self.finalize_and_validate_configuration()
+        # First finalize and validate configuration to set up defaults
+
         # this just moves the data from the various "to" inputs (to, cc, bcc) into the self.destinations
         # dictionary, after normalizing it so that it is always a list.
         if not self.to and not self.cc and not self.bcc:
@@ -90,15 +93,14 @@ class SES(action_aws.ActionAws[SESClient]):
         if self.subject_template_file:
             with open(self.subject_template_file, "r", encoding="utf-8") as template:
                 self.subject_template = jinja2.Template(template.read())
-        elif self.subject_template:
+        elif self.subject_template and not isinstance(self.subject_template, jinja2.Template):
             self.subject_template = jinja2.Template(self.subject_template)
 
         if self.message_template_file:
             with open(self.message_template_file, "r", encoding="utf-8") as template:
                 self.message_template = jinja2.Template(template.read())
-        elif self.message_template:
+        elif self.message_template and not isinstance(self.message_template, jinja2.Template):
             self.message_template = jinja2.Template(self.message_template)
-        self.finalize_and_validate_configuration(self)
 
     def _execute_action(self, client: SESClient, model: Model) -> None:
         """Send a notification as configured."""
