@@ -23,7 +23,7 @@ class LambdaInputOutput(InputOutput):
     def __init__(self, event: dict[str, Any], context: dict[str, Any]):
         # Store event and context
         self.event = event
-        self._context = context
+        self.context = context
 
         # Initialize the base class
         super().__init__()
@@ -76,9 +76,8 @@ class LambdaInputOutput(InputOutput):
         return "https"
 
     def get_full_path(self) -> str:
-        """Get full path with query string."""
-        query_string = urlencode(self.query_parameters) if self.query_parameters else ""
-        return f"{self.path}?{query_string}" if query_string else self.path
+        """Get full path."""
+        return self.path
 
     def context_specifics(self) -> dict[str, Any]:
         """Provide Lambda-specific context."""
