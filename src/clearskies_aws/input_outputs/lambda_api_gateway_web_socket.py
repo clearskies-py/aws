@@ -8,34 +8,33 @@ from clearskies.input_outputs import Headers
 from clearskies_aws.input_outputs import lambda_input_output
 
 
-class LambdaAPIGatewayWebSocket(lambda_input_output.LambdaInputOutput):
-    """API Gateway WebSocket specific Lambda input/output handler."""
+class LambdaApiGatewayWebSocket(lambda_input_output.LambdaInputOutput):
+    """Api Gateway WebSocket specific Lambda input/output handler."""
 
     route_key = String(default="")
     connection_id = String(default="")
 
-    def __init__(self, event: dict[str, Any], context: dict[str, Any]):
+    def __init__(self, event: dict[str, Any], context: dict[str, Any], url: str = ""):
         # Call parent constructor
         super().__init__(event, context)
+
+        self.path = url
 
         # WebSocket specific initialization
         request_context = event.get("requestContext", {})
 
-        # WebSocket uses route_key instead of HTTP method
+        # WebSocket uses route_key, but doesn't have either a route or a method
         self.route_key = request_context.get("routeKey", "")
         self.request_method = self.route_key.upper()  # For compatibility
 
         # WebSocket connection ID
         self.connection_id = request_context.get("connectionId", "")
 
-        # WebSocket events typically don't have query parameters or path parameters
+        # These will only be available, at monst, during the on-connect step
         self.query_parameters = event.get("queryStringParameters") or {}
-
-        # Extract headers
         headers_dict = {}
         for key, value in event.get("headers", {}).items():
             headers_dict[key.lower()] = str(value)
-
         self.request_headers = Headers(headers_dict)
 
     def get_client_ip(self) -> str:
@@ -46,13 +45,7 @@ class LambdaAPIGatewayWebSocket(lambda_input_output.LambdaInputOutput):
         if "sourceIp" in identity:
             return identity["sourceIp"]
 
-        # Fall back to X-Forwarded-For header
-        forwarded_for = self.request_headers.get("x-forwarded-for")
-        if forwarded_for:
-            return forwarded_for
-
-        # Final fallback
-        return "127.0.0.1"
+        raise ValueError("Unable to find the client ip inside the API Gateway")
 
     def respond(self, body: Any, status_code: int = 200) -> dict[str, Any]:
         """Create WebSocket specific response format."""
