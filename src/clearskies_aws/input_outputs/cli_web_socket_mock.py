@@ -5,11 +5,11 @@ import json
 import clearskies
 
 
-class CLIWebSocketMock(clearskies.input_outputs.Cli):
+class CliWebSocketMock(clearskies.input_outputs.Cli):
     def context_specifics(self):
         connection_id = json.loads(self.get_body()).get("connection_id")
         if not connection_id:
-            raise KeyError("When using the CLIWebsocketMock you must provide connection_id in the request body")
+            raise KeyError("When using the CliWebsocketMock you must provide connection_id in the request body")
 
         return {
             "event": {},

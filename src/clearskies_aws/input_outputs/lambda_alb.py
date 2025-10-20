@@ -8,7 +8,7 @@ from clearskies.input_outputs import Headers
 from clearskies_aws.input_outputs import lambda_input_output
 
 
-class LambdaALB(lambda_input_output.LambdaInputOutput):
+class LambdaAlb(lambda_input_output.LambdaInputOutput):
     """Application Load Balancer specific Lambda input/output handler."""
 
     def __init__(self, event: dict[str, Any], context: dict[str, Any]):
@@ -33,12 +33,11 @@ class LambdaALB(lambda_input_output.LambdaInputOutput):
         """Get the client IP address from ALB headers."""
         # ALB always provides client IP via X-Forwarded-For header
         forwarded_for = self.request_headers.get("x-forwarded-for")
-        if forwarded_for:
-            # X-Forwarded-For can contain multiple IPs, take the first one
-            return forwarded_for.split(",")[0].strip()
+        if not forwarded_for:
+            raise KeyError("The x-forwarded-for header wasn't present in the request, and it should always exist for anything behind an ALB.  You are probably using the wrong context.")
 
-        # Final fallback
-        return "127.0.0.1"
+        # X-Forwarded-For can contain multiple IPs, take the first one
+        return forwarded_for.split(",")[0].strip()
 
     def context_specifics(self) -> dict[str, Any]:
         """Provide ALB specific context data."""
