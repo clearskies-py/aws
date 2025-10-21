@@ -24,6 +24,7 @@ class LambdaApiGateway(Context):
     from clearskies.validators import Required, Unique
     from clearskies import columns
 
+
     class User(clearskies.Model):
         id_column_name = "id"
         backend = clearskies.backends.MemoryBackend()
@@ -40,6 +41,7 @@ class LambdaApiGateway(Context):
         created_at = columns.Created()
         updated_at = columns.Updated()
 
+
     application = clearskies_aws.contexts.LambdaApiGateway(
         clearskies.endpoints.RestfulApi(
             url="users",
@@ -51,6 +53,7 @@ class LambdaApiGateway(Context):
             default_sort_column_name="name",
         )
     )
+
 
     def lambda_handler(event, context):
         return application(event, context)
@@ -70,5 +73,5 @@ class LambdaApiGateway(Context):
      7. `api_version` (v1 or v2)
     """
 
-    def __call__(self, event: dict[str, Any], context: dict[str, Any]) -> Dict[str, Any]:
-        return self.execute_application(LambdaAPIGatewayInputOutput(event, context))
+    def __call__(self, event: dict[str, Any], context: dict[str, Any]) -> Any:  # type: ignore[override]
+        return self.execute_application(LambdaApiGatewayInputOutput(event, context))

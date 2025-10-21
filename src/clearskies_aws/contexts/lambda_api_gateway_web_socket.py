@@ -11,7 +11,7 @@ from clearskies_aws.input_outputs import (
 
 class LambdaApiGatewayWebSocket(Context):
     """
-    Run a clearskies application behind an API Gateway that is configured for use as a websocket
+    Run a clearskies application behind an API Gateway that is configured for use as a websocket.
 
     Websockets work much differently than standard API endpoints.  Most importantly, none of the standard HTTP
     concepts exist.  Websockets requests don't have any of:
@@ -52,5 +52,6 @@ class LambdaApiGatewayWebSocket(Context):
     this class to understand how this is managed and see a "starter" websocket application.
 
     """
-    def __call__(self, event: dict[str, Any], context: dict[str, Any], url: str = "") -> dict[str, Any]:
+
+    def __call__(self, event: dict[str, Any], context: dict[str, Any], url: str = "") -> Any:  # type: ignore[override]
         return self.execute_application(LambdaApiGatewayWebSocketInputOutput(event, context, url))

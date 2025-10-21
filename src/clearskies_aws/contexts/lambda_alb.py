@@ -4,7 +4,7 @@ from typing import Any
 
 from clearskies.contexts.context import Context
 
-from clearskies_aws.input_outputs import LambdaALB as LambdaAlbInputOutput
+from clearskies_aws.input_outputs import LambdaAlb as LambdaAlbInputOutput
 
 
 class LambdaAlb(Context):
@@ -30,6 +30,7 @@ class LambdaAlb(Context):
     from clearskies.validators import Required, Unique
     from clearskies import columns
 
+
     class User(clearskies.Model):
         id_column_name = "id"
         backend = clearskies.backends.MemoryBackend()
@@ -46,6 +47,7 @@ class LambdaAlb(Context):
         created_at = columns.Created()
         updated_at = columns.Updated()
 
+
     application = clearskies_aws.contexts.LambdaAlb(
         clearskies.endpoints.RestfulApi(
             url="users",
@@ -58,6 +60,7 @@ class LambdaAlb(Context):
         )
     )
 
+
     def lambda_handler(event, context):
         return application(event, context)
     ```
@@ -68,5 +71,6 @@ class LambdaAlb(Context):
     `event` and `context`.  These correspond to the original `event` and `context` variables provided by AWS to
     the lambda.
     """
-    def __call__(self, event: dict[str, Any], context: dict[str, Any])-> Any:
+
+    def __call__(self, event: dict[str, Any], context: dict[str, Any]) -> Any:  # type: ignore[override]
         return self.execute_application(LambdaAlbInputOutput(event, context))

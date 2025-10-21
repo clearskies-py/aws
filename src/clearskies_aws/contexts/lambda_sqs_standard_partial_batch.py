@@ -9,7 +9,6 @@ from clearskies_aws.input_outputs import LambdaSqsStandard as LambdaSqsStandardI
 
 
 class LambdaSqsStandardPartialBatch(Context):
-
     def __call__(self, event, context, url="", method="POST"):
         item_failures = []
         for record in event["Records"]:
