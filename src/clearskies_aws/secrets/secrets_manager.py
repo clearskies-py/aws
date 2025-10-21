@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from botocore.exceptions import ClientError
-from clearskies.secrets.exceptions.not_found import NotFound
+from clearskies.exceptions.not_found import NotFound
 from types_boto3_secretsmanager import SecretsManagerClient
 from types_boto3_secretsmanager.type_defs import SecretListEntryTypeDef
 

@@ -4,10 +4,10 @@ import unittest
 
 from clearskies.input_outputs import Headers
 
-from clearskies_aws.input_outputs import LambdaAPIGateway
+from clearskies_aws.input_outputs import LambdaApiGateway
 
 
-class LambdaAPIGatewayTest(unittest.TestCase):
+class LambdaApiGatewayTest(unittest.TestCase):
     request_headers = Headers({"Content-Type": "application/json; charset=UTF-8"})
 
     dummy_event_v1 = {
@@ -50,7 +50,7 @@ class LambdaAPIGatewayTest(unittest.TestCase):
     def test_respond_v1(self):
         """Test response format for API Gateway v1."""
         response_headers = Headers({"Content-Type": "application/json; charset=UTF-8"})
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v1, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v1, {})
 
         response = aws_lambda.respond({"some": "data"}, 200)
         self.assertEqual(
@@ -66,7 +66,7 @@ class LambdaAPIGatewayTest(unittest.TestCase):
     def test_respond_v2(self):
         """Test response format for API Gateway v2."""
         response_headers = Headers({"Content-Type": "application/json; charset=UTF-8"})
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v2, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v2, {})
 
         response = aws_lambda.respond({"some": "data"}, 200)
         self.assertEqual(
@@ -81,7 +81,7 @@ class LambdaAPIGatewayTest(unittest.TestCase):
 
     def test_headers_v1(self):
         """Test header parsing for API Gateway v1."""
-        aws_lambda = LambdaAPIGateway(
+        aws_lambda = LambdaApiGateway(
             {
                 **self.dummy_event_v1,
                 **{
@@ -105,7 +105,7 @@ class LambdaAPIGatewayTest(unittest.TestCase):
 
     def test_headers_v2(self):
         """Test header parsing for API Gateway v2."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v2, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v2, {})
 
         self.assertEqual("Bearer token", aws_lambda.request_headers.get("authorization"))
         self.assertEqual("application/json", aws_lambda.request_headers.get("content-type"))
@@ -114,7 +114,7 @@ class LambdaAPIGatewayTest(unittest.TestCase):
 
     def test_body_plain_v1(self):
         """Test plain body parsing for API Gateway v1."""
-        aws_lambda = LambdaAPIGateway(
+        aws_lambda = LambdaApiGateway(
             {**self.dummy_event_v1, **{"body": '{"hey": "sup"}', "isBase64Encoded": False}}, {}
         )
 
@@ -124,7 +124,7 @@ class LambdaAPIGatewayTest(unittest.TestCase):
 
     def test_body_plain_v2(self):
         """Test plain body parsing for API Gateway v2."""
-        aws_lambda = LambdaAPIGateway(
+        aws_lambda = LambdaApiGateway(
             {**self.dummy_event_v2, **{"body": '{"hello": "world"}', "isBase64Encoded": False}}, {}
         )
 
@@ -134,7 +134,7 @@ class LambdaAPIGatewayTest(unittest.TestCase):
 
     def test_body_base64_v1(self):
         """Test base64 body parsing for API Gateway v1."""
-        aws_lambda = LambdaAPIGateway(
+        aws_lambda = LambdaApiGateway(
             {**self.dummy_event_v1, **{"body": "eyJoZXkiOiAic3VwIn0=", "isBase64Encoded": True}}, {}
         )
 
@@ -144,7 +144,7 @@ class LambdaAPIGatewayTest(unittest.TestCase):
 
     def test_body_base64_v2(self):
         """Test base64 body parsing for API Gateway v2."""
-        aws_lambda = LambdaAPIGateway(
+        aws_lambda = LambdaApiGateway(
             {**self.dummy_event_v2, **{"body": "eyJoZWxsbyI6ICJ3b3JsZCJ9", "isBase64Encoded": True}}, {}
         )
 
@@ -154,59 +154,59 @@ class LambdaAPIGatewayTest(unittest.TestCase):
 
     def test_path_v1(self):
         """Test path extraction for API Gateway v1."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v1, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v1, {})
         self.assertEqual("/test", aws_lambda.path)
 
     def test_path_v2(self):
         """Test path extraction for API Gateway v2."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v2, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v2, {})
         self.assertEqual("/test", aws_lambda.path)
 
     def test_query_parameters_v1(self):
         """Test query parameter parsing for API Gateway v1."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v1, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v1, {})
         expected = {"q": "hey", "bob": "sup", "tags": ["urgent", "important"]}
         self.assertEqual(expected, aws_lambda.query_parameters)
 
     def test_query_parameters_v2(self):
         """Test query parameter parsing for API Gateway v2."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v2, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v2, {})
         expected = {"q": "hello", "name": "world"}
         self.assertEqual(expected, aws_lambda.query_parameters)
 
     def test_resource_v1(self):
         """Test resource extraction for API Gateway v1."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v1, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v1, {})
         self.assertEqual("/test/{id}", aws_lambda.resource)
 
     def test_resource_v2(self):
         """Test resource extraction for API Gateway v2 (should be empty)."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v2, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v2, {})
         self.assertEqual("", aws_lambda.resource)
 
     def test_client_ip_v1(self):
         """Test client IP extraction for API Gateway v1."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v1, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v1, {})
         self.assertEqual("192.168.1.1", aws_lambda.get_client_ip())
 
     def test_client_ip_v2(self):
         """Test client IP extraction for API Gateway v2."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v2, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v2, {})
         self.assertEqual("192.168.1.2", aws_lambda.get_client_ip())
 
     def test_protocol_v1(self):
         """Test protocol for API Gateway v1 (defaults to https)."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v1, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v1, {})
         self.assertEqual("https", aws_lambda.get_protocol())
 
     def test_protocol_v2(self):
         """Test protocol for API Gateway v2."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v2, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v2, {})
         self.assertEqual("http", aws_lambda.get_protocol())
 
     def test_context_specifics_v1(self):
         """Test context specifics for API Gateway v1."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v1, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v1, {})
         context = aws_lambda.context_specifics()
 
         self.assertEqual("/test/{id}", context["resource"])
@@ -218,7 +218,7 @@ class LambdaAPIGatewayTest(unittest.TestCase):
 
     def test_context_specifics_v2(self):
         """Test context specifics for API Gateway v2."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v2, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v2, {})
         context = aws_lambda.context_specifics()
 
         self.assertEqual("", context["resource"])
@@ -233,20 +233,20 @@ class LambdaAPIGatewayTest(unittest.TestCase):
 
     def test_version_detection_v1(self):
         """Test version detection for API Gateway v1."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v1, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v1, {})
         self.assertEqual("1.0", aws_lambda._detect_version(self.dummy_event_v1))
 
     def test_version_detection_v2(self):
         """Test version detection for API Gateway v2."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v2, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v2, {})
         self.assertEqual("2.0", aws_lambda._detect_version(self.dummy_event_v2))
 
     def test_request_method_v1(self):
         """Test request method for API Gateway v1."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v1, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v1, {})
         self.assertEqual("GET", aws_lambda.request_method)
 
     def test_request_method_v2(self):
         """Test request method for API Gateway v2."""
-        aws_lambda = LambdaAPIGateway(self.dummy_event_v2, {})
+        aws_lambda = LambdaApiGateway(self.dummy_event_v2, {})
         self.assertEqual("GET", aws_lambda.request_method)

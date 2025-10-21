@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from clearskies.authentication import Public
 from clearskies.contexts.context import Context
 
@@ -7,27 +9,11 @@ from clearskies_aws.input_outputs import LambdaInvocation as LambdaInvocationInp
 
 
 class LambdaInvocation(Context):
-    def finalize_handler_config(self, config):
-        return {
-            "authentication": Public(),
-            **config,
-        }
 
-    def __call__(
-        self,
-        event,
-        context,
-        method=None,
-        url=None,
-    ):
-        if self.execute_application is None:
-            raise ValueError("Cannot execute LambdaInvocation context without first configuring it")
-
+    def __call__(self, event: dict[str, Any], context: dict[str, Any]) -> Any:  # type: ignore[override]
         return self.execute_application(
             LambdaInvocationInputOutput(
                 event,
                 context,
-                method=method,
-                url=url,
             )
         )

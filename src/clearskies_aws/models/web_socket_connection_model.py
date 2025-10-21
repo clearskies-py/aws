@@ -27,12 +27,10 @@ class WebSocketConnectionModel(clearskies.Model):
         "Statement": [
             {
                 "Effect": "Allow",
-                "Action": [
-                    "execute-api:ManageConnections"
-                ],
-                "Resource": "arn:aws:execute-api:${aws_region_name}:${aws_account_id}:${api_gateway_id}/{stage}/*"
+                "Action": ["execute-api:ManageConnections"],
+                "Resource": "arn:aws:execute-api:${aws_region_name}:${aws_account_id}:${api_gateway_id}/{stage}/*",
             }
-        ]
+        ],
     }
     ```
 
@@ -152,6 +150,7 @@ class WebSocketConnectionModel(clearskies.Model):
     ```
 
     """
+
     id_column_name = "connection_id"
 
     boto3 = clearskies_aws.di.inject.Boto3()

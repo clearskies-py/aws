@@ -1,19 +1,9 @@
 from __future__ import annotations
 
-from clearskies_aws import (
-    actions,
-    backends,
-    contexts,
-    di,
-    endpoints,
-    input_outputs,
-    mocks,
-    secrets,
-)
-from clearskies_aws.web_socket_connection_model import WebSocketConnectionModel
+from clearskies_aws import actions, backends, contexts, di, endpoints, input_outputs, mocks, models, secrets
 
 __all__ = [
-    "WebSocketConnectionModel",
+    "models",
     "actions",
     "backends",
     "contexts",

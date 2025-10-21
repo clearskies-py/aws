@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from typing import Any
-
 from clearskies.contexts import cli
 
 from clearskies_aws.input_outputs import CliWebSocketMock as CliWebSocketMockInputOutput
 
 
-class CLIWebSocketMock(cli.Cli):
+class CliWebSocketMock(cli.Cli):
     """
     Help assist with testing websockets locally.
 
@@ -16,5 +14,6 @@ class CLIWebSocketMock(cli.Cli):
     the LambdaApiGatewayWebSocket context works to give some testing capabilities when running
     locally.
     """
+
     def __call__(self):
-        return self.execute_application(CLIWebSocketMockInputOutput())
+        return self.execute_application(CliWebSocketMockInputOutput())
