@@ -37,7 +37,7 @@ class LambdaApiGatewayWebSocket(Context):
     having to handle such things themselves, since the typical standards of web frameworks won't match up.  In
     the case of routing with an API Gateway, it has its own suggested standard of setting a routekey where the
     API gateway will check for an application-defined route parameter in the request body and use this to route
-    to an appropriate lambda.  With clearskies, you can also use the `clearskies.endpoints.JsonParamEndpointGroup`
+    to an appropriate lambda.  With clearskies, you can also use the `clearskies.endpoints.BodyParameterRouting`
     to accomplish the same.
 
     With a websocket through API Gateway, headers are available during the `on_connect` phase, so you can always
@@ -50,6 +50,26 @@ class LambdaApiGatewayWebSocket(Context):
     An important part of using websockets is being able to manage and send messages to clients.  To help with this,
     there is a base model class in `clearskies_aws.models.WebSocketConnectionModel`.  Check the documentation for
     this class to understand how this is managed and see a "starter" websocket application.
+
+    ### Context Specifics
+
+    The following parameters are made available by name to any function invoked by clearskies when using
+    this context:
+
+    ```
+    |      Name     |      Type      | Description                                      |
+    |:-------------:|:--------------:|--------------------------------------------------|
+    |     event     | dict[str, Any] | The lambda `event` object                        |
+    |    context    | dict[str, Any] | The lambda `context` object                      |
+    | connection_id |      `str`     | The Connection ID                                |
+    |   route_key   |      `str`     | The value of the route key, as determined by AWS |
+    |     stage     |      `str`     | The stage of the lambda function                 |
+    |   request_id  |      `str`     | The AWS request id for the call                  |
+    |     api_id    |      `str`     | The id of the API                                |
+    |  domain_name  |      `str`     | The domain name                                  |
+    |   event_type  |      `str`     | One of "MESSAGE", "CONNECT", or "DISCONNECT"     |
+    |  connected_at |      `str`     | The connection time                              |
+    ```
 
     """
     def __call__(self, event: dict[str, Any], context: dict[str, Any], url: str = "") -> dict[str, Any]:

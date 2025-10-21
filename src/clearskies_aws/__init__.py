@@ -8,6 +8,7 @@ from clearskies_aws import (
     handlers,
     input_outputs,
     mocks,
+    models,
     secrets,
 )
 from clearskies_aws.web_socket_connection_model import WebSocketConnectionModel
@@ -21,5 +22,6 @@ __all__ = [
     "handlers",
     "input_outputs",
     "mocks",
+    "models",
     "secrets",
 ]

@@ -12,13 +12,15 @@ from clearskies_aws.input_outputs import lambda_input_output
 class LambdaSns(lambda_input_output.LambdaInputOutput):
     """SNS specific Lambda input/output handler."""
 
-    def __init__(self, event: dict, context: dict[str, Any], url: str = "", method: str = "POST"):
+    record: dict[str, Any]
+
+    def __init__(self, event: dict, context: dict[str, Any], url: str = "", request_method: str = "POST"):
         # Call parent constructor
         super().__init__(event, context)
 
         # SNS specific initialization
         self.path = url
-        self.request_method = method.upper()
+        self.request_method = request_method.upper()
 
         # SNS events don't have query parameters or path parameters
         self.query_parameters = {}
@@ -29,7 +31,7 @@ class LambdaSns(lambda_input_output.LambdaInputOutput):
         # Extract SNS message from event
         try:
             record = event["Records"][0]["Sns"]["Message"]
-            self._record = json.loads(record)
+            self.record = json.loads(record)
         except (KeyError, IndexError, json.JSONDecodeError) as e:
             raise ClientError(
                 "The message from AWS was not a valid SNS event with serialized JSON. "
@@ -42,11 +44,11 @@ class LambdaSns(lambda_input_output.LambdaInputOutput):
 
     def get_body(self) -> str:
         """Get the SNS message as a JSON string."""
-        return json.dumps(self._record) if self._record else ""
+        return json.dumps(self.record) if self.record else ""
 
     def has_body(self) -> bool:
         """Check if SNS message exists."""
-        return bool(self._record)
+        return bool(self.record)
 
     def get_client_ip(self) -> str:
         """SNS events don't have client IP information."""
@@ -66,11 +68,10 @@ class LambdaSns(lambda_input_output.LambdaInputOutput):
 
         return {
             **super().context_specifics(),
-            "sns_message_id": sns_record.get("MessageId"),
-            "sns_topic_arn": sns_record.get("TopicArn"),
-            "sns_subject": sns_record.get("Subject"),
-            "sns_timestamp": sns_record.get("Timestamp"),
-            "sns_message": self._record,
+            "message_id": sns_record.get("MessageId"),
+            "topic_arn": sns_record.get("TopicArn"),
+            "subject": sns_record.get("Subject"),
+            "timestamp": sns_record.get("Timestamp"),
         }
 
     @property

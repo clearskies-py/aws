@@ -65,8 +65,13 @@ class LambdaAlb(Context):
     ### Context for Callables
 
     When using this context, two additional named arguments become available to any callables invoked by clearskies:
-    `event` and `context`.  These correspond to the original `event` and `context` variables provided by AWS to
-    the lambda.
+
+    ```
+    |     Name    |      Type      | Description                      |
+    |:-----------:|:--------------:|----------------------------------|
+    |    event    | dict[str, Any] | The lambda `event` object        |
+    |   context   | dict[str, Any] | The lambda `context` object      |
+    ```
     """
     def __call__(self, event: dict[str, Any], context: dict[str, Any])-> Any:
         return self.execute_application(LambdaAlbInputOutput(event, context))

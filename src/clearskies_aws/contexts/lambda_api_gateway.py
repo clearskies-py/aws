@@ -61,13 +61,17 @@ class LambdaApiGateway(Context):
     When using this context, a number of additional named arguments become available to any callables invoked by
     clearskies:
 
-     1. `event`
-     2. `context`
-     3. `resource`
-     4. `stage`
-     5. `request_id`
-     6. `api_id`
-     7. `api_version` (v1 or v2)
+    ```
+    |     Name    |      Type      | Description                      |
+    |:-----------:|:--------------:|----------------------------------|
+    |    event    | dict[str, Any] | The lambda `event` object        |
+    |   context   | dict[str, Any] | The lambda `context` object      |
+    |   resource  |      `str`     | The route resource               |
+    |    stage    |      `str`     | The stage of the lambda function |
+    |  request_id |      `str`     | The AWS request id for the call  |
+    |    api_id   |      `str`     | The id of the API                |
+    | api_version |      `str`     | "v1" or "v2"                     |
+    ```
     """
 
     def __call__(self, event: dict[str, Any], context: dict[str, Any]) -> Dict[str, Any]:

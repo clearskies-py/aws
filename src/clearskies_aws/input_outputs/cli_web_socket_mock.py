@@ -15,4 +15,6 @@ class CliWebSocketMock(clearskies.input_outputs.Cli):
             "event": {},
             "context": {},
             "connection_id": connection_id,
+            "domain": "",
+            "stage": "",
         }
