@@ -38,9 +38,9 @@ packages = ["src/clearskies_aws"]
 
 [tool.hatch.build]
 exclude = [
-    "src/clearskies_akeyless_custom_producer/*_test.py",
-    "src/clearskies_akeyless_custom_producer/**/*_test.py",
-    "src/clearskies_akeyless_custom_producer/integration_tests/*",
+    "src/clearskies_aws/*_test.py",
+    "src/clearskies_aws/**/*_test.py",
+    "src/clearskies_aws/integration_tests/*",
     "docs/**",
     "tests/**"
 ]
