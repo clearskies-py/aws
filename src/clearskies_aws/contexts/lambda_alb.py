@@ -4,7 +4,7 @@ from typing import Any
 
 from clearskies.contexts.context import Context
 
-from clearskies_aws.input_outputs import LambdaALB as LambdaAlbInputOutput
+from clearskies_aws.input_outputs import LambdaAlb as LambdaAlbInputOutput
 
 
 class LambdaAlb(Context):
@@ -30,6 +30,7 @@ class LambdaAlb(Context):
     from clearskies.validators import Required, Unique
     from clearskies import columns
 
+
     class User(clearskies.Model):
         id_column_name = "id"
         backend = clearskies.backends.MemoryBackend()
@@ -46,6 +47,7 @@ class LambdaAlb(Context):
         created_at = columns.Created()
         updated_at = columns.Updated()
 
+
     application = clearskies_aws.contexts.LambdaAlb(
         clearskies.endpoints.RestfulApi(
             url="users",
@@ -58,20 +60,22 @@ class LambdaAlb(Context):
         )
     )
 
+
     def lambda_handler(event, context):
         return application(event, context)
     ```
 
-    ### Context for Callables
+    ### Context Specifics
 
     When using this context, two additional named arguments become available to any callables invoked by clearskies:
 
     ```
-    |     Name    |      Type      | Description                      |
-    |:-----------:|:--------------:|----------------------------------|
-    |    event    | dict[str, Any] | The lambda `event` object        |
-    |   context   | dict[str, Any] | The lambda `context` object      |
+    |      Name     |       Type       | Description                      |
+    |:-------------:|:----------------:|----------------------------------|
+    |    `event`    | `dict[str, Any]` | The lambda `event` object        |
+    |   `context`   | `dict[str, Any]` | The lambda `context` object      |
     ```
     """
-    def __call__(self, event: dict[str, Any], context: dict[str, Any])-> Any:
+
+    def __call__(self, event: dict[str, Any], context: dict[str, Any]) -> Any:
         return self.execute_application(LambdaAlbInputOutput(event, context))

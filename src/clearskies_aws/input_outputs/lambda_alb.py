@@ -34,7 +34,9 @@ class LambdaAlb(lambda_input_output.LambdaInputOutput):
         # ALB always provides client IP via X-Forwarded-For header
         forwarded_for = self.request_headers.get("x-forwarded-for")
         if not forwarded_for:
-            raise KeyError("The x-forwarded-for header wasn't present in the request, and it should always exist for anything behind an ALB.  You are probably using the wrong context.")
+            raise KeyError(
+                "The x-forwarded-for header wasn't present in the request, and it should always exist for anything behind an ALB.  You are probably using the wrong context."
+            )
 
         # X-Forwarded-For can contain multiple IPs, take the first one
         return forwarded_for.split(",")[0].strip()

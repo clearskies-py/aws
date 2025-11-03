@@ -24,6 +24,7 @@ class LambdaApiGateway(Context):
     from clearskies.validators import Required, Unique
     from clearskies import columns
 
+
     class User(clearskies.Model):
         id_column_name = "id"
         backend = clearskies.backends.MemoryBackend()
@@ -40,6 +41,7 @@ class LambdaApiGateway(Context):
         created_at = columns.Created()
         updated_at = columns.Updated()
 
+
     application = clearskies_aws.contexts.LambdaApiGateway(
         clearskies.endpoints.RestfulApi(
             url="users",
@@ -52,25 +54,26 @@ class LambdaApiGateway(Context):
         )
     )
 
+
     def lambda_handler(event, context):
         return application(event, context)
     ```
 
-    ### Context for Callables
+    ### Context Specifics
 
     When using this context, a number of additional named arguments become available to any callables invoked by
     clearskies:
 
     ```
-    |     Name    |      Type      | Description                      |
-    |:-----------:|:--------------:|----------------------------------|
-    |    event    | dict[str, Any] | The lambda `event` object        |
-    |   context   | dict[str, Any] | The lambda `context` object      |
-    |   resource  |      `str`     | The route resource               |
-    |    stage    |      `str`     | The stage of the lambda function |
-    |  request_id |      `str`     | The AWS request id for the call  |
-    |    api_id   |      `str`     | The id of the API                |
-    | api_version |      `str`     | "v1" or "v2"                     |
+    |      Name     |       Type       | Description                      |
+    |:-------------:|:----------------:|----------------------------------|
+    |   ` event`    | `dict[str, Any]` | The lambda `event` object        |
+    |   `context`   | `dict[str, Any]` | The lambda `context` object      |
+    |   `resource`  |       `str`      | The route resource               |
+    |    `stage`    |       `str`      | The stage of the lambda function |
+    |  `request_id` |       `str`      | The AWS request id for the call  |
+    |    `api_id`   |       `str`      | The id of the API                |
+    | `api_version` |       `str`      | "v1" or "v2"                     |
     ```
     """
 

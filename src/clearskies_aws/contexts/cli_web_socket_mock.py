@@ -17,5 +17,6 @@ class CliWebSocketMock(cli.Cli):
     locally.  It works identically to `clearskies.contexts.Cli` but you have to provide a
     `connection_id` property in the JSON body.
     """
+
     def __call__(self):
         return self.execute_application(CLIWebSocketMockInputOutput())

@@ -3,7 +3,7 @@ from __future__ import annotations
 from clearskies.authentication import Public
 from clearskies.contexts.context import Context
 
-from clearskies_aws.input_outputs import LambdaInvocation as LambdaInvocationInputOutput
+from clearskies_aws.input_outputs import LambdaInvoke as LambdaInvokeInputOutput
 
 
 class LambdaInvoke(Context):
@@ -27,12 +27,14 @@ class LambdaInvoke(Context):
     def my_function(request_data):
         return request_data
 
+
     lambda_invoke = clearskies_aws.contexts.LambdaInvoke(
         clearskies.endpoints.Callable(
             my_function,
             return_standard_response=False,
         )
     )
+
 
     def lambda_handler(event, context):
         return lambda_invoke(event, context)
@@ -64,34 +66,42 @@ class LambdaInvoke(Context):
     def some_function(request_data):
         return request_data
 
+
     def some_other_function(request_data):
         return request_data
+
 
     def something_else(request_data):
         return request_data
 
+
     lambda_invoke = clearskies_aws.contexts.LambdaInvoke(
-        clearskies.endpoints.EndpointGroup([
-            clearskies.endpoints.Callable(
-                some_function,
-                url="some_function",
-            ),
-            clearskies.endpoints.Callable(
-                some_other_function,
-                url="some_other_function",
-            ),
-            clearskies.endpoints.Callable(
-                something_else,
-                url="something_else",
-            ),
-        ])
+        clearskies.endpoints.EndpointGroup(
+            [
+                clearskies.endpoints.Callable(
+                    some_function,
+                    url="some_function",
+                ),
+                clearskies.endpoints.Callable(
+                    some_other_function,
+                    url="some_other_function",
+                ),
+                clearskies.endpoints.Callable(
+                    something_else,
+                    url="something_else",
+                ),
+            ]
+        )
     )
+
 
     def some_function_handler(event, context):
         return lambda_invoke(event, context, url="some_function")
 
+
     def some_other_function_handler(event, context):
         return lambda_invoke(event, context, url="some_other_function")
+
 
     def something_else_handler(event, context):
         return lambda_invoke(event, context, url="something_else")
@@ -102,14 +112,17 @@ class LambdaInvoke(Context):
     When using the lambda_invoke context, it exposes a few context specific parameters which can be injected into
     any function called by clearskies:
 
-    |       Name       |  Type |           Description           |
-    |:----------------:|:-----:|:-------------------------------:|
-    |  invocation_type | `str` |        Always `"direct"`        |
-    |   function_name  | `str` | The name of the lambda function |
-    | function_version | `str` |       The function version      |
-    |    request_id    | `str` | The AWS request id for the call |
+    |       Name         |        Type      |           Description           |
+    |:------------------:|:----------------:|:-------------------------------:|
+    |       `event`      | `dict[str, Any]` | The lambda `event` object       |
+    |      `context`     | `dict[str, Any]` | The lambda `context` object     |
+    |  `invocation_type` |      `str`       |        Always `"direct"`        |
+    |   `function_name`  |      `str`       | The name of the lambda function |
+    | `function_version` |      `str`       |       The function version      |
+    |    `request_id`    |      `str`       | The AWS request id for the call |
 
     """
+
     def __call__(
         self,
         event,
@@ -118,7 +131,7 @@ class LambdaInvoke(Context):
         url=None,
     ):
         return self.execute_application(
-            LambdaInvocationInputOutput(
+            LambdaInvokeInputOutput(
                 event,
                 context,
                 request_method=request_method,

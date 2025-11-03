@@ -11,10 +11,8 @@ from clearskies_aws import (
     models,
     secrets,
 )
-from clearskies_aws.web_socket_connection_model import WebSocketConnectionModel
 
 __all__ = [
-    "WebSocketConnectionModel",
     "actions",
     "backends",
     "contexts",
