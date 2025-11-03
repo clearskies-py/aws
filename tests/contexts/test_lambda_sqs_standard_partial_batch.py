@@ -5,10 +5,10 @@ import unittest
 
 import clearskies
 
-from clearskies_aws.contexts.lambda_sqs_standard_partial_batch import LambdaSqsStandardPartialBatch
+from clearskies_aws.contexts.lambda_sqs_standard import LambdaSqsStandard
 
 
-class LambdaSqsStandardPartialBatchTest(unittest.TestCase):
+class LambdaSqsStandardTest(unittest.TestCase):
     def setUp(self):
         self.calls = []
 
@@ -30,7 +30,7 @@ class LambdaSqsStandardPartialBatchTest(unittest.TestCase):
                 },
             ]
         }
-        sqs_handler = LambdaSqsStandardPartialBatch(clearskies.endpoints.Callable(self.my_callable))
+        sqs_handler = LambdaSqsStandard(clearskies.endpoints.Callable(self.my_callable))
 
         sqs_handler(records, {})
         self.assertEqual(
@@ -51,7 +51,7 @@ class LambdaSqsStandardPartialBatchTest(unittest.TestCase):
                 },
             ]
         }
-        sqs_handler = LambdaSqsStandardPartialBatch(clearskies.endpoints.Callable(self.my_callable))
+        sqs_handler = LambdaSqsStandard(clearskies.endpoints.Callable(self.my_callable))
         (status_code, response_data, response_headers) = sqs_handler(records, {})
 
         self.assertEqual(

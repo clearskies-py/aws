@@ -51,7 +51,27 @@ class LambdaApiGatewayWebSocket(Context):
     there is a base model class in `clearskies_aws.models.WebSocketConnectionModel`.  Check the documentation for
     this class to understand how this is managed and see a "starter" websocket application.
 
+    ### Context Specifics
+
+    The following parameters are made available by name to any function invoked by clearskies when using
+    this context:
+
+    ```
+    |       Name      |       Type       | Description                                      |
+    |:---------------:|:----------------:|--------------------------------------------------|
+    |     `event`     | `dict[str, Any]` | The lambda `event` object                        |
+    |    `context`    | `dict[str, Any]` | The lambda `context` object                      |
+    | `connection_id` |       `str`      | The Connection ID                                |
+    |   `route_key`   |       `str`      | The value of the route key, as determined by AWS |
+    |     `stage`     |       `str`      | The stage of the lambda function                 |
+    |   `request_id`  |       `str`      | The AWS request id for the call                  |
+    |     `api_id`    |       `str`      | The id of the API                                |
+    |  `domain_name`  |       `str`      | The domain name                                  |
+    |   `event_type`  |       `str`      | One of "MESSAGE", "CONNECT", or "DISCONNECT"     |
+    |  `connected_at` |       `str`      | The connection time                              |
+    ```
+
     """
 
-    def __call__(self, event: dict[str, Any], context: dict[str, Any], url: str = "") -> Any:  # type: ignore[override]
+    def __call__(self, event: dict[str, Any], context: dict[str, Any], url: str = "") -> dict[str, Any]:
         return self.execute_application(LambdaApiGatewayWebSocketInputOutput(event, context, url))

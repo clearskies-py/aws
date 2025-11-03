@@ -24,7 +24,6 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
 
         # Store the individual SQS record
         self.record = json.loads(record)
-        print("SQS record:", self.record)
         # SQS specific initialization
         self.path = url if url else "/"
         self.request_method = method.upper() if method else "POST"
@@ -63,13 +62,13 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
         """Provide SQS specific context data."""
         return {
             **super().context_specifics(),
-            "sqs_message_id": self.record.get("messageId"),
-            "sqs_receipt_handle": self.record.get("receiptHandle"),
-            "sqs_source_arn": self.record.get("eventSourceARN"),
-            "sqs_sent_timestamp": self.record.get("attributes", {}).get("SentTimestamp"),
-            "sqs_approximate_receive_count": self.record.get("attributes", {}).get("ApproximateReceiveCount"),
-            "sqs_message_attributes": self.record.get("messageAttributes", {}),
-            "sqs_record": self.record,
+            "message_id": self.record.get("messageId"),
+            "receipt_handle": self.record.get("receiptHandle"),
+            "source_arn": self.record.get("eventSourceARN"),
+            "sent_timestamp": self.record.get("attributes", {}).get("SentTimestamp"),
+            "approximate_receive_count": self.record.get("attributes", {}).get("ApproximateReceiveCount"),
+            "message_attributes": self.record.get("messageAttributes", {}),
+            "record": self.record,
         }
 
     @property
