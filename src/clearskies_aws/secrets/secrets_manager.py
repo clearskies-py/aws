@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from botocore.exceptions import ClientError
-from clearskies.secrets.exceptions.not_found import NotFound
+from clearskies.secrets.exceptions.not_found_error import NotFoundError
 from types_boto3_secretsmanager import SecretsManagerClient
 from types_boto3_secretsmanager.type_defs import SecretListEntryTypeDef
 
@@ -49,7 +49,7 @@ class SecretsManager(secrets.Secrets):
             if error.get("Code") == "ResourceNotFoundException":
                 if silent_if_not_found:
                     return None
-                raise NotFound(
+                raise NotFoundError(
                     f"Could not find secret '{secret_id}' with version '{version_id}' and stage '{version_stage}'"
                 )
             raise e

@@ -23,7 +23,7 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
         super().__init__(event, context)
 
         # Store the individual SQS record
-        self.record = json.loads(record)
+        self.record = record
         # SQS specific initialization
         self.path = url if url else "/"
         self.request_method = method.upper() if method else "POST"
@@ -74,10 +74,4 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
     @property
     def request_data(self) -> dict[str, Any]:
         """Return the SQS message body as parsed JSON."""
-        body = self.get_body()
-        if not body:
-            return {}
-        try:
-            return json.loads(body)
-        except json.JSONDecodeError:
-            raise ClientError("SQS message body was not valid JSON")
+        return self.record

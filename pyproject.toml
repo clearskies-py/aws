@@ -9,8 +9,8 @@ authors = [{name = "tnijboer"}, {name = "Conor Mancone", email = "cmancone@gmail
 requires-python = '>=3.11,<4.0'
 dependencies = [
     'boto3 (>=1.26.148,<2.0.0)',
- "clear-skies (>=2.0.2,<3.0.0)",
- 'types-boto3[dynamodb,sns,sqs] (>=1.38.13,<2.0.0)',
+    "clear-skies>=2.0.2,<3.0.0",
+    'types-boto3[dynamodb,sns,sqs] (>=1.38.13,<2.0.0)',
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
