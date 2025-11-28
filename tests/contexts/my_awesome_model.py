@@ -1,8 +1,11 @@
+import clearskies
+
+
 class MyAwesomeModel(clearskies.Model):
     id_column_name = "id"
     backend = clearskies.backends.MemoryBackend()
 
-    id = columns.Uuid()
+    id = clearskies.columns.Uuid()
     name = clearskies.columns.String()
-    email = columns.Email(validators=[validators.Unique()])
-    created_at = columns.Created()
+    email = clearskies.columns.Email(validators=[clearskies.validators.Unique()])
+    created_at = clearskies.columns.Created()
