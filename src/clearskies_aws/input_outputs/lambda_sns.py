@@ -14,13 +14,19 @@ class LambdaSns(lambda_input_output.LambdaInputOutput):
 
     record: dict[str, Any]
 
-    def __init__(self, event: dict, context: dict[str, Any], url: str = "", request_method: str = "POST"):
+    def __init__(self, event: dict, context: dict[str, Any], url: str = "", request_method: str = ""):
         # Call parent constructor
         super().__init__(event, context)
 
         # SNS specific initialization
-        self.path = url
-        self.request_method = request_method.upper()
+        if url:
+            self.path = url
+        else:
+            self.supports_url = True
+        if request_method:
+            self.request_method = request_method.upper()
+        else:
+            self.supports_request_method = False
 
         # SNS events don't have query parameters or path parameters
         self.query_parameters = {}
@@ -39,8 +45,13 @@ class LambdaSns(lambda_input_output.LambdaInputOutput):
             )
 
     def respond(self, body: Any, status_code: int = 200) -> dict[str, Any]:
-        """SNS events don't return responses."""
-        return {}
+        """Respond to the client, but SNS has no client."""
+        # since there is no response to the client, we want to raise an exception for any non-200 status code so
+        # the lambda execution itself will be marked as a failure.
+        if status_code > 299:
+            if not isinstance(body, str):
+                body = json.dumps(body)
+            raise Exception(f"Non-200 Status code returned by application: {status_code}.  Response: '{body}'")
 
     def get_body(self) -> str:
         """Get the SNS message as a JSON string."""
@@ -77,4 +88,4 @@ class LambdaSns(lambda_input_output.LambdaInputOutput):
     @property
     def request_data(self) -> dict[str, Any] | list[Any] | None:
         """Return the SNS message data directly."""
-        return self._record
+        return self.record

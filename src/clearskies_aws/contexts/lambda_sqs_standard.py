@@ -119,13 +119,16 @@ class LambdaSqsStandard(Context):
 
     """
 
-    def __call__(self, event, context, url="", method="POST"):
+    def __call__(
+        self, event: dict[str, Any], context: dict[str, Any], url: str | None = None, request_method: str | None = None
+    ):
         item_failures = []
         for record in event["Records"]:
             try:
-                self.execute_application(LambdaSqsStandardInputOutput(record, event, context, url=url, method=method))
+                self.execute_application(
+                    LambdaSqsStandardInputOutput(record, event, context, url=url, request_method=request_method)
+                )
             except Exception as e:
-                traceback.print_tb(e.__traceback__)
                 item_failures.append({"itemIdentifier": record["messageId"]})
 
         if item_failures:

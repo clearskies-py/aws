@@ -7,5 +7,5 @@ class MyAwesomeModel(clearskies.Model):
 
     id = clearskies.columns.Uuid()
     name = clearskies.columns.String()
-    email = clearskies.columns.Email(validators=[clearskies.validators.Unique()])
+    email = clearskies.columns.Email()
     created_at = clearskies.columns.Created()

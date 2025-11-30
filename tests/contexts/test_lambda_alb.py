@@ -7,11 +7,13 @@ import clearskies
 from clearskies import columns, validators
 
 from clearskies_aws.contexts.lambda_alb import LambdaAlb
+
 from .my_awesome_model import MyAwesomeModel
 
 
 class LambdaAlbTest(unittest.TestCase):
     def setUp(self):
+        clearskies.backends.MemoryBackend.clear_table_cache()
         self.application = LambdaAlb(
             clearskies.endpoints.Create(
                 MyAwesomeModel,

@@ -17,7 +17,7 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
     path = String(default="/")
 
     def __init__(
-        self, record: str, event: dict[str, Any], context: dict[str, Any], url: str = "", method: str = "POST"
+        self, record: str, event: dict[str, Any], context: dict[str, Any], url: str = "", request_method: str = ""
     ):
         # Call parent constructor with the full event
         super().__init__(event, context)
@@ -25,8 +25,15 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
         # Store the individual SQS record
         self.record = record
         # SQS specific initialization
-        self.path = url if url else "/"
-        self.request_method = method.upper() if method else "POST"
+        if url:
+            self.path = url
+        else:
+            self.supports_url = False
+
+        if request_method:
+            self.request_method = request_method.upper()
+        else:
+            self.supports_request_method = False
 
         # SQS events don't have query parameters or path parameters
         self.query_parameters = {}
@@ -35,12 +42,17 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
         self.request_headers = Headers({})
 
     def respond(self, body: Any, status_code: int = 200) -> dict[str, Any]:
-        """SQS events don't return responses."""
-        return {}
+        """Respond to the client, but SQS has no client."""
+        # since there is no response to the client, we want to raise an exception for any non-200 status code so
+        # the lambda execution itself will be marked as a failure.
+        if status_code > 299:
+            if not isinstance(body, str):
+                body = json.dumps(body)
+            raise Exception(f"Non-200 Status code returned by application: {status_code}.  Response: '{body}'")
 
     def get_body(self) -> str:
-        """Get the SQS message body."""
-        return json.dumps(self.record)
+        """Get request body with base64 decoding if needed."""
+        return self.record["body"]
 
     def has_body(self) -> bool:
         """Check if SQS message has a body."""
@@ -70,8 +82,3 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
             "message_attributes": self.record.get("messageAttributes", {}),
             "record": self.record,
         }
-
-    @property
-    def request_data(self) -> dict[str, Any]:
-        """Return the SQS message body as parsed JSON."""
-        return self.record

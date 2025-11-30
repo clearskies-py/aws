@@ -78,4 +78,4 @@ class LambdaApiGateway(Context):
     """
 
     def __call__(self, event: dict[str, Any], context: dict[str, Any]) -> Dict[str, Any]:
-        return self.execute_application(LambdaAPIGatewayInputOutput(event, context))
+        return self.execute_application(LambdaApiGatewayInputOutput(event, context))

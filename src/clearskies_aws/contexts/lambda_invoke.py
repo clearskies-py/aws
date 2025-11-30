@@ -125,10 +125,10 @@ class LambdaInvoke(Context):
 
     def __call__(
         self,
-        event,
-        context,
-        request_method=None,
-        url=None,
+        event: dict[str, Any],
+        context: dict[str, Any],
+        request_method: str | None = None,
+        url: str | None = None,
     ):
         return self.execute_application(
             LambdaInvokeInputOutput(

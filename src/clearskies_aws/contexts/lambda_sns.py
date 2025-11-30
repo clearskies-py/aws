@@ -112,7 +112,9 @@ class LambdaSns(Context):
     ```
     """
 
-    def __call__(self, event, context, request_method=None, url=None):
+    def __call__(
+        self, event: dict[str, Any], context: dict[str, Any], request_method: str | None = None, url: str | None = None
+    ):
         try:
             return self.execute_application(
                 LambdaSnsInputOutput(event, context, request_method=request_method, url=url)
