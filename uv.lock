@@ -197,16 +197,16 @@ wheels = [
 
 [[package]]
 name = "clear-skies"
-version = "2.0.19"
+version = "2.0.20"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dateparser" },
     { name = "requests" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a5/83/2e5e21904a22e99f298888055ff23f8332b25e97bc3bfe0711a81524dd2f/clear_skies-2.0.19.tar.gz", hash = "sha256:d633a2df4b8e2fd9bf5b63eb014bd9177cfb5b7eb3f25ce0e551a66b58599d39", size = 287466, upload-time = "2025-12-01T08:51:36.501Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/08/95/6dec5a7e904defeb7202faadce50670a6ac9b330adb6dda2b6229f579d5d/clear_skies-2.0.20.tar.gz", hash = "sha256:09f732cf91e2a44bd61ce0aa4ce2ab2989b2f6e2955d0f74f6a8cdbf58c56909", size = 287820, upload-time = "2025-12-03T18:24:06.438Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/72/d0/fb54b1a1aa0dae7a67848f946112f2372bb35d4f0ce9ad47f153837c3925/clear_skies-2.0.19-py3-none-any.whl", hash = "sha256:4ef065b654beba7821100f53d584d006247238b793f964329191a15f383cc35b", size = 329753, upload-time = "2025-12-01T08:51:37.985Z" },
+    { url = "https://files.pythonhosted.org/packages/c9/4a/13402c8aa52fb00513ae4617822ff7279fbff89cb53072b6fddb9f7b5dcf/clear_skies-2.0.20-py3-none-any.whl", hash = "sha256:238be023ebd0b37ae942b1a0cb24e731e7e38c54685c161aed1a00994152bd2f", size = 329917, upload-time = "2025-12-03T18:24:04.638Z" },
 ]
 
 [[package]]
@@ -245,7 +245,7 @@ requires-dist = [
     { name = "akeyless", marker = "extra == 'akeyless'", specifier = ">=5.0.0,<6.0.0" },
     { name = "akeyless-cloud-id", marker = "extra == 'akeyless'", specifier = ">=0.2.3,<0.5.0" },
     { name = "boto3", specifier = ">=1.26.148,<2.0.0" },
-    { name = "clear-skies", specifier = ">=2.0.2,<3.0.0" },
+    { name = "clear-skies", specifier = ">=2.0.20,<3.0.0" },
     { name = "jinja2", marker = "extra == 'ses'", specifier = ">=3.1.2,<4.0.0" },
     { name = "types-boto3", extras = ["dynamodb", "sns", "sqs"], specifier = ">=1.38.13,<2.0.0" },
 ]
