@@ -32,9 +32,6 @@ class LambdaInvoke(lambda_input_output.LambdaInputOutput):
         else:
             self.supports_request_method = False
 
-        # Direct invocations don't have query parameters
-        self.query_parameters = {}
-
         # Direct invocations don't have headers
         self.request_headers = Headers({})
 

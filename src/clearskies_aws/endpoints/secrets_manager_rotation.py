@@ -19,7 +19,6 @@ from clearskies_aws.di import inject
 
 
 class SecretsManagerRotation(Endpoint):
-
     di = Di()
     boto3 = inject.Boto3()
 

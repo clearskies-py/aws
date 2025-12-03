@@ -17,7 +17,12 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
     path = String(default="/")
 
     def __init__(
-        self, record: dict[str, Any], event: dict[str, Any], context: dict[str, Any], url: str = "", request_method: str = ""
+        self,
+        record: dict[str, Any],
+        event: dict[str, Any],
+        context: dict[str, Any],
+        url: str = "",
+        request_method: str = "",
     ):
         # Call parent constructor with the full event
         super().__init__(event, context)
@@ -34,9 +39,6 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
             self.request_method = request_method.upper()
         else:
             self.supports_request_method = False
-
-        # SQS events don't have query parameters or path parameters
-        self.query_parameters = {}
 
         # SQS events don't have headers
         self.request_headers = Headers({})

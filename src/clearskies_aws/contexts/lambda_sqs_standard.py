@@ -1,7 +1,7 @@
 from __future__ import annotations
-from typing import Any
 
 import traceback
+from typing import Any
 
 from clearskies.authentication import Public
 from clearskies.contexts.context import Context
@@ -120,7 +120,9 @@ class LambdaSqsStandard(Context):
 
     """
 
-    def __call__(self, event: dict[str, Any], context: dict[str, Any], url: str = "", request_method: str = "") -> dict[str, Any]: # type: ignore[override]
+    def __call__(
+        self, event: dict[str, Any], context: dict[str, Any], url: str = "", request_method: str = ""
+    ) -> dict[str, Any]:  # type: ignore[override]
         item_failures = []
         for record in event["Records"]:
             try:

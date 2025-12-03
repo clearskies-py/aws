@@ -20,7 +20,9 @@ class LambdaInputOutput(InputOutput):
     _cached_body = None
     _body_was_cached = False
 
-    def __init__(self, event: dict[str, Any], context: dict[str, Any], url: str | None = "", request_method: str | None = ""):
+    def __init__(
+        self, event: dict[str, Any], context: dict[str, Any], url: str | None = "", request_method: str | None = ""
+    ):
         # Store event and context
         self.event = event
         self.context = context

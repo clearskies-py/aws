@@ -28,9 +28,6 @@ class LambdaSns(lambda_input_output.LambdaInputOutput):
         else:
             self.supports_request_method = False
 
-        # SNS events don't have query parameters or path parameters
-        self.query_parameters = {}
-
         # SNS events don't have headers
         self.request_headers = Headers({})
 

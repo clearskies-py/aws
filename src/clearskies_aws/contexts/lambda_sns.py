@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Any
 
 from clearskies.authentication import Public
@@ -113,7 +114,7 @@ class LambdaSns(Context):
     ```
     """
 
-    def __call__(self, event: dict[str, Any], context: dict[str, Any], request_method: str="", url: str=""): # type: ignore[override]
+    def __call__(self, event: dict[str, Any], context: dict[str, Any], request_method: str = "", url: str = ""):  # type: ignore[override]
         try:
             return self.execute_application(
                 LambdaSnsInputOutput(event, context, request_method=request_method, url=url)
