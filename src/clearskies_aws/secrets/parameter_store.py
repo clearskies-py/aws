@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from botocore.exceptions import ClientError
-from clearskies.secrets.exceptions.not_found_error import NotFoundError
+from clearskies.exceptions.not_found import NotFound
 from types_boto3_ssm import SSMClient
 
 from clearskies_aws.secrets import secrets
@@ -25,7 +25,7 @@ class ParameterStore(secrets.Secrets):
             if error.get("Code") == "ResourceNotFoundException":
                 if silent_if_not_found:
                     return None
-                raise NotFoundError(f"Could not find secret '{path}' in parameter store")
+                raise NotFound(f"Could not find secret '{path}' in parameter store")
             raise e
         return result["Parameter"].get("Value", "")
 

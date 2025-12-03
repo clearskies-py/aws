@@ -1,56 +1,65 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
+from typing import Any
 
 import botocore
 import clearskies
-from clearskies import Endpoint, Schema
+from clearskies import Endpoint
+from clearskies.configs import Callable as CallableConfig
+from clearskies.configs import Schema as SchemaConfig
+from clearskies.configs import StringList
+from clearskies.decorators import parameters_to_properties
+from clearskies.di.inject import Di
 from clearskies.exceptions import ClientError
+from clearskies.input_outputs import InputOutput
+
+from clearskies_aws.di import inject
 
 
-class SecretsManagerRotation(Endpoint, Schema):
-    _steps = ["createSecret", "setSecret", "testSecret", "finishSecret"]
+class SecretsManagerRotation(Endpoint):
+
+    di = Di()
+    boto3 = inject.Boto3()
 
     current = "AWSCURRENT"
     pending = "AWSPENDING"
 
-    _configuration_defaults = {
-        "createSecret": None,
-        "setSecret": None,
-        "testSecret": None,
-        "finishSecret": None,
-        "schema": [],
-    }
+    steps = StringList(default=["createSecret", "setSecret", "testSecret", "finishSecret"])
+    create_secret = CallableConfig(default=None)
+    set_secret = CallableConfig(default=None)
+    test_secret = CallableConfig(default=None)
+    finish_secret = CallableConfig(default=None)
+    schema = SchemaConfig(default=None)
 
-    def __init__(self, boto3, di):
-        super().__init__(di)
-        self.boto3 = boto3
+    @parameters_to_properties
+    def __init__(
+        self,
+        steps: list[str] | None,
+        create_secret: Callable | None,
+        set_secret: Callable | None,
+        test_secret: Callable | None,
+        finish_secret: Callable | None,
+        schema: list[dict] | None,
+    ):
+        super().__init__()
 
-    def _check_configuration(self, configuration):
-        super()._check_configuration(configuration)
+    def configure(self):
+        self.finalize_and_validate_configuration()
         class_name = self.__class__.__name__
-        if not configuration.get("createSecret"):
+        if not self.create_secret:
             raise KeyError(f"Missing required configuration 'createSecret' for handler {class_name}")
 
-        for config_name in self._steps:
-            config = configuration.get(config_name)
+        for config_name in self.steps:
+            config = getattr(self, config_name)
             if config is None:
                 continue
-            if not callable(config):
-                raise ValueError(
-                    f"Misconfiguration for handler {class_name}: configuration '{config_name}' is not callable"
-                )
 
-        if configuration.get("schema") is not None:
-            self._check_schema(configuration["schema"], None, f"Misconfiguration for handler {class_name}")
+    def handle(self, input_output: InputOutput):
+        request_data = json.loads(input_output.get_body())
 
-    def _finalize_configuration(self, configuration):
-        if configuration.get("schema"):
-            configuration["schema"] = self._schema_to_columns(configuration["schema"])
-        return super()._finalize_configuration(configuration)
-
-    def handle(self, input_output):
-        request_data = input_output.json_body()
+        self.find_input_errors(request_data, input_output, self.schema)
 
         arn = request_data.get("SecretId")
         request_token = request_data.get("ClientRequestToken")
@@ -101,9 +110,9 @@ class SecretsManagerRotation(Endpoint, Schema):
             arn=arn,
         )
 
-    def _validate_secret_and_request(self, step, arn, metadata, request_token):
+    def _validate_secret_and_request(self, step: str, arn: str, metadata: dict[str, Any], request_token: str):
         """Perform basic checks suggested by AWS of both the request and the secret to ensure validity."""
-        if step not in self._steps:
+        if step not in self.steps:
             raise ClientError(f"Invalid step: {step}")
 
         if not metadata.get("RotationEnabled"):
@@ -121,7 +130,7 @@ class SecretsManagerRotation(Endpoint, Schema):
             raise ValueError(f"{prefix} it hasn't been set to pending yet, which makes no sense!")
 
     def createSecret(self, **kwargs):
-        new_secret_data = self._di.call_function(self._configuration["createSecret"], **kwargs)
+        new_secret_data = self.di.call_function(self.create_secret, **kwargs)
         if new_secret_data is None:
             raise ValueError(
                 f"I called the configured createSecret function but it didn't return anything.  It has to return the new secret data."
@@ -133,7 +142,7 @@ class SecretsManagerRotation(Endpoint, Schema):
 
         secret_errors = {
             **self._extra_column_errors(new_secret_data),
-            **self._find_input_errors(new_secret_data),
+            **self.find_input_errors(new_secret_data),
         }
         if secret_errors:
             raise ValueError(

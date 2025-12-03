@@ -17,7 +17,6 @@ class ParameterStoreTest(unittest.TestCase):
         self.environment = SimpleNamespace(get=MagicMock(return_value="us-east-1"))
 
     def test_get(self):
-
         def test_parameter_store(parameter_store: ParameterStore):
             parameter_store.get("/my/item")
             return parameter_store

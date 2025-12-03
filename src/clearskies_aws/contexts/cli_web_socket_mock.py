@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from clearskies.contexts import cli
 
 from clearskies_aws.input_outputs import CliWebSocketMock as CliWebSocketMockInputOutput
