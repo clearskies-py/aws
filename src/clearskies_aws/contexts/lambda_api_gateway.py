@@ -77,5 +77,5 @@ class LambdaApiGateway(Context):
     ```
     """
 
-    def __call__(self, event: dict[str, Any], context: dict[str, Any]) -> Dict[str, Any]:
+    def __call__(self, event: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]: # type: ignore[override]
         return self.execute_application(LambdaApiGatewayInputOutput(event, context))

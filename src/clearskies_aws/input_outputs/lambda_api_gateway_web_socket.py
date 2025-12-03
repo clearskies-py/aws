@@ -48,7 +48,7 @@ class LambdaApiGatewayWebSocket(lambda_input_output.LambdaInputOutput):
 
         raise ValueError("Unable to find the client ip inside the API Gateway")
 
-    def respond(self, body: Any, status_code: int = 200) -> dict[str, Any]:
+    def respond(self, body: Any, status_code: int = 200) -> None:
         # since there is no response to the client, we want to raise an exception for any non-200 status code so
         # the lambda execution itself will be marked as a failure.
         if status_code > 299:

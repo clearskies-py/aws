@@ -17,7 +17,7 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
     path = String(default="/")
 
     def __init__(
-        self, record: str, event: dict[str, Any], context: dict[str, Any], url: str = "", request_method: str = ""
+        self, record: dict[str, Any], event: dict[str, Any], context: dict[str, Any], url: str = "", request_method: str = ""
     ):
         # Call parent constructor with the full event
         super().__init__(event, context)
@@ -41,7 +41,7 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
         # SQS events don't have headers
         self.request_headers = Headers({})
 
-    def respond(self, body: Any, status_code: int = 200) -> dict[str, Any]:
+    def respond(self, body: Any, status_code: int = 200) -> None:
         """Respond to the client, but SQS has no client."""
         # since there is no response to the client, we want to raise an exception for any non-200 status code so
         # the lambda execution itself will be marked as a failure.

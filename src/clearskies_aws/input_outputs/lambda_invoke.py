@@ -16,7 +16,7 @@ class LambdaInvoke(lambda_input_output.LambdaInputOutput):
         self,
         event: dict[str, Any],
         context: dict[str, Any],
-        request_method: str = "POST",
+        request_method: str = "",
         url: str = "",
     ):
         # Call parent constructor

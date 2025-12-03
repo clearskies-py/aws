@@ -20,7 +20,7 @@ class LambdaInputOutput(InputOutput):
     _cached_body = None
     _body_was_cached = False
 
-    def __init__(self, event: dict[str, Any], context: dict[str, Any]):
+    def __init__(self, event: dict[str, Any], context: dict[str, Any], url: str | None = "", request_method: str | None = ""):
         # Store event and context
         self.event = event
         self.context = context
@@ -28,7 +28,7 @@ class LambdaInputOutput(InputOutput):
         # Initialize the base class
         super().__init__()
 
-    def respond(self, body: Any, status_code: int = 200) -> dict[str, Any]:
+    def respond(self, body: Any, status_code: int = 200) -> dict[str, Any] | None:
         """Create standard Lambda HTTP response format."""
         if "content-type" not in self.response_headers:
             self.response_headers.content_type = "application/json; charset=UTF-8"

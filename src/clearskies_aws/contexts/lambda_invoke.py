@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Any
 
 from clearskies.authentication import Public
 from clearskies.contexts.context import Context
@@ -123,13 +124,7 @@ class LambdaInvoke(Context):
 
     """
 
-    def __call__(
-        self,
-        event: dict[str, Any],
-        context: dict[str, Any],
-        request_method: str | None = None,
-        url: str | None = None,
-    ):
+    def __call__(self, event: dict[str, Any], context: dict[str, Any], request_method: str = "", url: str = "") -> dict[str, Any]: # type: ignore[override]
         return self.execute_application(
             LambdaInvokeInputOutput(
                 event,

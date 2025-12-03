@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Any
 
 import traceback
 
@@ -119,9 +120,7 @@ class LambdaSqsStandard(Context):
 
     """
 
-    def __call__(
-        self, event: dict[str, Any], context: dict[str, Any], url: str | None = None, request_method: str | None = None
-    ):
+    def __call__(self, event: dict[str, Any], context: dict[str, Any], url: str = "", request_method: str = "") -> dict[str, Any]: # type: ignore[override]
         item_failures = []
         for record in event["Records"]:
             try:

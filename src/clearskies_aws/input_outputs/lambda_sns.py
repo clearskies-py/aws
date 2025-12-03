@@ -44,7 +44,7 @@ class LambdaSns(lambda_input_output.LambdaInputOutput):
                 "The lambda_sns context for clearskies only accepts serialized JSON."
             )
 
-    def respond(self, body: Any, status_code: int = 200) -> dict[str, Any]:
+    def respond(self, body: Any, status_code: int = 200) -> None:
         """Respond to the client, but SNS has no client."""
         # since there is no response to the client, we want to raise an exception for any non-200 status code so
         # the lambda execution itself will be marked as a failure.
