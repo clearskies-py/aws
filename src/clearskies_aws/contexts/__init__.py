@@ -6,10 +6,10 @@ from clearskies_aws.contexts.lambda_api_gateway import LambdaApiGateway
 from clearskies_aws.contexts.lambda_api_gateway_web_socket import (
     LambdaApiGatewayWebSocket,
 )
-from clearskies_aws.contexts.lambda_invocation import LambdaInvocation
+from clearskies_aws.contexts.lambda_invoke import LambdaInvoke
 from clearskies_aws.contexts.lambda_sns import LambdaSns
-from clearskies_aws.contexts.lambda_sqs_standard_partial_batch import (
-    LambdaSqsStandardPartialBatch,
+from clearskies_aws.contexts.lambda_sqs_standard import (
+    LambdaSqsStandard,
 )
 
 __all__ = [
@@ -17,7 +17,7 @@ __all__ = [
     "LambdaAlb",
     "LambdaApiGateway",
     "LambdaApiGatewayWebSocket",
-    "LambdaInvocation",
+    "LambdaInvoke",
     "LambdaSns",
-    "LambdaSqsStandardPartialBatch",
+    "LambdaSqsStandard",
 ]

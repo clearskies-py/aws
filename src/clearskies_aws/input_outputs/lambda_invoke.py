@@ -9,25 +9,28 @@ from clearskies.input_outputs import Headers
 from clearskies_aws.input_outputs import lambda_input_output
 
 
-class LambdaInvocation(lambda_input_output.LambdaInputOutput):
+class LambdaInvoke(lambda_input_output.LambdaInputOutput):
     """Direct Lambda invocation specific input/output handler."""
 
     def __init__(
         self,
         event: dict[str, Any],
         context: dict[str, Any],
-        method: str = "POST",
+        request_method: str = "",
         url: str = "",
     ):
         # Call parent constructor
         super().__init__(event, context)
 
         # Direct invocation specific initialization
-        self.path = url
-        self.request_method = method.upper()
-
-        # Direct invocations don't have query parameters or path parameters
-        self.query_parameters = {}
+        if url:
+            self.path = url
+        else:
+            self.supports_url = True
+        if request_method:
+            self.request_method = request_method.upper()
+        else:
+            self.supports_request_method = False
 
         # Direct invocations don't have headers
         self.request_headers = Headers({})

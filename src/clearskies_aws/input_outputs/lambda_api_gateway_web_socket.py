@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from clearskies.configs import String
@@ -24,7 +25,7 @@ class LambdaApiGatewayWebSocket(lambda_input_output.LambdaInputOutput):
         request_context = event.get("requestContext", {})
 
         # WebSocket uses route_key, but doesn't have either a route or a method
-        self.route_key = request_context.get("routeKey", "")
+        self.route_key = request_context.get("routeKey", "GET")
         self.request_method = self.route_key.upper()  # For compatibility
 
         # WebSocket connection ID
@@ -47,12 +48,13 @@ class LambdaApiGatewayWebSocket(lambda_input_output.LambdaInputOutput):
 
         raise ValueError("Unable to find the client ip inside the API Gateway")
 
-    def respond(self, body: Any, status_code: int = 200) -> dict[str, Any]:
-        """Create WebSocket specific response format."""
-        # WebSocket responses are simpler than HTTP responses
-        return {
-            "statusCode": status_code,
-        }
+    def respond(self, body: Any, status_code: int = 200) -> None:
+        # since there is no response to the client, we want to raise an exception for any non-200 status code so
+        # the lambda execution itself will be marked as a failure.
+        if status_code > 299:
+            if not isinstance(body, str):
+                body = json.dumps(body)
+            raise Exception(f"Non-200 Status code returned by application: {status_code}.  Response: '{body}'")
 
     def context_specifics(self) -> dict[str, Any]:
         """Provide WebSocket specific context data."""

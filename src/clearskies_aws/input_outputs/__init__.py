@@ -6,7 +6,7 @@ from clearskies_aws.input_outputs.lambda_api_gateway import LambdaApiGateway
 from clearskies_aws.input_outputs.lambda_api_gateway_web_socket import (
     LambdaApiGatewayWebSocket,
 )
-from clearskies_aws.input_outputs.lambda_invocation import LambdaInvocation
+from clearskies_aws.input_outputs.lambda_invoke import LambdaInvoke
 from clearskies_aws.input_outputs.lambda_sns import LambdaSns
 from clearskies_aws.input_outputs.lambda_sqs_standard import LambdaSqsStandard
 
@@ -15,7 +15,7 @@ __all__ = [
     "LambdaApiGateway",
     "LambdaApiGatewayWebSocket",
     "LambdaAlb",
-    "LambdaInvocation",
+    "LambdaInvoke",
     "LambdaSns",
     "LambdaSqsStandard",
 ]
