@@ -22,7 +22,7 @@ class LambdaSns(lambda_input_output.LambdaInputOutput):
         if url:
             self.path = url
         else:
-            self.supports_url = True
+            self.supports_url = False
         if request_method:
             self.request_method = request_method.upper()
         else:
