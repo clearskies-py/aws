@@ -120,9 +120,9 @@ class LambdaSqsStandard(Context):
 
     """
 
-    def __call__(
+    def __call__(  # type: ignore[override]
         self, event: dict[str, Any], context: dict[str, Any], url: str = "", request_method: str = ""
-    ) -> dict[str, Any]:  # type: ignore[override]
+    ) -> dict[str, Any]:
         item_failures = []
         for record in event["Records"]:
             try:
