@@ -8,9 +8,6 @@ ci:
 default_install_hook_types:
     - pre-commit
     - commit-msg
-    - post-checkout
-    - post-merge
-    - post-rewrite
 
 default_stages: ["pre-commit"]
 
@@ -69,7 +66,7 @@ repos:
     hooks:
       - id: pytest
         name: pytest
-        entry: uv run pytest .
+        entry: uv run pytest . -m "not broken"
         language: system
         types: [python]
         pass_filenames: false

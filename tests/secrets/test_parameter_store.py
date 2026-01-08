@@ -24,7 +24,7 @@ class ParameterStoreTest(unittest.TestCase):
         context = clearskies.contexts.Context(
             clearskies.endpoints.Callable(test_parameter_store),
             classes=[ParameterStore],
-            bindings={"boto3": self.boto3, "environment": self.environment},
+            bindings={"boto3_sdk": self.boto3, "environment": self.environment},
         )
         (status_code, response_data, response_headers) = context()
         self.assertEqual(status_code, 200)

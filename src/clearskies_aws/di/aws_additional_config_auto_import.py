@@ -17,7 +17,7 @@ class AwsAdditionalConfigAutoImport(AdditionalConfigAutoImport):
     This DI auto injects boto3, boto3 Session and the parameter store.
     """
 
-    def provide_boto3(self) -> ModuleType:
+    def provide_boto3_sdk(self) -> ModuleType:
         import boto3
 
         return boto3

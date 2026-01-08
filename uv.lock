@@ -202,43 +202,16 @@ wheels = [
 [[package]]
 name = "clear-skies"
 version = "2.0.28"
-source = { editable = "../clearskies" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dateparser" },
     { name = "requests" },
     { name = "wrapt" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "akeyless", marker = "extra == 'secrets'", specifier = ">=4.0.0,<5.0.0" },
-    { name = "akeyless-cloud-id", marker = "extra == 'secrets'", specifier = ">=0.2.3,<0.3.0" },
-    { name = "dateparser", specifier = ">=1.1.8,<2.0.0" },
-    { name = "gql", extras = ["all"], marker = "extra == 'graphql'", specifier = ">=4.0.0" },
-    { name = "jwcrypto", marker = "extra == 'jwcrypto'", specifier = ">=1.5.6,<2.0.0" },
-    { name = "psycopg", extras = ["binary"], marker = "extra == 'pgsql'", specifier = ">=3.1.10,<4.0.0" },
-    { name = "pymysql", marker = "extra == 'mysql'", specifier = ">=1.1.0,<2.0.0" },
-    { name = "requests", specifier = ">=2.31.0,<3.0.0" },
-    { name = "typing-extensions", marker = "python_full_version == '3.10.*'", specifier = ">=4.12.0,<5.0.0" },
-    { name = "wrapt", specifier = ">=1.16.0,<2.0.0" },
+sdist = { url = "https://files.pythonhosted.org/packages/9f/9c/ff9cb814357dfd021082795031ac251ee5d2d25dfe7f9997f6c0660c9aae/clear_skies-2.0.28.tar.gz", hash = "sha256:9fe40a85ca16b7b56926a2698bf4e273b13011cc079239e5923ecdb133c361ac", size = 357432, upload-time = "2026-01-06T11:10:36.941Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fa/aa/a8dd6fb940933def6d45ee76cbc972ac97ed701c49bfeb320045e381f69d/clear_skies-2.0.28-py3-none-any.whl", hash = "sha256:f6be7a2323a26f6e2949de0c0c07fd7e7685dce77d8fb76605b11e16cdc1d579", size = 345667, upload-time = "2026-01-06T11:10:38.457Z" },
 ]
-provides-extras = ["secrets", "mysql", "jwcrypto", "pgsql", "graphql"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "black", specifier = ">=25.1.0" },
-    { name = "mypy", specifier = ">=1.16.1" },
-    { name = "pre-commit", specifier = ">=4.3.0" },
-    { name = "pytest", specifier = ">=8.4.1" },
-    { name = "pytest-cov", specifier = ">=6.2.1" },
-    { name = "ruff", specifier = ">=0.12.10" },
-    { name = "types-dateparser", specifier = ">=1.2.2.20250627" },
-    { name = "types-jwcrypto", specifier = ">=1.5.0.20250516" },
-    { name = "types-pymysql", specifier = ">=1.1.0.20250516" },
-    { name = "types-requests", specifier = ">=2.32.4" },
-]
-docs = [{ name = "clear-skies-doc-builder", specifier = ">=2.0.4" }]
-test = [{ name = "pytest-postgresql", specifier = ">=7.0.2" }]
 
 [[package]]
 name = "clear-skies-aws"
@@ -276,7 +249,7 @@ requires-dist = [
     { name = "akeyless", marker = "extra == 'akeyless'", specifier = ">=5.0.0,<6.0.0" },
     { name = "akeyless-cloud-id", marker = "extra == 'akeyless'", specifier = ">=0.2.3,<0.5.0" },
     { name = "boto3", specifier = ">=1.26.148,<2.0.0" },
-    { name = "clear-skies", editable = "../clearskies" },
+    { name = "clear-skies", specifier = ">=2.0.20,<3.0.0" },
     { name = "jinja2", marker = "extra == 'ses'", specifier = ">=3.1.2,<4.0.0" },
     { name = "types-boto3", extras = ["dynamodb", "sns", "sqs", "ses", "ssm", "secretsmanager", "stepfunctions"], specifier = ">=1.38.13,<2.0.0" },
 ]

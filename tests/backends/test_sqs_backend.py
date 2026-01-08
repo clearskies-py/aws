@@ -41,6 +41,6 @@ class SqsBackendTest(unittest.TestCase):
         context = clearskies.contexts.Context(
             clearskies.endpoints.Callable(test_sqs_backend),
             classes=[User],
-            bindings={"boto3": self.boto3, "environment": self.environment},
+            bindings={"boto3_sdk": self.boto3, "environment": self.environment},
         )
         (status_code, response_data, response_headers) = context()

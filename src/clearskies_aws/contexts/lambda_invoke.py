@@ -125,9 +125,9 @@ class LambdaInvoke(Context):
 
     """
 
-    def __call__(
+    def __call__(  # type: ignore[override]
         self, event: dict[str, Any], context: dict[str, Any], request_method: str = "", url: str = ""
-    ) -> dict[str, Any]:  # type: ignore[override]
+    ) -> dict[str, Any]:
         return self.execute_application(
             LambdaInvokeInputOutput(
                 event,

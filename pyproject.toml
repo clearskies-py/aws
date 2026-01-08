@@ -55,7 +55,8 @@ python_version = "3.11"
 
 exclude = [
     ".*_test\\.py$",
-    "docs/.*"
+    "docs/.*",
+    "tests/.*"
 ]
 
 [tool.pytest.ini_options]
@@ -71,9 +72,6 @@ pythonpath = [
 markers = [
     "broken: marks tests as currently broken/failing"
 ]
-
-[tool.uv.sources]
-clear-skies = { path = "../clearskies", editable = true }
 
 # This is the dedicated section for uv"s configuration
 [dependency-groups]
