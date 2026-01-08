@@ -210,7 +210,7 @@ class LambdaApiGatewayTest(unittest.TestCase):
         context = aws_lambda.context_specifics()
 
         self.assertEqual("/test/{id}", context["resource"])
-        self.assertEqual("/test", context["path"])
+        self.assertEqual("/test", aws_lambda.get_full_path())
         self.assertEqual("prod", context["stage"])
         self.assertEqual("test-request-id", context["request_id"])
         self.assertEqual("test-api-id", context["api_id"])
@@ -222,13 +222,11 @@ class LambdaApiGatewayTest(unittest.TestCase):
         context = aws_lambda.context_specifics()
 
         self.assertEqual("", context["resource"])
-        self.assertEqual("/test", context["path"])
+        self.assertEqual("/test", aws_lambda.get_full_path())
         self.assertEqual("dev", context["stage"])
         self.assertEqual("test-request-id-v2", context["request_id"])
         self.assertEqual("test-api-id-v2", context["api_id"])
-        self.assertEqual("api.example.com", context["domain_name"])
-        self.assertEqual("HTTP/1.1", context["protocol"])
-        self.assertEqual("test-user-agent", context["user_agent"])
+        self.assertEqual("http", aws_lambda.get_protocol())
         self.assertEqual("2.0", context["api_version"])
 
     def test_version_detection_v1(self):

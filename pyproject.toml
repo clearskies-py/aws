@@ -9,8 +9,8 @@ authors = [{name = "tnijboer"}, {name = "Conor Mancone", email = "cmancone@gmail
 requires-python = '>=3.11,<4.0'
 dependencies = [
     'boto3 (>=1.26.148,<2.0.0)',
-    'clear-skies (>=2.0.20,<3.0.0)',
-    'types-boto3[dynamodb,sns,sqs] (>=1.38.13,<2.0.0)',
+    "clear-skies>=2.0.20,<3.0.0",
+    'types-boto3[dynamodb,sns,sqs,ses,ssm,secretsmanager,stepfunctions] (>=1.38.13,<2.0.0)',
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -71,6 +71,9 @@ pythonpath = [
 markers = [
     "broken: marks tests as currently broken/failing"
 ]
+
+[tool.uv.sources]
+clear-skies = { path = "../clearskies", editable = true }
 
 # This is the dedicated section for uv"s configuration
 [dependency-groups]
