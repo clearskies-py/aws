@@ -1,10 +1,10 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from clearskies_aws.cursors.iam.rds_mysql import RdsMySql
+from clearskies_aws.cursors.iam.rds_mysql import RdsMysql
 
 
-class TestRdsMySql(unittest.TestCase):
+class TestRdsMysql(unittest.TestCase):
     def setUp(self):
         self.env = MagicMock()
         self.env.get.side_effect = lambda key, silent=False: {
@@ -30,7 +30,7 @@ class TestRdsMySql(unittest.TestCase):
         import sys
 
         sys.modules["pymysql"] = MagicMock()
-        instance = RdsMySql()
+        instance = RdsMysql()
         instance.environment = self.env
         instance.boto3 = self.boto3
 
@@ -47,7 +47,7 @@ class TestRdsMySql(unittest.TestCase):
     @patch("clearskies_aws.cursors.iam.rds_mysql.clearskies")
     def test_missing_region_raises(self, clearskies_patch):
         clearskies_patch.di.inject.Environment.return_value = self.env
-        instance = RdsMySql()
+        instance = RdsMysql()
         instance.environment = MagicMock()
         instance.environment.get.side_effect = lambda key, silent=False: None
         instance.boto3 = self.boto3
