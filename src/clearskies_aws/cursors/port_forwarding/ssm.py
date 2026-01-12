@@ -92,6 +92,9 @@ class Ssm(PortForwarder):
         if self.local_port == 0:
             self.local_port = self.pick_free_port("127.0.0.1")
 
+        if self.remote_port is None:
+            raise ValueError("remote_port must be set for SSM port forwarding.")
+
         if self.is_port_open("127.0.0.1", self.local_port):
             return "127.0.0.1", self.local_port
 
@@ -102,14 +105,16 @@ class Ssm(PortForwarder):
             "--target",
             self.instance_id,
             "--document-name",
-            "AWS-StartPortForwardingSession",
+            "AWS-StartPortForwardingSessionToRemoteHost",
             "--parameters",
-            f"portNumber={self.remote_port},localPort={self.local_port}",
+            f'{{"host":["{original_host}"],"portNumber":["{self.remote_port}"],"localPortNumber":["{self.local_port}"]}}',
         ]
         if self.region:
             ssm_cmd += ["--region", self.region]
         if self.profile:
             ssm_cmd += ["--profile", self.profile]
+
+        self.logger.debug(f"Starting SSM port forwarding session: {' '.join(ssm_cmd)}")
 
         self._proc = self.subprocess.Popen(ssm_cmd, stdout=self.subprocess.PIPE, stderr=self.subprocess.PIPE)
 
@@ -123,7 +128,8 @@ class Ssm(PortForwarder):
                 break
             except Exception:
                 if self._proc is not None and self._proc.poll() is not None:
-                    raise RuntimeError("SSM process exited unexpectedly")
+                    stderr = self._proc.stderr.read().decode() if self._proc.stderr else ""
+                    raise RuntimeError(f"SSM process exited unexpectedly. Stderr: {stderr}")
                 if time.time() - start > 10:
                     raise TimeoutError(f"Timeout waiting for port {self.local_port} to open")
                 time.sleep(0.1)
