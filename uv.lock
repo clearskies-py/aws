@@ -201,16 +201,16 @@ wheels = [
 
 [[package]]
 name = "clear-skies"
-version = "2.0.30"
+version = "2.0.31"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dateparser" },
     { name = "requests" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/dd/c5/3120df0f59bc51917b8dd1057741e650743cad75a9dfad842f304168b682/clear_skies-2.0.30.tar.gz", hash = "sha256:ae79d83b547aaaa22e6ba1ef89672823898e96b3e80a5f1a250110850bddd8e1", size = 369416, upload-time = "2026-01-09T18:47:47.669Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/73/59/1fb57d9a45d290d69f595d2cd8777edae01b26ec9915892bfac2ea70e133/clear_skies-2.0.31.tar.gz", hash = "sha256:3c7818f3cf6b9c5b29e8fd23c559219e0e6ddf232d0efd798faa8eb9140d560b", size = 369408, upload-time = "2026-01-12T08:48:01.466Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/11/f8/9d2f222d7a6295e1dd1ac06007f738c3e1064f2a4c71fc44c9ab2be51950/clear_skies-2.0.30-py3-none-any.whl", hash = "sha256:1910f3c4e782993a308daefccf3b218c455e3ce08013792a1ee46f7e016f4d31", size = 358236, upload-time = "2026-01-09T18:47:48.841Z" },
+    { url = "https://files.pythonhosted.org/packages/b0/4c/aec61cc05843e72074480df44827ee1b7523f53c4e8fa52ca127c6e73706/clear_skies-2.0.31-py3-none-any.whl", hash = "sha256:e384b998d2d802424ae49d30aa269c76bedaa7d66c8315d12a13870a1e4a8f89", size = 358254, upload-time = "2026-01-12T08:48:03.168Z" },
 ]
 
 [package.optional-dependencies]
@@ -220,7 +220,7 @@ mysql = [
 
 [[package]]
 name = "clear-skies-aws"
-version = "2.0.5"
+version = "2.0.6"
 source = { editable = "." }
 dependencies = [
     { name = "boto3" },
