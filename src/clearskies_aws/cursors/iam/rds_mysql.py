@@ -29,12 +29,12 @@ from typing import Any
 
 import clearskies
 from clearskies import decorators
-from clearskies.cursors import Mysql as MysqlBase
+from clearskies.cursors import Mysql
 
 from clearskies_aws.di import inject
 
 
-class RdsMySql(MysqlBase):
+class RdsMysql(Mysql):
     """MySQL cursor with AWS RDS IAM DB authentication."""
 
     """Injected boto3 provider for AWS API access."""
