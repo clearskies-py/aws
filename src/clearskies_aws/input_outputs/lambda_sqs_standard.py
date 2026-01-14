@@ -68,10 +68,6 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
         """SQS events don't have a protocol."""
         return "sqs"
 
-    def get_full_path(self) -> str:
-        """Return the configured path."""
-        return self.path
-
     def context_specifics(self) -> dict[str, Any]:
         """Provide SQS specific context data."""
         return {

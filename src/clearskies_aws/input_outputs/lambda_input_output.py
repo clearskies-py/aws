@@ -16,6 +16,7 @@ class LambdaInputOutput(InputOutput):
     event = AnyDict(default={})
     context = AnyDict(default={})
     path = String(default="/")
+    url = String(default=None)
 
     _cached_body = None
     _body_was_cached = False
@@ -79,6 +80,8 @@ class LambdaInputOutput(InputOutput):
 
     def get_full_path(self) -> str:
         """Get full path."""
+        if self.url is not None:
+            return self.url
         return self.path
 
     def context_specifics(self) -> dict[str, Any]:

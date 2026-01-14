@@ -66,10 +66,6 @@ class LambdaSns(lambda_input_output.LambdaInputOutput):
         """SNS events don't have a protocol."""
         return "sns"
 
-    def get_full_path(self) -> str:
-        """Return the configured path."""
-        return self.path
-
     def context_specifics(self) -> dict[str, Any]:
         """Provide SNS specific context data."""
         sns_record = self.event.get("Records", [{}])[0].get("Sns", {})

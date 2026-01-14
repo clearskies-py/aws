@@ -4,7 +4,7 @@ requires-python = ">=3.11, <4.0"
 
 [[package]]
 name = "akeyless"
-version = "5.0.18"
+version = "5.0.19"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "certifi" },
@@ -13,9 +13,9 @@ dependencies = [
     { name = "six" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b7/02/0e258ad9dd2401fcf07ddea037ebd9cd36b09ba11b7a45bd7809dd312be3/akeyless-5.0.18.tar.gz", hash = "sha256:82e220c66a97d63778ec02b222bce18840c1efae6ea4efd764346e7608b78274", size = 1497136, upload-time = "2025-12-25T08:33:28.909Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/99/01/2a8e5af60178da4f279f0314e4ef1111e4302ab9f2692b93acb8c82d32a5/akeyless-5.0.19.tar.gz", hash = "sha256:ab2ef944d07d502abea0e16c7365feaf38fb6153791ccac20b2b74f1e06e9c11", size = 1503846, upload-time = "2026-01-12T15:29:27.054Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4b/b5/5055362724232da120b5e1ffcfdcdb6cbeab153753c7730f97e7b5776dec/akeyless-5.0.18-py3-none-any.whl", hash = "sha256:f3ab1460e0b10f477fe8419411b67c00d717a75d075b0c394db921b7cf901e9d", size = 2830695, upload-time = "2025-12-25T08:33:27.126Z" },
+    { url = "https://files.pythonhosted.org/packages/68/98/608f6a64c921ecfea9e71739511e960df3b4cf090ebddecc8f038c23fbf7/akeyless-5.0.19-py3-none-any.whl", hash = "sha256:b8dda1fb0c4918f834704eab6339b51adff7a23b25beb1cc02dcf7ce2d5fb8e4", size = 2843240, upload-time = "2026-01-12T15:29:25.528Z" },
 ]
 
 [[package]]
@@ -70,42 +70,42 @@ wheels = [
 
 [[package]]
 name = "boto3"
-version = "1.42.25"
+version = "1.42.27"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "botocore" },
     { name = "jmespath" },
     { name = "s3transfer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/29/30/755a6c4b27ad4effefa9e407f84c6f0a69f75a21c0090beb25022dfcfd3f/boto3-1.42.25.tar.gz", hash = "sha256:ccb5e757dd62698d25766cc54cf5c47bea43287efa59c93cf1df8c8fbc26eeda", size = 112811, upload-time = "2026-01-09T20:27:44.73Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8d/99/65569052c911160702ad371b0b08b751bb1df29deeef0c5c117528074c29/boto3-1.42.27.tar.gz", hash = "sha256:a8a53abb98ff1a24d9a88d9d8c0285bf02d23189666130456e8951ede2f7db98", size = 112765, upload-time = "2026-01-13T20:35:11.971Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/14/79/012734f4e510b0a6beec2a3d5f437b3e8ef52174b1d38b1d5fdc542316d7/boto3-1.42.25-py3-none-any.whl", hash = "sha256:8128bde4f9d5ffce129c76d1a2efe220e3af967a2ad30bc305ba088bbc96343d", size = 140575, upload-time = "2026-01-09T20:27:42.788Z" },
+    { url = "https://files.pythonhosted.org/packages/44/9e/9554a8c1d7610ec8ea55bec0dac87ad894c83cada2ea2c05fc45f14d0cde/boto3-1.42.27-py3-none-any.whl", hash = "sha256:39dfec51aff3f9356e8c7331195f324cb498ec75b2601a902fc62aa127b8fd00", size = 140577, upload-time = "2026-01-13T20:35:09.35Z" },
 ]
 
 [[package]]
 name = "botocore"
-version = "1.42.25"
+version = "1.42.27"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jmespath" },
     { name = "python-dateutil" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2c/b5/8f961c65898deb5417c9e9e908ea6c4d2fe8bb52ff04e552f679c88ed2ce/botocore-1.42.25.tar.gz", hash = "sha256:7ae79d1f77d3771e83e4dd46bce43166a1ba85d58a49cffe4c4a721418616054", size = 14879737, upload-time = "2026-01-09T20:27:34.676Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/65/90/55b003d38f947c90c0d7e306d377dcdfd9cd0dc1e184082b2d1a6adb0eec/botocore-1.42.27.tar.gz", hash = "sha256:c8e1e3ffb6c871622b1c8054f064d60cbc786aa5ca1f97f5f9fd5fa0a9d82d05", size = 14880030, upload-time = "2026-01-13T20:35:00.31Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1e/b0/61e3e61d437c8c73f0821ce8a8e2594edfc1f423e354c38fa56396a4e4ca/botocore-1.42.25-py3-none-any.whl", hash = "sha256:470261966aab1d09a1cd4ba56810098834443602846559ba9504f6613dfa52dc", size = 14553881, upload-time = "2026-01-09T20:27:30.487Z" },
+    { url = "https://files.pythonhosted.org/packages/bf/32/8a4a0447432425cd2f772c757d988742685f46796cf5d68aeaf6bcb6bc37/botocore-1.42.27-py3-none-any.whl", hash = "sha256:d51fb3b8dd1a944c8d238d2827a0dd6e5528d6da49a3bd9eccad019c533e4c9c", size = 14555236, upload-time = "2026-01-13T20:34:55.918Z" },
 ]
 
 [[package]]
 name = "botocore-stubs"
-version = "1.42.25"
+version = "1.42.27"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "types-awscrt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/44/23/1f30c552bd0af9523abe49d50e849555298ed836b18a8039093ba786c2ef/botocore_stubs-1.42.25.tar.gz", hash = "sha256:70a8a53ba2684ff462c44d5996acd85fc5c7eb969e2cf3c25274441269524298", size = 42415, upload-time = "2026-01-09T20:32:21.78Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/19/28/16998a7a4a7d6128025a3a85c8419f6c410573314223ef0a9962cf4bcb84/botocore_stubs-1.42.27.tar.gz", hash = "sha256:1e5bc3f8879dc0c8cf98e668d108b3314d34db8f342ade2a9a53d88f27dc3292", size = 42396, upload-time = "2026-01-13T21:28:35.741Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/15/c5/4c66c8ade8fb180d417e164de54ab75fc26aa0e5543f6e33c8465722feb9/botocore_stubs-1.42.25-py3-none-any.whl", hash = "sha256:49d15529002bd1099a9a099a77d70b7b52859153783440e96eb55791e8147d1b", size = 66761, upload-time = "2026-01-09T20:32:20.512Z" },
+    { url = "https://files.pythonhosted.org/packages/d6/cd/fcb5810d0b7f98349128b223a2196589cb1757c6882895a8a3fb102010e0/botocore_stubs-1.42.27-py3-none-any.whl", hash = "sha256:b0075eb627800cc3bb6486595b4322e2ed3b3e36925bf1700d7b48ac14bfa37f", size = 66761, upload-time = "2026-01-13T21:28:34.131Z" },
 ]
 
 [[package]]
@@ -201,16 +201,16 @@ wheels = [
 
 [[package]]
 name = "clear-skies"
-version = "2.0.32"
+version = "2.0.33"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dateparser" },
     { name = "requests" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/09/ae/7f421e4b9c8862e45a93b474209eb7b64714bf08ff258b512c93a961cacb/clear_skies-2.0.32.tar.gz", hash = "sha256:290162fdd34321758cdbdfbce93b2fc045f0e8029915de263422bde9abaac2a2", size = 369523, upload-time = "2026-01-12T11:16:49.976Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/85/a6/f9622e9598dda4e7220808359ce6678c0ad95954610e46f8b6b05b369575/clear_skies-2.0.33.tar.gz", hash = "sha256:1a7fbcbcd2b53695fc247c9c348a447fb9a39b5fc89c2c813f2724985d9c4898", size = 370509, upload-time = "2026-01-14T08:27:00.751Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9d/81/a6f2edd8fcd58d902aab2fcc2e4acda647141cec5ef30a92939cb0675e5e/clear_skies-2.0.32-py3-none-any.whl", hash = "sha256:a36129f7e298a618147e635530889a9e0251c93356214055322c9f50ca09ed05", size = 358343, upload-time = "2026-01-12T11:16:51.521Z" },
+    { url = "https://files.pythonhosted.org/packages/a2/df/fc096c9330de8e1e521a9cb3bd937c807f27cb78b7b30c84398bafcca8c4/clear_skies-2.0.33-py3-none-any.whl", hash = "sha256:b6783342b0580e5e851104392ee9734fb1d88928d06bb1ce142847e00e5b4edd", size = 359304, upload-time = "2026-01-14T08:26:59.377Z" },
 ]
 
 [package.optional-dependencies]
@@ -424,11 +424,11 @@ wheels = [
 
 [[package]]
 name = "identify"
-version = "2.6.15"
+version = "2.6.16"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/ff/e7/685de97986c916a6d93b3876139e00eef26ad5bbbd61925d670ae8013449/identify-2.6.15.tar.gz", hash = "sha256:e4f4864b96c6557ef2a1e1c951771838f4edc9df3a72ec7118b338801b11c7bf", size = 99311, upload-time = "2025-10-02T17:43:40.631Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5b/8d/e8b97e6bd3fb6fb271346f7981362f1e04d6a7463abd0de79e1fda17c067/identify-2.6.16.tar.gz", hash = "sha256:846857203b5511bbe94d5a352a48ef2359532bc8f6727b5544077a0dcfb24980", size = 99360, upload-time = "2026-01-12T18:58:58.201Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0f/1c/e5fd8f973d4f375adb21565739498e2e9a1e54c858a97b9a8ccfdc81da9b/identify-2.6.15-py2.py3-none-any.whl", hash = "sha256:1181ef7608e00704db228516541eb83a88a9f94433a8c80bb9b5bd54b1d81757", size = 99183, upload-time = "2025-10-02T17:43:39.137Z" },
+    { url = "https://files.pythonhosted.org/packages/b8/58/40fbbcefeda82364720eba5cf2270f98496bdfa19ea75b4cccae79c698e6/identify-2.6.16-py2.py3-none-any.whl", hash = "sha256:391ee4d77741d994189522896270b787aed8670389bfd60f326d677d64a6dfb0", size = 99202, upload-time = "2026-01-12T18:58:56.627Z" },
 ]
 
 [[package]]
@@ -1096,16 +1096,16 @@ wheels = [
 
 [[package]]
 name = "types-boto3"
-version = "1.42.25"
+version = "1.42.27"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "botocore-stubs" },
     { name = "types-s3transfer" },
     { name = "typing-extensions", marker = "python_full_version < '3.12'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/95/b4/4cbc4b0dfa72feebdd51ef2ae9ec84c6603054e7215aebd2a27bc7a05f97/types_boto3-1.42.25.tar.gz", hash = "sha256:0b47f5219bae83355fd6942989e0d120847032224a09e57996753a9cd1d153e6", size = 101256, upload-time = "2026-01-09T20:44:37.904Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/af/4d/d21d4c95b00233a585339ccafb9ed8b533017a6151a03f813efa73237f3e/types_boto3-1.42.27.tar.gz", hash = "sha256:6895136fed360995fc84936a82564b77cc3aa59e65be4e5450d1f94dc5d1806c", size = 101249, upload-time = "2026-01-13T20:40:54.819Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/89/cc/85d967f38fd62c7853de351dc7068177a7648a33e3fd72f1fcded2422d73/types_boto3-1.42.25-py3-none-any.whl", hash = "sha256:d334021e6037c15b0cf63ce376144ac72e6506e9710bbc29e2a806a8ba4501e7", size = 69675, upload-time = "2026-01-09T20:44:33.833Z" },
+    { url = "https://files.pythonhosted.org/packages/4d/fc/37a29248f547b9c7cdd1c51f7802ea692416423ef8aac969fc92d33bc488/types_boto3-1.42.27-py3-none-any.whl", hash = "sha256:4d1c391f5eeaf940f17677ac67c39b7917ea9245201940cf26c0b8d435a04966", size = 69676, upload-time = "2026-01-13T20:40:47.423Z" },
 ]
 
 [package.optional-dependencies]
