@@ -16,7 +16,6 @@ class LambdaInputOutput(InputOutput):
     event = AnyDict(default={})
     context = AnyDict(default={})
     path = String(default="/")
-    url = String(default=None)
 
     _cached_body = None
     _body_was_cached = False
