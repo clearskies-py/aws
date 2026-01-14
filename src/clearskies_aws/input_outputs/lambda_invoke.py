@@ -24,6 +24,7 @@ class LambdaInvoke(lambda_input_output.LambdaInputOutput):
 
         # Direct invocation specific initialization
         if url:
+            self.url = url
             self.path = url
         else:
             self.supports_url = True
@@ -58,10 +59,6 @@ class LambdaInvoke(lambda_input_output.LambdaInputOutput):
     def get_protocol(self) -> str:
         """Direct invocations don't have a protocol."""
         return "lambda"
-
-    def get_full_path(self) -> str:
-        """Return the configured path."""
-        return self.path
 
     def context_specifics(self) -> dict[str, Any]:
         """Provide direct invocation specific context data."""
