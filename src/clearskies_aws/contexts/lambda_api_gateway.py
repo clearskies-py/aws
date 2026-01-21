@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from awslambdaric.lambda_context import LambdaContext
 from clearskies.contexts.context import Context
 
 from clearskies_aws.input_outputs import LambdaApiGateway as LambdaApiGatewayInputOutput
@@ -77,5 +78,5 @@ class LambdaApiGateway(Context):
     ```
     """
 
-    def __call__(self, event: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:  # type: ignore[override]
+    def __call__(self, event: dict[str, Any], context: LambdaContext | dict[str, Any]) -> dict[str, Any]:  # type: ignore[override]
         return self.execute_application(LambdaApiGatewayInputOutput(event, context))

@@ -3,6 +3,7 @@ from __future__ import annotations
 import traceback
 from typing import Any
 
+from awslambdaric.lambda_context import LambdaContext
 from clearskies.authentication import Public
 from clearskies.contexts.context import Context
 
@@ -121,7 +122,7 @@ class LambdaSqsStandard(Context):
     """
 
     def __call__(  # type: ignore[override]
-        self, event: dict[str, Any], context: dict[str, Any], url: str = "", request_method: str = ""
+        self, event: dict[str, Any], context: LambdaContext | dict[str, Any], url: str = "", request_method: str = ""
     ) -> dict[str, Any]:
         item_failures = []
         for record in event["Records"]:

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from awslambdaric.lambda_context import LambdaContext
 from clearskies.configs import AnyDict, String
 from clearskies.exceptions import ClientError
 from clearskies.input_outputs import Headers
@@ -20,7 +21,7 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
         self,
         record: dict[str, Any],
         event: dict[str, Any],
-        context: dict[str, Any],
+        context: LambdaContext | dict[str, Any],
         url: str = "",
         request_method: str = "",
     ):

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from awslambdaric.lambda_context import LambdaContext
 from clearskies.exceptions import ClientError
 from clearskies.input_outputs import Headers
 
@@ -15,7 +16,7 @@ class LambdaInvoke(lambda_input_output.LambdaInputOutput):
     def __init__(
         self,
         event: dict[str, Any],
-        context: dict[str, Any],
+        context: LambdaContext | dict[str, Any],
         request_method: str = "",
         url: str = "",
     ):

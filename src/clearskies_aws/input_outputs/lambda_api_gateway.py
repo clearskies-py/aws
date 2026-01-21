@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from awslambdaric.lambda_context import LambdaContext
 from clearskies.configs import String
 from clearskies.input_outputs import Headers
 
@@ -13,7 +14,7 @@ class LambdaApiGateway(lambda_input_output.LambdaInputOutput):
 
     resource = String(default="")
 
-    def __init__(self, event: dict, context: dict[str, Any]):
+    def __init__(self, event: dict, context: LambdaContext | dict[str, Any]):
         # Call parent constructor
         super().__init__(event, context)
 

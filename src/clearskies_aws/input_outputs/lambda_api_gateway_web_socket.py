@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from awslambdaric.lambda_context import LambdaContext
 from clearskies.configs import String
 from clearskies.input_outputs import Headers
 
@@ -15,7 +16,7 @@ class LambdaApiGatewayWebSocket(lambda_input_output.LambdaInputOutput):
     route_key = String(default="")
     connection_id = String(default="")
 
-    def __init__(self, event: dict[str, Any], context: dict[str, Any], url: str = ""):
+    def __init__(self, event: dict[str, Any], context: LambdaContext | dict[str, Any], url: str = ""):
         # Call parent constructor
         super().__init__(event, context)
 

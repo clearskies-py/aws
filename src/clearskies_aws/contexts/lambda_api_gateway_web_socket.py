@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from awslambdaric.lambda_context import LambdaContext
 from clearskies.contexts.context import Context
 
 from clearskies_aws.input_outputs import (
@@ -74,6 +75,6 @@ class LambdaApiGatewayWebSocket(Context):
     """
 
     def __call__(  # type: ignore[override]
-        self, event: dict[str, Any], context: dict[str, Any], url: str = "", request_method: str = ""
+        self, event: dict[str, Any], context: LambdaContext | dict[str, Any], url: str = "", request_method: str = ""
     ) -> dict[str, Any]:
         return self.execute_application(LambdaApiGatewayWebSocketInputOutput(event, context, url))
