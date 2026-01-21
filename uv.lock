@@ -4,7 +4,7 @@ requires-python = ">=3.11, <4.0"
 
 [[package]]
 name = "akeyless"
-version = "5.0.19"
+version = "5.0.20"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "certifi" },
@@ -13,9 +13,9 @@ dependencies = [
     { name = "six" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/99/01/2a8e5af60178da4f279f0314e4ef1111e4302ab9f2692b93acb8c82d32a5/akeyless-5.0.19.tar.gz", hash = "sha256:ab2ef944d07d502abea0e16c7365feaf38fb6153791ccac20b2b74f1e06e9c11", size = 1503846, upload-time = "2026-01-12T15:29:27.054Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/23/51/2a2b0d859d204640bde240c9051e55aee5c5141bfe8f0b2c6cc24f1f0ed3/akeyless-5.0.20.tar.gz", hash = "sha256:15bdd4141da88571a4d3a82aa188db9276b524621af2d0012f227e20f3202852", size = 1505101, upload-time = "2026-01-26T13:39:25.478Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/68/98/608f6a64c921ecfea9e71739511e960df3b4cf090ebddecc8f038c23fbf7/akeyless-5.0.19-py3-none-any.whl", hash = "sha256:b8dda1fb0c4918f834704eab6339b51adff7a23b25beb1cc02dcf7ce2d5fb8e4", size = 2843240, upload-time = "2026-01-12T15:29:25.528Z" },
+    { url = "https://files.pythonhosted.org/packages/89/11/b5596685557812e9cdd0d9ecd23d4ce9a6d99b8f234dfd6ab9c9c5cdf7a1/akeyless-5.0.20-py3-none-any.whl", hash = "sha256:8bc06193efa39e75f294796f1fee38cd2063e27a9b23bf11178884d7f54526ee", size = 2844391, upload-time = "2026-01-26T13:39:23.866Z" },
 ]
 
 [[package]]

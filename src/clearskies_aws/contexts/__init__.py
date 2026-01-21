@@ -11,6 +11,7 @@ from clearskies_aws.contexts.lambda_sns import LambdaSns
 from clearskies_aws.contexts.lambda_sqs_standard import (
     LambdaSqsStandard,
 )
+from clearskies_aws.contexts.lambda_step_function import LambdaStepFunction
 
 __all__ = [
     "CliWebSocketMock",
@@ -20,4 +21,5 @@ __all__ = [
     "LambdaInvoke",
     "LambdaSns",
     "LambdaSqsStandard",
+    "LambdaStepFunction",
 ]
