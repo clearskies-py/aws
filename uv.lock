@@ -225,6 +225,7 @@ source = { editable = "." }
 dependencies = [
     { name = "boto3" },
     { name = "clear-skies" },
+    { name = "jinja2" },
     { name = "types-boto3", extra = ["dynamodb", "secretsmanager", "ses", "sns", "sqs", "ssm", "stepfunctions"] },
 ]
 
@@ -235,9 +236,6 @@ akeyless = [
 ]
 mysql = [
     { name = "clear-skies", extra = ["mysql"] },
-]
-ses = [
-    { name = "jinja2" },
 ]
 
 [package.dev-dependencies]
@@ -259,10 +257,10 @@ requires-dist = [
     { name = "boto3", specifier = ">=1.26.148,<2.0.0" },
     { name = "clear-skies", specifier = ">=2.0.20,<3.0.0" },
     { name = "clear-skies", extras = ["mysql"], marker = "extra == 'mysql'" },
-    { name = "jinja2", marker = "extra == 'ses'", specifier = ">=3.1.2,<4.0.0" },
+    { name = "jinja2", specifier = ">=3.1.6" },
     { name = "types-boto3", extras = ["dynamodb", "sns", "sqs", "ses", "ssm", "secretsmanager", "stepfunctions"], specifier = ">=1.38.13,<2.0.0" },
 ]
-provides-extras = ["akeyless", "ses", "mysql"]
+provides-extras = ["akeyless", "mysql"]
 
 [package.metadata.requires-dev]
 dev = [

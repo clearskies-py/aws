@@ -10,6 +10,7 @@ requires-python = '>=3.11,<4.0'
 dependencies = [
     'boto3 (>=1.26.148,<2.0.0)',
     "clear-skies>=2.0.20,<3.0.0",
+    "jinja2>=3.1.6",
     'types-boto3[dynamodb,sns,sqs,ses,ssm,secretsmanager,stepfunctions] (>=1.38.13,<2.0.0)',
 ]
 classifiers = [
@@ -27,7 +28,6 @@ Documentation = "https://clearskies.info/modules/clearskies-aws/"
 
 [project.optional-dependencies]
 akeyless = ['akeyless-cloud-id (>=0.2.3,<0.5.0)', 'akeyless (>=5.0.0,<6.0.0)']
-ses = ['jinja2 (>=3.1.2,<4.0.0)']
 mysql = ['clear-skies[mysql]']
 
 [build-system]
