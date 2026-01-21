@@ -5,7 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.11] - 2026-01-21
+
+### Fixed
+- Set correct type for context
+
+### Removed
+- Remove black
+
 ## [2.0.10] - 2026-01-21
+
+### Changed
+- Bump version to v2.0.10 by @github-actions[bot]
 
 ### Fixed
 - Jinja2 import
@@ -136,6 +147,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * @cmancone made their first contribution
 * @ made their first contribution
 * @github-actions[bot] made their first contribution
+[2.0.11]: https://github.com/clearskies-py/aws/compare/v2.0.10..v2.0.11
 [2.0.10]: https://github.com/clearskies-py/aws/compare/v2.0.9..v2.0.10
 [2.0.9]: https://github.com/clearskies-py/aws/compare/v2.0.8..v2.0.9
 [2.0.8]: https://github.com/clearskies-py/aws/compare/v2.0.7..v2.0.8
