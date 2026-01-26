@@ -66,12 +66,13 @@ class LambdaStepFunction(Context):
     )
     ```
 
-    **3. Callable** - Full control via a function:
+    **3. Callable** - Full control via a function (supports dependency injection):
     ```python
-    def extract_env_vars(event):
+    def extract_env_vars(event, secrets):
+        # Can inject clearskies dependencies like secrets
         return {
             "BUSINESS_NAME": event.get("BUSINESS_NAME"),
-            "GITLAB_KEY": event.get("GITLAB_AUTH_KEY"),
+            "GITLAB_KEY": secrets.get(event.get("GITLAB_AUTH_KEY")),
         }
 
 
@@ -92,14 +93,13 @@ class LambdaStepFunction(Context):
     |   `function_version`   |       `str`        | The function version                 |
     |      `request_id`      |       `str`        | The AWS request id for the call      |
     |    `states_context`    |  `dict[str, Any]`  | The Step Functions $states context   |
-    | `extracted_environment`|  `dict[str, str]`  | The extracted environment variables  |
 
     """
 
     def __init__(
         self,
         endpoint,
-        environment_keys: list[str] | dict[str, str] | Callable[[dict[str, Any]], dict[str, str]] | None = None,
+        environment_keys: list[str] | dict[str, str] | Callable[..., dict[str, Any]] | None = None,
         **kwargs,
     ):
         super().__init__(endpoint, **kwargs)
@@ -120,16 +120,10 @@ class LambdaStepFunction(Context):
             environment_keys=self._environment_keys,
         )
 
-        # Merge extracted environment into the DI container
-        if input_output.extracted_environment:
-            self._merge_environment(input_output.extracted_environment)
+        # Inject extra environment variables from the step function event
+        input_output.inject_extra_environment_variables(
+            self.di.build("environment", cache=True),
+            self.di,
+        )
 
         return self.execute_application(input_output)
-
-    def _merge_environment(self, extracted_env: dict[str, str]) -> None:
-        """Merge extracted environment variables into the DI container's Environment."""
-        # Get the environment from the DI container with caching enabled
-        # so that subsequent builds return the same instance with our values
-        environment = self.di.build("environment", cache=True)
-        for key, value in extracted_env.items():
-            environment.set(key, value)

@@ -5,6 +5,8 @@ from typing import Any as TypingAny
 from typing import Callable
 
 from clearskies.configs import Any
+from clearskies.di import Di
+from clearskies.environment import Environment
 from clearskies.exceptions import ClientError
 from clearskies.input_outputs import Headers
 
@@ -27,14 +29,11 @@ class LambdaStepFunction(lambda_input_output.LambdaInputOutput):
         context: dict[str, TypingAny],
         request_method: str = "",
         url: str = "",
-        environment_keys: list[str] | dict[str, str] | Callable[[dict[str, TypingAny]], dict[str, str]] | None = None,
+        environment_keys: list[str] | dict[str, str] | Callable[..., dict[str, TypingAny]] | None = None,
     ):
         super().__init__(event, context)
 
         self.environment_keys = environment_keys
-        self._extracted_environment: dict[str, str] = {}
-
-        self._extract_environment_variables()
 
         if url:
             self.url = url
@@ -48,32 +47,46 @@ class LambdaStepFunction(lambda_input_output.LambdaInputOutput):
 
         self.request_headers = Headers({})
 
-    def _extract_environment_variables(self) -> None:
-        """Extract environment variables from the event based on configuration."""
+    def inject_extra_environment_variables(self, environment: Environment, di: Di) -> None:
+        """Extract and inject environment variables from the event into the Environment.
+
+        Args:
+            environment: The clearskies Environment instance to inject variables into.
+            di: The dependency injection container for calling callables with dependencies.
+        """
         if self.environment_keys is None:
             return
 
+        extracted: dict[str, TypingAny] = {}
+
         if callable(self.environment_keys):
-            result = self.environment_keys(self.event)
-            if result:
-                self._extracted_environment = {k: str(v) for k, v in result.items() if v is not None}
+            # Let clearskies call the callable so it can inject dependencies
+            result = di.call_function(self.environment_keys, event=self.event)
+            if not isinstance(result, dict):
+                callable_name = getattr(self.environment_keys, "__name__", str(self.environment_keys))
+                raise TypeError(
+                    f"The environment_keys callable '{callable_name}' must return a dictionary, "
+                    f"but returned {type(result).__name__}"
+                )
+            extracted = result
         elif isinstance(self.environment_keys, dict):
             for event_key, env_name in self.environment_keys.items():
-                if event_key in self.event:
-                    value = self.event[event_key]
-                    if value is not None:
-                        self._extracted_environment[env_name] = str(value)
+                if event_key not in self.event:
+                    raise KeyError(
+                        f"environment_keys requested a key called `{event_key}` but this was not found in the event"
+                    )
+                extracted[env_name] = self.event[event_key]
         elif isinstance(self.environment_keys, list):
             for key in self.environment_keys:
-                if key in self.event:
-                    value = self.event[key]
-                    if value is not None:
-                        self._extracted_environment[key] = str(value)
+                if key not in self.event:
+                    raise KeyError(
+                        f"environment_keys requested a key called `{key}` but this was not found in the event"
+                    )
+                extracted[key] = self.event[key]
 
-    @property
-    def extracted_environment(self) -> dict[str, str]:
-        """Return the extracted environment variables."""
-        return self._extracted_environment
+        # Inject extracted values into the environment
+        for key, value in extracted.items():
+            environment.set(key, value)
 
     def has_body(self) -> bool:
         """Step Functions invocations always have a body - the event itself."""
@@ -106,7 +119,6 @@ class LambdaStepFunction(lambda_input_output.LambdaInputOutput):
             "function_version": self.context.get("function_version"),
             "request_id": self.context.get("aws_request_id"),
             "states_context": states_context,
-            "extracted_environment": self._extracted_environment,
         }
 
     @property

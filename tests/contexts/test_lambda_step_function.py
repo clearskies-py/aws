@@ -12,6 +12,8 @@ class LambdaStepFunctionContextTest(unittest.TestCase):
         clearskies.backends.MemoryBackend.clear_table_cache()
 
     def test_basic_invocation(self):
+        """Test basic invocation without environment keys."""
+
         def my_function(request_data):
             return request_data
 
@@ -103,14 +105,43 @@ class LambdaStepFunctionContextTest(unittest.TestCase):
 
         self.assertEqual(captured_env["NESTED_VALUE"], "deep_value")
 
+    def test_with_environment_callable_with_di(self):
+        """Test that environment callable can receive DI dependencies."""
+        captured_env = {}
+
+        # The callable can request dependencies from DI
+        def extract_env(event):
+            # In a real scenario, you could inject secrets, etc.
+            return {
+                "BUSINESS": event.get("BUSINESS_NAME"),
+            }
+
+        def my_function(request_data, environment):
+            captured_env["BUSINESS"] = environment.get("BUSINESS", silent=True)
+            return request_data
+
+        application = LambdaStepFunction(
+            clearskies.endpoints.Callable(
+                my_function,
+                return_standard_response=False,
+            ),
+            environment_keys=extract_env,
+        )
+
+        application(
+            {"BUSINESS_NAME": "TestBusiness"},
+            {},
+        )
+
+        self.assertEqual(captured_env["BUSINESS"], "TestBusiness")
+
     def test_context_specifics_available(self):
         """Test that context specifics are available for injection."""
         captured_specifics = {}
 
-        def my_function(request_data, invocation_type, states_context, extracted_environment):
+        def my_function(request_data, invocation_type, states_context):
             captured_specifics["invocation_type"] = invocation_type
             captured_specifics["states_context"] = states_context
-            captured_specifics["extracted_environment"] = extracted_environment
             return request_data
 
         application = LambdaStepFunction(
@@ -131,7 +162,6 @@ class LambdaStepFunctionContextTest(unittest.TestCase):
 
         self.assertEqual(captured_specifics["invocation_type"], "step-functions")
         self.assertEqual(captured_specifics["states_context"], {"context": {"execution": {"id": "exec-123"}}})
-        self.assertEqual(captured_specifics["extracted_environment"], {"BUSINESS_NAME": "TestBusiness"})
 
     def test_no_environment_extraction(self):
         """Test that environment.get() returns None when no extraction is configured."""
@@ -177,3 +207,44 @@ class LambdaStepFunctionContextTest(unittest.TestCase):
         application({"VALUE": "second"}, {})
 
         self.assertEqual(captured_values, ["first", "second"])
+
+    def test_missing_key_raises_error(self):
+        """Test that missing keys raise KeyError."""
+
+        def my_function(request_data):
+            return request_data
+
+        application = LambdaStepFunction(
+            clearskies.endpoints.Callable(
+                my_function,
+                return_standard_response=False,
+            ),
+            environment_keys=["MISSING_KEY"],
+        )
+
+        with self.assertRaises(KeyError) as context:
+            application({"OTHER_KEY": "value"}, {})
+
+        self.assertIn("MISSING_KEY", str(context.exception))
+
+    def test_callable_returning_non_dict_raises_error(self):
+        """Test that callable returning non-dict raises TypeError."""
+
+        def bad_extractor(event):
+            return "not a dict"
+
+        def my_function(request_data):
+            return request_data
+
+        application = LambdaStepFunction(
+            clearskies.endpoints.Callable(
+                my_function,
+                return_standard_response=False,
+            ),
+            environment_keys=bad_extractor,
+        )
+
+        with self.assertRaises(TypeError) as context:
+            application({"key": "value"}, {})
+
+        self.assertIn("must return a dictionary", str(context.exception))
