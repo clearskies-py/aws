@@ -1,5 +1,4 @@
 # Pre-commit configuration for  Akeyless Custom Producer
-fail_fast: true
 
 ci:
     autofix_commit_msg: "chore(pre-commit): autofix run"
@@ -8,6 +7,9 @@ ci:
 default_install_hook_types:
     - pre-commit
     - commit-msg
+    - post-checkout
+    - post-merge
+    - post-rewrite
 
 default_stages: ["pre-commit"]
 

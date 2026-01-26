@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
@@ -7,6 +5,7 @@ from __future__ import annotations
 #     "clear-skies-doc-builder",
 # ]
 # ///
+from __future__ import annotations
 
 import clearskies_doc_builder
 

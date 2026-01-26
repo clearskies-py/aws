@@ -14,10 +14,10 @@ on:
       run-pytest:
         required: true
         type: boolean
-      run-ruff-check:
+      run-ruff-format:
         required: true
         type: boolean
-      run-ruff-format:
+      run-ruff-check:
         required: true
         type: boolean
 
@@ -46,7 +46,6 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked --all-extras --dev
       - run: uv run mypy src --check || true
-        continue-on-error: true
 
   pytest:
     name: pytest
@@ -65,19 +64,7 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked --all-extras --dev
       - run: uv run pytest -v
-        continue-on-error: true
-      - run: git diff --exit-code --stat
-        continue-on-error: true
-
-
-  ruff-check:
-    name: ruff-check
-    runs-on: ${{ inputs.runner }}
-    if: inputs.run-ruff-check
-    steps:
-      - uses: astral-sh/ruff-action@v3
-        with:
-          args: "check --diff"
+      - run: git diff --exit-code --stat HEAD
 
   ruff-format:
     name: ruff-format
@@ -87,3 +74,12 @@ jobs:
       - uses: astral-sh/ruff-action@v3
         with:
           args: "format --diff"
+
+  ruff-check:
+    name: ruff-check
+    runs-on: ${{ inputs.runner }}
+    if: inputs.run-ruff-check
+    steps:
+      - uses: astral-sh/ruff-action@v3
+        with:
+          args: "check --diff"
