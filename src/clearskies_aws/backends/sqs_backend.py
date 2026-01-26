@@ -5,6 +5,7 @@ from typing import Any
 
 from clearskies import Model
 from clearskies.query import Query
+from clearskies.query.result import CountQueryResult, RecordQueryResult, RecordsQueryResult, SuccessQueryResult
 from types_boto3_sqs import SQSClient
 
 from clearskies_aws.backends import backend
@@ -37,25 +38,21 @@ class SqsBackend(backend.Backend):
 
         return self._sqs
 
-    def create(self, data: dict[str, Any], model: Model) -> dict[str, Any]:
+    def create(self, data: dict[str, Any], model: Model) -> RecordQueryResult:
         self.sqs.send_message(
             QueueUrl=model.destination_name(),
             MessageBody=json.dumps(data),
         )
-        return {**data}
+        return RecordQueryResult(record={**data})
 
-    def update(self, id: int | str, data: dict[str, Any], model: Model) -> dict[str, Any]:
+    def update(self, id: int | str, data: dict[str, Any], model: Model) -> RecordQueryResult:
         raise ValueError("The SQS backend only supports the create operation")
 
-    def delete(self, id: int | str, model: Model) -> bool:
+    def delete(self, id: int | str, model: Model) -> SuccessQueryResult:
         raise ValueError("The SQS backend only supports the create operation")
 
-    def count(self, query: Query) -> int:
+    def count(self, query: Query) -> CountQueryResult:
         raise ValueError("The SQS backend only supports the create operation")
 
-    def records(
-        self,
-        query: Query,
-        next_page_data: dict[str, str | int] | None = None,
-    ) -> list[dict[str, Any]]:
+    def records(self, query: Query) -> RecordsQueryResult:
         raise ValueError("The SQS backend only supports the create operation")

@@ -7,6 +7,12 @@ import clearskies.model
 import clearskies.query
 from clearskies.autodoc.schema import Schema as AutoDocSchema
 from clearskies.di import inject
+from clearskies.query.result import (
+    CountQueryResult,
+    RecordQueryResult,
+    RecordsQueryResult,
+    SuccessQueryResult,
+)
 
 from clearskies_aws.di.inject import boto3
 
@@ -31,35 +37,25 @@ class Backend(clearskies.Configurable, clearskies.backends.Backend, clearskies.d
     boto3 = boto3.Boto3()
     environment = inject.Environment()
 
-    def update(self, id: int | str, data: dict[str, Any], model: clearskies.model.Model) -> dict[str, Any]:
+    def update(self, id: int | str, data: dict[str, Any], model: clearskies.model.Model) -> RecordQueryResult:
         """Update the record with the given id with the information from the data dictionary."""
-        return {}
+        return RecordQueryResult(record={})
 
-    def create(self, data: dict[str, Any], model: clearskies.model.Model) -> dict[str, Any]:
+    def create(self, data: dict[str, Any], model: clearskies.model.Model) -> RecordQueryResult:
         """Create a record with the information from the data dictionary."""
-        return {}
+        return RecordQueryResult(record={})
 
-    def delete(self, id: int | str, model: clearskies.model.Model) -> bool:
+    def delete(self, id: int | str, model: clearskies.model.Model) -> SuccessQueryResult:
         """Delete the record with the given id."""
-        return True
+        return SuccessQueryResult()
 
-    def count(self, query: clearskies.query.Query) -> int:
+    def count(self, query: clearskies.query.Query) -> CountQueryResult:
         """Return the number of records which match the given query configuration."""
-        return 1
+        return CountQueryResult(count=1)
 
-    def records(
-        self,
-        query: clearskies.query.Query,
-        next_page_data: dict[str, str | int] | None = None,
-    ) -> list[dict[str, Any]]:
-        """
-        Return a list of records that match the given query configuration.
-
-        next_page_data is used to return data to the caller.  Pass in an empty dictionary, and it will be populated
-        with the data needed to return the next page of results.  If it is still an empty dictionary when returned,
-        then there is no additional data.
-        """
-        return []
+    def records(self, query: clearskies.query.Query) -> RecordsQueryResult:
+        """Return a list of records that match the given query configuration."""
+        return RecordsQueryResult(records=[])
 
     def validate_pagination_data(self, data: dict[str, Any], case_mapping: Callable[[str], str]) -> str:
         """

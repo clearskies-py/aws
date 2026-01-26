@@ -10,7 +10,7 @@ requires-python = '>=3.11,<4.0'
 dependencies = [
     "awslambdaric>=3.1.1",
     'boto3 (>=1.26.148,<2.0.0)',
-    "clear-skies>=2.0.20,<3.0.0",
+    "clear-skies>=2.0.37,<3.0.0",
     "jinja2>=3.1.6",
     'types-boto3[dynamodb,sns,sqs,ses,ssm,secretsmanager,stepfunctions] (>=1.38.13,<2.0.0)',
 ]
