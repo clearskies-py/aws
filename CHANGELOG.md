@@ -5,7 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.12] - 2026-01-27
+
+### Added
+- Add docs
+- Add stepfucntions context with variables to ENV vars
+
+### Changed
+- Merge pull request #11 from clearskies-py/stepfunctions-variables by @cmancone in [#11](https://github.com/clearskies-py/aws/pull/11)
+- Update docstrings of stepfunctions
+- Move Environment to the input output of step functions
+- Udpate to QueryResult
+- Update to latest copier template
+
+### Fixed
+- Ignore dynamodb mypy issues
+
 ## [2.0.11] - 2026-01-21
+
+### Changed
+- Bump version to v2.0.11 by @github-actions[bot]
 
 ### Fixed
 - Set correct type for context
@@ -147,6 +166,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * @cmancone made their first contribution
 * @ made their first contribution
 * @github-actions[bot] made their first contribution
+[2.0.12]: https://github.com/clearskies-py/aws/compare/v2.0.11..v2.0.12
 [2.0.11]: https://github.com/clearskies-py/aws/compare/v2.0.10..v2.0.11
 [2.0.10]: https://github.com/clearskies-py/aws/compare/v2.0.9..v2.0.10
 [2.0.9]: https://github.com/clearskies-py/aws/compare/v2.0.8..v2.0.9
