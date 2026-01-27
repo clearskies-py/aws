@@ -13,7 +13,7 @@ from botocore.exceptions import ClientError
 from clearskies import Model
 from clearskies.autodoc.schema import String as AutoDocString
 
-from clearskies_aws.backends.dynamo_db_parti_ql_backend import (
+from clearskies_aws.backends.dynamo_db_parti_ql_backend import (  # type: ignore[import-untyped, attr-defined]
     DynamoDBPartiQLBackend,
     DynamoDBPartiQLCursor,
 )

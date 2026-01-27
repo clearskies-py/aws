@@ -1,3 +1,110 @@
 {
-  "tree": []
+    "tree": [
+        {
+            "title": "Backends",
+            "source": "clearskies_aws.backends.Backend",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.backends.SqsBackend"
+            ]
+        },
+        {
+            "title": "Contexts",
+            "source": "clearskies.contexts.Context",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.contexts.CliWebSocketMock",
+                "clearskies_aws.contexts.LambdaAlb",
+                "clearskies_aws.contexts.LambdaApiGateway",
+                "clearskies_aws.contexts.LambdaApiGatewayWebSocket",
+                "clearskies_aws.contexts.LambdaInvoke",
+                "clearskies_aws.contexts.LambdaSns",
+                "clearskies_aws.contexts.LambdaSqsStandard",
+                "clearskies_aws.contexts.LambdaStepFunction"
+            ]
+        },
+        {
+            "title": "Cursors IAM",
+            "source": "clearskies.cursors.Cursor",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.cursors.iam.RdsMysql"
+            ]
+        },
+        {
+            "title": "Cursors Port Forwarding",
+            "source": "clearskies.cursors.port_forwarding.PortForwarder",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.cursors.port_forwarding.Ssm"
+            ]
+        },
+        {
+            "title": "Actions",
+            "source": "clearskies_aws.actions.action_aws.ActionAws",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.actions.AssumeRole",
+                "clearskies_aws.actions.SES",
+                "clearskies_aws.actions.SNS",
+                "clearskies_aws.actions.SQS",
+                "clearskies_aws.actions.StepFunction"
+            ]
+        },
+        {
+            "title": "Endpoints",
+            "source": "clearskies.endpoint.Endpoint",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.endpoints.SecretsManagerRotation"
+            ]
+        },
+        {
+            "title": "Secrets",
+            "source": "clearskies.secrets.Secrets",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.secrets.Secrets",
+                "clearskies_aws.secrets.ParameterStore",
+                "clearskies_aws.secrets.SecretsManager",
+                "clearskies_aws.secrets.AkeylessWithSsmCache"
+            ]
+        },
+        {
+            "title": "Models",
+            "source": "clearskies.Model",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.models.WebSocketConnectionModel"
+            ]
+        },
+        {
+            "title": "Dependency Injection",
+            "source": "clearskies.di.Di",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.di.AwsAdditionalConfigAutoImport"
+            ]
+        },
+        {
+            "title": "DI Inject",
+            "source": "clearskies.di.Di",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.di.inject.Boto3",
+                "clearskies_aws.di.inject.Boto3Session"
+            ]
+        },
+        {
+            "title": "Mock Actions",
+            "source": "clearskies_aws.actions.action_aws.ActionAws",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.mocks.actions.SES",
+                "clearskies_aws.mocks.actions.SNS",
+                "clearskies_aws.mocks.actions.SQS",
+                "clearskies_aws.mocks.actions.StepFunction"
+            ]
+        }
+    ]
 }

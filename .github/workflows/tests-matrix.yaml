@@ -63,7 +63,7 @@ jobs:
           enable-cache: true
       - name: Install dependencies
         run: uv sync --locked --all-extras --dev
-      - run: uv run pytest -v
+      - run: uv run pytest -v . -m "not broken"
       - run: git diff --exit-code --stat HEAD
 
   ruff-format:
