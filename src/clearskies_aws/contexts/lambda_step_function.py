@@ -121,9 +121,12 @@ class LambdaStepFunction(Context):
         )
 
         # Inject extra environment variables from the step function event
+        environment = self.di.build("environment", cache=True)
         input_output.inject_extra_environment_variables(
-            self.di.build("environment", cache=True),
+            environment,
             self.di,
         )
+        # Re-add the environment to DI to ensure the same instance with set values is used
+        self.di.add_binding("environment", environment)
 
         return self.execute_application(input_output)
