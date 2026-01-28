@@ -24,20 +24,27 @@
             ]
         },
         {
-            "title": "Cursors IAM",
+            "title": "Cursors",
+            "source": "clearskies.cursors.Cursor",
+            "builder": "clearskies_doc_builder.builders.Module"
+        },
+        {
+            "title": "By IAM",
             "source": "clearskies.cursors.Cursor",
             "builder": "clearskies_doc_builder.builders.Module",
             "classes": [
                 "clearskies_aws.cursors.iam.RdsMysql"
-            ]
+            ],
+            "parent": "Cursors"
         },
         {
-            "title": "Cursors Port Forwarding",
+            "title": "Port Forwarding",
             "source": "clearskies.cursors.port_forwarding.PortForwarder",
             "builder": "clearskies_doc_builder.builders.Module",
             "classes": [
                 "clearskies_aws.cursors.port_forwarding.Ssm"
-            ]
+            ],
+            "parent": "Cursors"
         },
         {
             "title": "Actions",
@@ -64,11 +71,18 @@
             "source": "clearskies.secrets.Secrets",
             "builder": "clearskies_doc_builder.builders.Module",
             "classes": [
-                "clearskies_aws.secrets.Secrets",
                 "clearskies_aws.secrets.ParameterStore",
-                "clearskies_aws.secrets.SecretsManager",
-                "clearskies_aws.secrets.AkeylessWithSsmCache"
+                "clearskies_aws.secrets.SecretsManager"
             ]
+        },
+        {
+            "title": "Cache Storage",
+            "source": "clearskies.secrets.cache_storage.SecretCache",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.secrets.cache_storage.ParameterStoreCache"
+            ],
+            "parent": "Secrets"
         },
         {
             "title": "Models",
@@ -92,7 +106,8 @@
             "builder": "clearskies_doc_builder.builders.Module",
             "classes": [
                 "clearskies_aws.di.inject.Boto3",
-                "clearskies_aws.di.inject.Boto3Session"
+                "clearskies_aws.di.inject.Boto3Session",
+                "clearskies_aws.di.inject.ParameterStore"
             ]
         },
         {
