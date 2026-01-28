@@ -1,5 +1,4 @@
-# Pre-commit configuration for Clearkskies AWS project
-fail_fast: false
+# Pre-commit configuration for  Akeyless Custom Producer
 
 ci:
     autofix_commit_msg: "chore(pre-commit): autofix run"
