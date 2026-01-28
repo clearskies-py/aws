@@ -190,16 +190,16 @@ wheels = [
 
 [[package]]
 name = "clear-skies"
-version = "2.0.38"
+version = "2.0.39"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dateparser" },
     { name = "requests" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/30/44/fbeb9d32906ca5027c2e7a0260240f2780c4ffe94102491aab5f616194ec/clear_skies-2.0.38.tar.gz", hash = "sha256:fc94a93fb27137f8e73515995c0f8670eefc1bb94855853f6255d2e01c213bb0", size = 381477, upload-time = "2026-01-27T15:57:48.247Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/28/71/306cfbfd0edbb727852c89b4830d61110104f29fb992518c998a1bf75d64/clear_skies-2.0.39.tar.gz", hash = "sha256:69d7a41120bc40a52d712d8c058f56842bab03cf5b39dc96b9d07708ce1647f4", size = 382645, upload-time = "2026-01-28T12:05:58.75Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/89/a9/bae54c58d53980b062472a801c5fb09884a05abfa9d3c90b6f969b059222/clear_skies-2.0.38-py3-none-any.whl", hash = "sha256:3875b162c22c6ae63cd6555b763ce27c7df4b82b171861e4d54f86b71c5ade72", size = 377340, upload-time = "2026-01-27T15:57:46.748Z" },
+    { url = "https://files.pythonhosted.org/packages/c2/93/1440da4eee721de6230c835c29ce7dc71f93eabdefea746553196ff5ec94/clear_skies-2.0.39-py3-none-any.whl", hash = "sha256:55a3655889c1237acd2cdcf5856420a76130d32dc485f3f2aa16246737725d62", size = 380151, upload-time = "2026-01-28T12:05:57.307Z" },
 ]
 
 [package.optional-dependencies]
@@ -249,7 +249,7 @@ requires-dist = [
     { name = "akeyless-cloud-id", marker = "extra == 'akeyless'", specifier = ">=0.2.3,<0.5.0" },
     { name = "awslambdaric", specifier = ">=3.1.1" },
     { name = "boto3", specifier = ">=1.26.148,<2.0.0" },
-    { name = "clear-skies", specifier = ">=2.0.37,<3.0.0" },
+    { name = "clear-skies", specifier = ">=2.0.39,<3.0.0" },
     { name = "clear-skies", extras = ["mysql"], marker = "extra == 'mysql'" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "types-boto3", extras = ["dynamodb", "sns", "sqs", "ses", "ssm", "secretsmanager", "stepfunctions"], specifier = ">=1.38.13,<2.0.0" },
