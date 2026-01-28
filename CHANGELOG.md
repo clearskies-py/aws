@@ -5,12 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.14] - 2026-01-28
+
+### Added
+- Add retry for parameter store
+
+### Fixed
+- Docs by updating to latest copier version
+
 ## [2.0.13] - 2026-01-28
 
 ### Added
 - Add support for aws secrets
 
 ### Changed
+- Bump version to v2.0.13 by @github-actions[bot]
 - Update dependencies in [#13](https://github.com/clearskies-py/aws/pull/13)
 - Update to clearskies >=2.0.39
 
@@ -176,6 +185,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * @cmancone made their first contribution
 * @ made their first contribution
 * @github-actions[bot] made their first contribution
+[2.0.14]: https://github.com/clearskies-py/aws/compare/v2.0.13..v2.0.14
 [2.0.13]: https://github.com/clearskies-py/aws/compare/v2.0.12..v2.0.13
 [2.0.12]: https://github.com/clearskies-py/aws/compare/v2.0.11..v2.0.12
 [2.0.11]: https://github.com/clearskies-py/aws/compare/v2.0.10..v2.0.11
