@@ -55,7 +55,7 @@ class ParameterStoreCache(SecretCache):
     allow_cleanup = Boolean(default=False)
 
     @parameters_to_properties
-    def __init__(self, prefix: str | None = None, allow_cleanup: bool = False):
+    def __init__(self, prefix: str | None = None, allow_cleanup: bool = False) -> None:
         """
         Initialize the Parameter Store cache.
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from botocore.config import Config
 from botocore.exceptions import ClientError
 from clearskies.exceptions.not_found import NotFound
 from types_boto3_ssm import SSMClient
@@ -21,6 +22,9 @@ class ParameterStore(secrets.Secrets[SSMClient]):
     Paths are automatically sanitized to comply with SSM parameter naming requirements.
     AWS SSM parameter paths only allow: a-z, A-Z, 0-9, -, _, ., /, @, and :
     Any disallowed characters in the path are replaced with hyphens.
+
+    The client is configured with adaptive retry mode which automatically handles
+    throttling exceptions with exponential backoff (up to 10 retries).
 
     ### Example Usage
 
@@ -61,12 +65,25 @@ class ParameterStore(secrets.Secrets[SSMClient]):
         Return the boto3 SSM client.
 
         Creates a new client if one doesn't exist yet, using the AWS_REGION environment variable.
+        Configured with adaptive retry mode for better throttling handling.
         """
         if hasattr(self, "ssm"):
             return self.ssm
+
+        # Configure adaptive retry mode with increased max attempts for throttling
+        # Adaptive mode automatically adjusts retry behavior based on error responses
+        # and includes exponential backoff with jitter
+        retry_config = Config(
+            retries={
+                "max_attempts": 10,
+                "mode": "adaptive",
+            }
+        )
+
         self.ssm = self.boto3.client(
             "ssm",
             region_name=self.environment.get("AWS_REGION"),
+            config=retry_config,
         )
         return self.ssm
 
@@ -84,6 +101,9 @@ class ParameterStore(secrets.Secrets[SSMClient]):
 
         Returns the decrypted parameter value for the given path. If silent_if_not_found
         is True, returns None when the parameter is not found instead of raising NotFound.
+
+        Throttling is handled automatically by boto3's adaptive retry mode configured
+        on the client (up to 10 retries with exponential backoff and jitter).
         """
         sanitized_path = self._sanitize_path(path)
         try:
