@@ -3,7 +3,7 @@
 name = "clear-skies-aws"
 description = "clearskies bindings for working in AWS"
 license = "MIT"
-version = "2.0.14"
+version = "2.0.15"
 readme = "./README.md"
 authors = [{name = "tnijboer"}, {name = "Conor Mancone", email = "cmancone@gmail.com"}]
 requires-python = '>=3.11,<4.0'

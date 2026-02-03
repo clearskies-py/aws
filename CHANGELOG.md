@@ -5,10 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.15] - 2026-02-03
+
+### Fixed
+- Paramater not found exception
+
 ## [2.0.14] - 2026-01-28
 
 ### Added
 - Add retry for parameter store
+
+### Changed
+- Bump version to v2.0.14 by @github-actions[bot]
 
 ### Fixed
 - Docs by updating to latest copier version
@@ -185,6 +193,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * @cmancone made their first contribution
 * @ made their first contribution
 * @github-actions[bot] made their first contribution
+[2.0.15]: https://github.com/clearskies-py/aws/compare/v2.0.14..v2.0.15
 [2.0.14]: https://github.com/clearskies-py/aws/compare/v2.0.13..v2.0.14
 [2.0.13]: https://github.com/clearskies-py/aws/compare/v2.0.12..v2.0.13
 [2.0.12]: https://github.com/clearskies-py/aws/compare/v2.0.11..v2.0.12
