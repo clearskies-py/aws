@@ -110,7 +110,7 @@ class ParameterStore(secrets.Secrets[SSMClient]):
             result = self.boto3_client.get_parameter(Name=sanitized_path, WithDecryption=True)
         except ClientError as e:
             error = e.response.get("Error", {})
-            if error.get("Code") == "ResourceNotFoundException":
+            if error.get("Code") == "ParameterNotFound":
                 if silent_if_not_found:
                     return None
                 raise NotFound(f"Could not find secret '{path}' in parameter store")
