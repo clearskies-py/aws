@@ -5,7 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.16] - 2026-02-04
+
+### Fixed
+- Update to clear-skies 2.0.42
+
 ## [2.0.15] - 2026-02-03
+
+### Changed
+- Bump version to v2.0.15 by @github-actions[bot]
 
 ### Fixed
 - Paramater not found exception
@@ -193,6 +201,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * @cmancone made their first contribution
 * @ made their first contribution
 * @github-actions[bot] made their first contribution
+[2.0.16]: https://github.com/clearskies-py/aws/compare/v2.0.15..v2.0.16
 [2.0.15]: https://github.com/clearskies-py/aws/compare/v2.0.14..v2.0.15
 [2.0.14]: https://github.com/clearskies-py/aws/compare/v2.0.13..v2.0.14
 [2.0.13]: https://github.com/clearskies-py/aws/compare/v2.0.12..v2.0.13
