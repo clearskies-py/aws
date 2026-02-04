@@ -119,7 +119,6 @@ class DynamoDBPartiQLBackend(CursorBackend):
     The count() method uses native DynamoDB Query/Scan operations for accuracy.
     """
 
-    _cursor: DynamoDBPartiQLCursor
     _allowed_configs: list[str] = [
         "table_name",
         "wheres",
@@ -134,9 +133,24 @@ class DynamoDBPartiQLBackend(CursorBackend):
     ]
     _required_configs: list[str] = ["table_name"]
 
-    def __init__(self, dynamo_db_parti_ql_cursor: DynamoDBPartiQLCursor) -> None:
+    def __init__(
+        self,
+        cursor_dependency_name: str = "dynamo_db_parti_ql_cursor",
+        table_prefix: str = "",
+        can_create: bool | None = None,
+        can_update: bool | None = None,
+        can_delete: bool | None = None,
+        can_query: bool | None = None,
+    ) -> None:
         """Initialize the DynamoDBPartiQLBackend."""
-        super().__init__(dynamo_db_parti_ql_cursor)
+        super().__init__(
+            cursor_dependency_name=cursor_dependency_name,
+            table_prefix=table_prefix,
+            can_create=can_create,
+            can_update=can_update,
+            can_delete=can_delete,
+            can_query=can_query,
+        )
         self.condition_parser: DynamoDBConditionParser = DynamoDBConditionParser()
         self._table_descriptions_cache: dict[str, dict[str, Any]] = {}
 

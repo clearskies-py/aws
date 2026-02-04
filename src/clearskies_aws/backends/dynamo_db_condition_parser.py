@@ -7,7 +7,7 @@ import logging
 from decimal import Decimal, DecimalException
 from typing import Any
 
-from clearskies import Validator
+import clearskies
 
 # Ensure AttributeValueTypeDef is imported from the correct boto3 types package
 # This is crucial for the "ideal fix".
@@ -16,7 +16,7 @@ from types_boto3_dynamodb.type_defs import AttributeValueTypeDef
 logger = logging.getLogger(__name__)
 
 
-class DynamoDBConditionParser(Validator):
+class DynamoDBConditionParser(clearskies.Configurable):
     """
     Parses string conditions into a structured format suitable for DynamoDB PartiQL queries.
 

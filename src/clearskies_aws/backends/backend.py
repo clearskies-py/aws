@@ -17,7 +17,7 @@ from clearskies.query.result import (
 from clearskies_aws.di.inject import boto3
 
 
-class Backend(clearskies.Configurable, clearskies.backends.Backend, clearskies.di.InjectableProperties):
+class Backend(clearskies.backends.Backend, clearskies.di.InjectableProperties):
     """
     Connect models to their data since 2020.
 
