@@ -9,6 +9,7 @@ from clearskies.query.result import CountQueryResult, RecordQueryResult, Records
 from types_boto3_sqs import SQSClient
 
 from clearskies_aws.backends import backend
+from clearskies_aws.di import inject
 
 
 class SqsBackend(backend.Backend):
@@ -26,17 +27,8 @@ class SqsBackend(backend.Backend):
     See the SQS context in this library for processing your queue data.
     """
 
-    _sqs: SQSClient
-
-    @property
-    def sqs(self) -> SQSClient:
-        if not hasattr(self, "_sqs"):
-            if not self.environment.get("AWS_REGION", True):
-                raise ValueError("To use SQS you must use set AWS_REGION in the .env file or an environment variable")
-
-            self._sqs = self.boto3.client("sqs", region_name=self.environment.get("AWS_REGION", True))
-
-        return self._sqs
+    # Use service injectable for clean, type-safe client access
+    sqs = inject.SqsClient()
 
     def create(self, data: dict[str, Any], model: Model) -> RecordQueryResult:
         self.sqs.send_message(

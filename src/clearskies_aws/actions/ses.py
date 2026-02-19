@@ -1,23 +1,139 @@
 from __future__ import annotations
 
 import datetime
-from typing import TYPE_CHECKING, Any, Callable
+from typing import Any, Callable
 
 import clearskies
 import jinja2
+from botocore.exceptions import ClientError
 from clearskies import Model
 from clearskies.configs import Any as AnyConfig
 from clearskies.configs import Email, EmailOrEmailListOrCallable, String
 from clearskies.decorators import parameters_to_properties
 from types_boto3_ses import SESClient
 
+from clearskies_aws import clients, configs
 from clearskies_aws.actions import action_aws
-
-if TYPE_CHECKING:
-    from clearskies_aws.actions import AssumeRole
 
 
 class SES(action_aws.ActionAws[SESClient]):
+    """
+    Send emails via Amazon SES as a model action.
+
+    Provides a clearskies action for sending emails through Amazon SES. This action can be triggered
+    by model events (like`on_change`, `on_create`, etc.) and supports both static and templated content
+    using Jinja2. Inherits all configuration from [`ActionAws`](action_aws.py).
+
+    Configure email recipients, subject, and body using either static values or templates. You can also
+    use callables to dynamically determine recipients based on the model being acted upon.
+
+    Example:
+        Basic usage with static content
+
+        ```python
+        import clearskies
+        from clearskies_aws.actions import SES
+        from collections import OrderedDict
+
+
+        class User(clearskies.Model):
+            def __init__(self, memory_backend, columns):
+                super().__init__(memory_backend, columns)
+
+            def columns_configuration(self):
+                return OrderedDict(
+                    [
+                        clearskies.column_types.string(
+                            "email",
+                            on_create=[
+                                SES(
+                                    sender="noreply@example.com",
+                                    to="email",  # uses the email column from the model
+                                    subject="Welcome!",
+                                    message="Thank you for signing up.",
+                                )
+                            ],
+                        ),
+                    ]
+                )
+        ```
+
+    Example:
+        Using Jinja2 templates
+
+        ```python
+        import clearskies
+        from clearskies_aws.actions import SES
+        import jinja2
+        from collections import OrderedDict
+
+        welcome_template = jinja2.Template(\"\"\"
+            <h1>Welcome {{model.name}}!</h1>
+            <p>Your account was created on {{now.strftime('%Y-%m-%d')}}.</p>
+        \"\"\")
+
+        class User(clearskies.Model):
+            def __init__(self, memory_backend, columns):
+                super().__init__(memory_backend, columns)
+
+            def columns_configuration(self):
+                return OrderedDict([
+                    clearskies.column_types.string(
+                        "name",
+                        on_create=[
+                            SES(
+                                sender="noreply@example.com",
+                                to="email",
+                                subject="Welcome {{model.name}}!",
+                                message_template=welcome_template
+                            )
+                        ],
+                    ),
+                ])
+        ```
+
+    Example:
+        Dynamic recipients with callables
+
+        ```python
+        import clearskies
+        from clearskies_aws.actions import SES
+        from collections import OrderedDict
+
+
+        def get_admin_emails(model):
+            # Could fetch from database, config, etc.
+            return ["admin1@example.com", "admin2@example.com"]
+
+
+        class Order(clearskies.Model):
+            def __init__(self, memory_backend, columns):
+                super().__init__(memory_backend, columns)
+
+            def columns_configuration(self):
+                return OrderedDict(
+                    [
+                        clearskies.column_types.string(
+                            "status",
+                            on_change=[
+                                SES(
+                                    sender="orders@example.com",
+                                    to=get_admin_emails,
+                                    subject="Order Status Changed",
+                                    message_callable=lambda model: (
+                                        f"Order {model.id} status: {model.status}"
+                                    ),
+                                )
+                            ],
+                        ),
+                    ]
+                )
+        ```
+    """
+
+    # Default client for SES service
+    client = configs.AwsClient(required=True, default=clients.SesClient())
+
     sender = Email(required=True)
     to = EmailOrEmailListOrCallable(required=False)
     cc = EmailOrEmailListOrCallable(required=False)
@@ -49,19 +165,19 @@ class SES(action_aws.ActionAws[SESClient]):
         message_template: jinja2.Template | None = None,
         subject_template_file: str | None = None,
         message_template_file: str | None = None,
-        assume_role: AssumeRole | None = None,
         dependencies_for_template: list[Any] = [],
         when: Callable | None = None,
+        client: clients.SesClient | None = None,
     ) -> None:
         """Configure the rules for this email notification."""
-        super().__init__(service_name="ses", assume_role=assume_role, when=when)
-
-    def configure(self):
         self.finalize_and_validate_configuration()
+
+    def finalize_and_validate_configuration(self):
         # First finalize and validate configuration to set up defaults
 
         # this just moves the data from the various "to" inputs (to, cc, bcc) into the self.destinations
         # dictionary, after normalizing it so that it is always a list.
+        super().finalize_and_validate_configuration()
         if not self.to and not self.cc and not self.bcc:
             raise ValueError("You must configure at least one 'to' address or one 'cc' address or one 'bcc' address")
 
@@ -102,36 +218,36 @@ class SES(action_aws.ActionAws[SESClient]):
         elif self.message_template and not isinstance(self.message_template, jinja2.Template):
             self.message_template = jinja2.Template(self.message_template)
 
-    def _execute_action(self, client: SESClient, model: Model) -> None:
+    def __call__(self, model: Model) -> None:
         """Send a notification as configured."""
         utcnow = self.di.build("utcnow")
 
-        tos = self._resolve_destination("to", model)
+        tos = self.resolve_destination("to", model)
         if not tos:
             return
-        response = client.send_email(
+        response = self.client().send_email(
             Destination={
                 "ToAddresses": tos,
-                "CcAddresses": self._resolve_destination("cc", model),
-                "BccAddresses": self._resolve_destination("bcc", model),
+                "CcAddresses": self.resolve_destination("cc", model),
+                "BccAddresses": self.resolve_destination("bcc", model),
             },
             Message={
                 "Body": {
                     "Html": {
                         "Charset": "utf-8",
-                        "Data": self._resolve_message_as_html(model, utcnow),
+                        "Data": self.resolve_message_as_html(model, utcnow),
                     },
                     "Text": {
                         "Charset": "utf-8",
-                        "Data": self._resolve_message_as_text(model, utcnow),
+                        "Data": self.resolve_message_as_text(model, utcnow),
                     },
                 },
-                "Subject": {"Charset": "utf-8", "Data": self._resolve_subject(model, utcnow)},
+                "Subject": {"Charset": "utf-8", "Data": self.resolve_subject(model, utcnow)},
             },
             Source=self.sender,
         )
 
-    def _resolve_destination(self, name: str, model: clearskies.Model) -> list[str]:
+    def resolve_destination(self, name: str, model: clearskies.Model) -> list[str]:
         """
         Return a list of to/cc/bcc addresses.
 
@@ -164,7 +280,7 @@ class SES(action_aws.ActionAws[SESClient]):
             resolved.append(getattr(model, destination))
         return resolved
 
-    def _resolve_message_as_html(self, model: clearskies.Model, now: datetime.datetime) -> str:
+    def resolve_message_as_html(self, model: clearskies.Model, now: datetime.datetime) -> str:
         """Build the HTML for a message."""
         if self.message:
             return self.message
@@ -176,7 +292,7 @@ class SES(action_aws.ActionAws[SESClient]):
 
         return ""
 
-    def _resolve_message_as_text(self, model: clearskies.Model, now: datetime.datetime) -> str:
+    def resolve_message_as_text(self, model: clearskies.Model, now: datetime.datetime) -> str:
         """Build the text for a message."""
         if self.message:
             return self.message
@@ -186,7 +302,7 @@ class SES(action_aws.ActionAws[SESClient]):
 
         return ""
 
-    def _resolve_subject(self, model: clearskies.Model, now: datetime.datetime) -> str:
+    def resolve_subject(self, model: clearskies.Model, now: datetime.datetime) -> str:
         """Build the subject for a message."""
         if self.subject:
             return self.subject

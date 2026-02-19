@@ -47,6 +47,20 @@
             "parent": "Cursors"
         },
         {
+            "title": "Clients",
+            "source": "clearskies_aws.clients.base_aws_client.BaseAwsClient",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.clients.BaseAwsClient",
+                "clearskies_aws.clients.DynamoDbClient",
+                "clearskies_aws.clients.DynamoDbResource",
+                "clearskies_aws.clients.SesClient",
+                "clearskies_aws.clients.SnsClient",
+                "clearskies_aws.clients.SqsClient",
+                "clearskies_aws.clients.StepFunctionsClient"
+            ]
+        },
+        {
             "title": "Actions",
             "source": "clearskies_aws.actions.action_aws.ActionAws",
             "builder": "clearskies_doc_builder.builders.Module",
@@ -107,7 +121,13 @@
             "classes": [
                 "clearskies_aws.di.inject.Boto3",
                 "clearskies_aws.di.inject.Boto3Session",
-                "clearskies_aws.di.inject.ParameterStore"
+                "clearskies_aws.di.inject.DynamoDbClient",
+                "clearskies_aws.di.inject.DynamoDbResource",
+                "clearskies_aws.di.inject.ParameterStore",
+                "clearskies_aws.di.inject.SesClient",
+                "clearskies_aws.di.inject.SnsClient",
+                "clearskies_aws.di.inject.SqsClient",
+                "clearskies_aws.di.inject.StepFunctionsClient"
             ]
         },
         {

@@ -35,3 +35,41 @@ class AwsAdditionalConfigAutoImport(AdditionalConfigAutoImport):
 
         session = boto3.session.Session(region_name=environment.get("AWS_REGION", True))
         return session
+
+    def provide_sqs_client(self) -> Any:
+        """Provide the SQS client wrapper for dependency injection."""
+        from clearskies_aws.clients.sqs_client import SqsClient
+
+        # SqsClient is InjectableProperties, so DI will inject boto3 and environment
+        return SqsClient()
+
+    def provide_sns_client(self) -> Any:
+        """Provide the SNS client wrapper for dependency injection."""
+        from clearskies_aws.clients.sns_client import SnsClient
+
+        # SnsClient is InjectableProperties, so DI will inject boto3 and environment
+        return SnsClient()
+
+    def provide_ses_client(self) -> Any:
+        """Provide the SES client wrapper for dependency injection."""
+        from clearskies_aws.clients.ses_client import SesClient
+
+        return SesClient()
+
+    def provide_step_functions_client(self) -> Any:
+        """Provide the Step Functions client wrapper for dependency injection."""
+        from clearskies_aws.clients.step_functions_client import StepFunctionsClient
+
+        return StepFunctionsClient()
+
+    def provide_dynamodb_client(self) -> Any:
+        """Provide the DynamoDB client wrapper for dependency injection."""
+        from clearskies_aws.clients.dynamodb_client import DynamoDbClient
+
+        return DynamoDbClient()
+
+    def provide_dynamodb_resource(self) -> Any:
+        """Provide the DynamoDB resource wrapper for dependency injection."""
+        from clearskies_aws.clients.dynamodb_resource import DynamoDbResource
+
+        return DynamoDbResource()

@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any
 
 from clearskies import Model
-from types_boto3_stepfunctions import SFNClient
 
 from clearskies_aws.actions.step_function import StepFunction as BaseStepFunction
 
@@ -16,8 +15,8 @@ class StepFunction(BaseStepFunction):
         cls.calls = []
         di.mock_class(BaseStepFunction, StepFunction)
 
-    def _execute_action(self, client: SFNClient, model: Model) -> None:
-        """Send a notification as configured."""
+    def __call__(self, model: Model) -> None:
+        """Record Step Function start execution call without actually starting."""
         if StepFunction.calls is None:
             StepFunction.calls = []
 

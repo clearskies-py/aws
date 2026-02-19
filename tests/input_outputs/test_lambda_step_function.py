@@ -12,8 +12,10 @@ from clearskies_aws.input_outputs.lambda_step_function import LambdaStepFunction
 class LambdaStepFunctionInputOutputTest(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
-        # Environment requires an env_file_path, use empty string for tests
-        self.environment = Environment("")
+        # Use the DI system to properly initialize Environment
+        self.di_real = Di()
+        self.di_real.add_binding("env_file_path", ".env.test.nonexistent")
+        self.environment = self.di_real.build(Environment)
         self.di = MagicMock(spec=Di)
         # Make di.call_function just call the function with event kwarg
         self.di.call_function = lambda func, **kwargs: func(**kwargs)

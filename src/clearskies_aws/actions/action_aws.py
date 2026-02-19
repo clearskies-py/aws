@@ -2,15 +2,11 @@ from __future__ import annotations
 
 import json
 import logging
-from abc import ABC
 from collections import OrderedDict
-from types import ModuleType
 from typing import Callable, Generic, TypeVar
 
 from botocore.client import BaseClient
-from botocore.exceptions import ClientError
 from clearskies.action import Action
-from clearskies.configs import Boolean, String
 from clearskies.configs import Callable as CallableConfig
 from clearskies.configurable import Configurable
 from clearskies.decorators import parameters_to_properties
@@ -19,102 +15,76 @@ from clearskies.di.injectable_properties import InjectableProperties
 from clearskies.functional import string
 from clearskies.model import Model
 
-from clearskies_aws.di import inject
-
-from .assume_role import AssumeRole
+from clearskies_aws import configs
 
 ClientType = TypeVar("ClientType", bound=BaseClient)
 
 
 class ActionAws(Generic[ClientType], Action, Configurable, InjectableProperties):
+    """
+    Minimal base class for AWS service actions.
+
+    Provides only:
+    - Client configuration
+    - Message formatting utility (get_message_body)
+    - Conditional execution (when)
+    - Dependency injection setup
+
+    Each service-specific action (SQS, SNS, SES, StepFunction) extends this class
+    and implements its own __call__() method directly. All AWS client configuration
+    (region, role assumption, caching) is handled by the client wrappers.
+    """
+
     logging = logging.getLogger(__name__)
-    boto3 = inject.Boto3()
     environment = Environment()
     di = Di()
 
-    client: ClientType
+    """
+    AWS client wrapper instance.
 
-    service_name = String(required=True)
+    Subclasses provide a default client (e.g., SqsClient, SnsClient).
+    Can be overridden by passing a custom client instance.
+    """
+    client = configs.AwsClient(required=True)
 
+    """
+    Optional callable to generate the message body.
+
+    When provided, this callable is invoked with the model as a parameter and should return
+    a string, dictionary, or list. If not provided, the action will serialize the model's
+    readable columns to JSON.
+    """
     message_callable = CallableConfig(required=False, default=None)
 
+    """
+    Optional callable to determine if the action should execute.
+
+    When provided, this callable is invoked with the model as a parameter and should return
+    a boolean. If it returns False, the action is skipped.
+    """
     when = CallableConfig(required=False, default=None)
-
-    assume_role: AssumeRole | None = None
-
-    region = String(required=False)
-
-    can_cache = Boolean(default=True)
 
     @parameters_to_properties
     def __init__(
         self,
-        service_name: str,
         message_callable: Callable | None = None,
         when: Callable | None = None,
-        assume_role: AssumeRole | None = None,
-        region: str | None = None,
     ) -> None:
-        """Set up the AWS action."""
+        """
+        Set up the AWS action with configuration.
 
-    # def configure(self, **kwargs):
-    #     """Configure the action with additional parameters."""
-    #     # Finalize configuration properties from Configurable
-    #     Configurable.finalize_and_validate_configuration(self)
-
-    #     # Handle any additional kwargs by setting them as attributes
-    #     for key, value in kwargs.items():
-    #         if hasattr(self, key):
-    #             setattr(self, key, value)
-
-    def __call__(self, model: Model) -> None:
-        """Send a notification as configured."""
-        if self.when and not self.di.call_function(self.when, model=model):
-            return
-
-        try:
-            client = self._get_client()
-            self._execute_action(client, model)
-        except ClientError as e:
-            self.logging.exception(f"Failed to retrieve client for {self.__class__.__name__} action.")
-            raise e
-
-    def _get_client(self) -> ClientType:
-        """Retrieve the boto3 client."""
-        if hasattr(self, "client") and self.client and self.can_cache:
-            return self.client
-
-        if self.assume_role:
-            boto3 = self.assume_role(self.boto3)
-        else:
-            boto3 = self.boto3
-
-        if not self.region:
-            self.region = self.default_region()
-        if self.region:
-            client = boto3.client(self.service_name, region_name=self.region)
-        else:
-            client = boto3.client(self.service_name)
-
-        if self.can_cache:
-            self.client = client
-        return client
-
-    def default_region(self):
-        region = self.environment.get("AWS_REGION", silent=True)
-        if region:
-            return region
-        region = self.environment.get("DEFAULT_AWS_REGION", silent=True)
-        if region:
-            return region
-        return None
-
-    def _execute_action(self, client: ClientType, model: Model) -> None:
-        """Run the action."""
-        pass
+        Note: Service-specific actions will have additional parameters.
+        """
 
     def get_message_body(self, model: Model) -> str:
-        """Retrieve the message for the action."""
+        """
+        Generate the message body for the action.
+
+        If `message_callable` is configured, it's invoked with the model and its return value
+        is used. Otherwise, the model's readable columns are serialized to JSON.
+
+        Returns a JSON string representation of the message.
+        """
         if self.message_callable:
             result = self.di.call_function(self.message_callable, model=model)
             if isinstance(result, dict) or isinstance(result, list):
@@ -122,8 +92,8 @@ class ActionAws(Generic[ClientType], Action, Configurable, InjectableProperties)
             if not isinstance(result, str):
                 callable_name = getattr(self.message_callable, "__name__", str(self.message_callable))
                 raise TypeError(
-                    f"The return value from the message callable for the {__name__} action must be a string, dictionary, or list. I received a "
-                    + f"{type(result)} after calling '{callable_name}'"
+                    f"The return value from the message callable must be a string, dictionary, or list. "
+                    f"I received a {type(result)} after calling '{callable_name}'"
                 )
             return result
 

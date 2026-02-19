@@ -11,6 +11,22 @@ import pytest
 from clearskies.di import Di
 
 from clearskies_aws.actions.sns import SNS
+from clearskies_aws.clients import SnsClient
+
+
+class MockSnsClient(SnsClient):
+    """Mock SnsClient for testing."""
+
+    def __init__(self, mock_boto_client):
+        super().__init__()
+        self.mock_boto_client = mock_boto_client
+
+    def __call__(self):
+        return self.mock_boto_client
+
+    def __getattr__(self, name):
+        # Delegate all attribute access to the mock boto client
+        return getattr(self.mock_boto_client, name)
 
 
 class User(clearskies.Model):
@@ -27,13 +43,9 @@ class SNSTest(unittest.TestCase):
         self.di = Di()
         self.di.add_binding("environment", {"AWS_REGION": "us-east-2"})
         self.users = self.di.build(User)
-        self.sns = MagicMock()
-        self.sns.publish = MagicMock()
-        self.boto3 = MagicMock()
-        self.boto3.client = MagicMock(return_value=self.sns)
+        self.sns_boto_client = MagicMock()
+        self.sns_boto_client.publish = MagicMock()
         self.when = None
-        self.environment = MagicMock()
-        self.environment.get = MagicMock(return_value="us-east-1")
 
     def always(self, model):
         self.when = model
@@ -44,17 +56,12 @@ class SNSTest(unittest.TestCase):
         return False
 
     def test_send(self):
+        mock_client_wrapper = MockSnsClient(self.sns_boto_client)
         sns = SNS(
             topic="arn:aws:my-topic",
             when=self.always,
+            client=mock_client_wrapper,
         )
-
-        # Manually inject dependencies (bypassing clearskies DI for testing)
-        sns.environment = self.environment
-        sns.boto3 = self.boto3
-
-        # Configure the action
-        sns.configure()
 
         # Mock the DI for callable resolution
         sns.di = MagicMock()
@@ -72,7 +79,7 @@ class SNSTest(unittest.TestCase):
             }
         )
         sns(user)
-        self.sns.publish.assert_has_calls(
+        self.sns_boto_client.publish.assert_has_calls(
             [
                 call(
                     TopicArn="arn:aws:my-topic",
@@ -89,17 +96,12 @@ class SNSTest(unittest.TestCase):
         self.assertEqual(id(user), id(self.when))
 
     def test_not_now(self):
+        mock_client_wrapper = MockSnsClient(self.sns_boto_client)
         sns = SNS(
             topic="arn:aws:my-topic",
             when=self.never,
+            client=mock_client_wrapper,
         )
-
-        # Manually inject dependencies (bypassing clearskies DI for testing)
-        sns.environment = self.environment
-        sns.boto3 = self.boto3
-
-        # Configure the action
-        sns.configure()
 
         # Mock the DI for callable resolution
         sns.di = MagicMock()
@@ -117,5 +119,5 @@ class SNSTest(unittest.TestCase):
             }
         )
         sns(user)
-        self.sns.publish.assert_not_called()
+        self.sns_boto_client.publish.assert_not_called()
         self.assertEqual(id(user), id(self.when))

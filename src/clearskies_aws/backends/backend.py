@@ -6,7 +6,7 @@ import clearskies
 import clearskies.model
 import clearskies.query
 from clearskies.autodoc.schema import Schema as AutoDocSchema
-from clearskies.di import inject
+from clearskies.di.inject import Environment
 from clearskies.query.result import (
     CountQueryResult,
     RecordQueryResult,
@@ -14,7 +14,7 @@ from clearskies.query.result import (
     SuccessQueryResult,
 )
 
-from clearskies_aws.di.inject import boto3
+from clearskies_aws.di import inject
 
 
 class Backend(clearskies.backends.Backend, clearskies.di.InjectableProperties):
@@ -34,8 +34,8 @@ class Backend(clearskies.backends.Backend, clearskies.di.InjectableProperties):
     supports_n_plus_one = False
     can_count = True
 
-    boto3 = boto3.Boto3()
-    environment = inject.Environment()
+    boto3 = inject.Boto3()
+    environment = Environment()
 
     def update(self, id: int | str, data: dict[str, Any], model: clearskies.model.Model) -> RecordQueryResult:
         """Update the record with the given id with the information from the data dictionary."""
