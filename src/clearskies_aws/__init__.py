@@ -3,6 +3,7 @@ from __future__ import annotations
 from clearskies_aws import (
     actions,
     backends,
+    configs,
     contexts,
     cursors,
     di,
@@ -16,6 +17,7 @@ from clearskies_aws import (
 __all__ = [
     "actions",
     "backends",
+    "configs",
     "contexts",
     "cursors",
     "di",

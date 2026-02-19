@@ -5,77 +5,101 @@ from types import ModuleType
 
 class AssumeRole:
     """
-    Used by the various actions if you need to assume a role before making an AWS call.
+    Assume an IAM role before making AWS calls.
 
-    Note that, in all cases, this class and the actions assume that you already have AWS credentials
-    properly configured/findable by boto3 in the standard way.  If you just have static IAM credentials
-    that you are trying to use... well, you can do that with some undocumented hackery, but that's not
-    really the goal for any of these classes.
+    Used by AWS actions and clients to assume a different IAM role before creating boto3 clients.
+    This enables cross-account access, elevated permissions, or role chaining. You configure
+    this once and pass it to any AWS action or client that needs it.
 
-    Example:
-        Here's a basic usage example with an SQS action on a model trigger::
-
-            class User(clearskies.Model):
-                def __init__(self, memory_backend, columns):
-                    super().__init__(memory_backend, columns)
-
-                def columns_configuration(self):
-                    return OrderedDict(
-                        [
-                            clearskies.column_types.string(
-                                "name",
-                                on_change=[
-                                    clearskies_aws.actions.sqs(
-                                        queue_url="https://queue.url.example.aws.com",
-                                        assume_role=clearskies_aws.actions.assume_role(
-                                            role_arn="arn:aws:iam:role/name",
-                                            external_id="12345",
-                                        ),
-                                    )
-                                ],
-                            ),
-                        ]
-                    )
+    Note that this class assumes you already have AWS credentials properly configured and findable
+    by boto3 in the standard way. If you're trying to use static IAM credentials, that's possible
+    with some undocumented hackery but not the intended use case.
 
     Example:
-        Here's a more complicated example with a double-assumme-role to show how to combine them::
+        Basic usage with an SQS action on a model trigger
 
-            first_assume_role = clearskies_aws.actions.assume_role(
-                role_arn="arn:aws:123456789012:iam:role/name",
-                external_id="12345",
-            )
-            final_assume_role = clearskies_aws.actions.assume_role(
-                role_arn="arn:aws:210987654321:iam:role/name-2",
-                external_id="54321",
-                source=first_assume_role,
-            )
+        ```python
+        import clearskies
+        from clearskies_aws.actions import SQS, AssumeRole
+        from collections import OrderedDict
 
 
-            class User(clearskies.Model):
-                def __init__(self, memory_backend, columns):
-                    super().__init__(memory_backend, columns)
+        class User(clearskies.Model):
+            def __init__(self, memory_backend, columns):
+                super().__init__(memory_backend, columns)
 
-                def columns_configuration(self):
-                    return OrderedDict(
-                        [
-                            clearskies.column_types.string(
-                                "name",
-                                on_change=[
-                                    clearskies_aws.actions.sqs(
-                                        queue_url="https://queue.url.example.aws.com",
-                                        assume_role=final_assume_role,
-                                    )
-                                ],
-                            ),
-                        ]
-                    )
+            def columns_configuration(self):
+                return OrderedDict(
+                    [
+                        clearskies.column_types.string(
+                            "name",
+                            on_change=[
+                                SQS(
+                                    queue_url="https://queue.url.example.aws.com",
+                                    assume_role=AssumeRole(
+                                        role_arn="arn:aws:iam:role/name",
+                                        external_id="12345",
+                                    ),
+                                )
+                            ],
+                        ),
+                    ]
+                )
+        ```
 
+    Example:
+        Role chaining with multiple assume operations
+
+        ```python
+        from clearskies_aws.actions import SQS, AssumeRole
+        from collections import OrderedDict
+        import clearskies
+
+        first_assume_role = AssumeRole(
+            role_arn="arn:aws:123456789012:iam:role/name",
+            external_id="12345",
+        )
+        final_assume_role = AssumeRole(
+            role_arn="arn:aws:210987654321:iam:role/name-2",
+            external_id="54321",
+            source=first_assume_role,
+        )
+
+
+        class User(clearskies.Model):
+            def __init__(self, memory_backend, columns):
+                super().__init__(memory_backend, columns)
+
+            def columns_configuration(self):
+                return OrderedDict(
+                    [
+                        clearskies.column_types.string(
+                            "name",
+                            on_change=[
+                                SQS(
+                                    queue_url="https://queue.url.example.aws.com",
+                                    assume_role=final_assume_role,
+                                )
+                            ],
+                        ),
+                    ]
+                )
+        ```
     """
 
+    """The ARN of the role to assume"""
     role_arn = ""
+
+    """Optional external ID for enhanced security"""
     external_id = ""
+
+    """Session name for the assumed role session (defaults to 'clearkies-aws')"""
     role_session_name = ""
+
+    """Duration of the assumed role session in seconds (default: 3600)"""
     duration = 3600
+
+    """Optional role to assume first (for role chaining)"""
     source: AssumeRole | None = None
 
     def __init__(
@@ -86,7 +110,12 @@ class AssumeRole:
         duration: int = 3600,
         source: AssumeRole | None = None,
     ):
-        """Assume a role."""
+        """
+        Configure the role assumption.
+
+        The role_arn is the only required parameter. All other parameters are optional
+        and provide additional configuration for the assume role operation.
+        """
         self.role_arn = role_arn
         self.external_id = external_id
         self.role_session_name = role_session_name
@@ -94,6 +123,14 @@ class AssumeRole:
         self.source = source
 
     def __call__(self, boto3: ModuleType) -> ModuleType:
+        """
+        Assume the configured role and return a new boto3 session.
+
+        This is called internally by AWS actions and clients. It takes a boto3 module/session,
+        assumes the configured role, and returns a new boto3 session with the assumed credentials.
+
+        Support role chaining by checking for a source role first.
+        """
         # chaining!
         if self.source:
             boto3 = self.source(boto3)

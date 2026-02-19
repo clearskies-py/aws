@@ -10,6 +10,22 @@ import pytest
 from clearskies.di import Di
 
 from clearskies_aws.actions.step_function import StepFunction
+from clearskies_aws.clients import StepFunctionsClient
+
+
+class MockStepFunctionsClient(StepFunctionsClient):
+    """Mock StepFunctionsClient for testing."""
+
+    def __init__(self, mock_boto_client):
+        super().__init__()
+        self.mock_boto_client = mock_boto_client
+
+    def __call__(self):
+        return self.mock_boto_client
+
+    def __getattr__(self, name):
+        # Delegate all attribute access to the mock boto client
+        return getattr(self.mock_boto_client, name)
 
 
 class User(clearskies.Model):
@@ -91,14 +107,6 @@ class StepFunctionTest(unittest.TestCase):
         Returns:
             Configured Step Function action ready for testing
         """
-        # Inject mocked dependencies
-        step_function_action.environment = self.environment
-        step_function_action.boto3 = self.boto3
-        step_function_action.region = "us-east-2"  # Set required region
-
-        # Configure the action
-        step_function_action.configure()
-
         # Mock the DI for callable resolution
         step_function_action.di = MagicMock()
 
@@ -107,6 +115,9 @@ class StepFunctionTest(unittest.TestCase):
             return func(kwargs.get("model"))
 
         step_function_action.di.call_function = mock_call_function
+
+        # Mock environment for tests that need it
+        step_function_action.environment = self.environment
 
         return step_function_action
 
@@ -140,6 +151,7 @@ class StepFunctionTest(unittest.TestCase):
         step_function = StepFunction(
             arn=self.test_arn,
             when=self.condition_always_true,
+            client=MockStepFunctionsClient(self.step_function_client),
         )
         self._setup_step_function_action(step_function)
 
@@ -178,6 +190,7 @@ class StepFunctionTest(unittest.TestCase):
             arn=self.test_arn,
             when=self.condition_always_true,
             column_to_store_execution_arn="execution_arn",
+            client=MockStepFunctionsClient(self.step_function_client),
         )
         self._setup_step_function_action(step_function)
 
@@ -211,16 +224,15 @@ class StepFunctionTest(unittest.TestCase):
         # Create Step Function action with different region ARN
         eu_arn = "arn:aws:states:eu-west-1:123456789012:stateMachine:test-state-machine"
 
+        # Create a client with eu-west-1 region to test region switching
+        eu_client = MockStepFunctionsClient(self.step_function_client)
+        eu_client.region_name = "eu-west-1"
+
         step_function = StepFunction(
             arn=eu_arn,
             when=self.condition_always_true,
+            client=eu_client,
         )
-
-        # Setup with region switching behavior
-        step_function.environment = self.environment
-        step_function.boto3 = self.boto3
-        step_function.region = "us-east-2"  # Initial region
-        step_function.configure()
 
         # Mock DI
         step_function.di = MagicMock()
@@ -232,8 +244,8 @@ class StepFunctionTest(unittest.TestCase):
         # Execute the action
         step_function(user)
 
-        # Verify region was switched to eu-west-1 from the ARN
-        self.assertEqual(step_function.region, "eu-west-1")
+        # Verify the client has eu-west-1 region
+        self.assertEqual(eu_client.region_name, "eu-west-1")
 
         # Verify Step Function was called with correct ARN
         self.step_function_client.start_execution.assert_called_once()
@@ -246,6 +258,7 @@ class StepFunctionTest(unittest.TestCase):
         step_function = StepFunction(
             arn=self.test_arn,
             when=self.condition_always_false,
+            client=MockStepFunctionsClient(self.step_function_client),
         )
         self._setup_step_function_action(step_function)
 
@@ -276,6 +289,7 @@ class StepFunctionTest(unittest.TestCase):
         step_function = StepFunction(
             arn_environment_key="STEP_FUNCTION_ARN",
             when=self.condition_always_true,
+            client=MockStepFunctionsClient(self.step_function_client),
         )
         self._setup_step_function_action(step_function)
 
@@ -303,6 +317,7 @@ class StepFunctionTest(unittest.TestCase):
         step_function = StepFunction(
             arn_callable=get_step_function_arn,
             when=self.condition_always_true,
+            client=MockStepFunctionsClient(self.step_function_client),
         )
         self._setup_step_function_action(step_function)
 
@@ -329,6 +344,7 @@ class StepFunctionTest(unittest.TestCase):
             arn=self.test_arn,
             message_callable=custom_message_formatter,
             when=self.condition_always_true,
+            client=MockStepFunctionsClient(self.step_function_client),
         )
         self._setup_step_function_action(step_function)
 

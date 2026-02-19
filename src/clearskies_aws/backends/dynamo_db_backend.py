@@ -16,6 +16,7 @@ from clearskies.columns.integer import Integer
 from types_boto3_dynamodb import DynamoDBServiceResource
 
 from clearskies_aws.backends import backend
+from clearskies_aws.di import inject
 
 
 class DynamoDBBackend(backend.Backend):
@@ -76,7 +77,8 @@ class DynamoDBBackend(backend.Backend):
     Any other filter/sort options will become unreliable as soon as the table grows past the maximum result size.
     """
 
-    dynamodb: DynamoDBServiceResource
+    # Use service injectable for DynamoDB resource
+    dynamodb = inject.DynamoDbResource()
 
     _allowed_configs = [
         "table_name",
@@ -121,10 +123,7 @@ class DynamoDBBackend(backend.Backend):
     }
 
     def __init__(self):
-        if not self.environment.get("AWS_REGION", True):
-            raise ValueError("To use DynamoDB you must use set AWS_REGION in the .env file or an environment variable")
-
-        self.dynamodb = self.boto3.resource("dynamodb", region_name=self.environment.get("AWS_REGION", True))
+        # dynamodb is now injected automatically via DynamoDbResource injectable
         self._table_indexes = {}
         self._model_columns_cache = {}
 
