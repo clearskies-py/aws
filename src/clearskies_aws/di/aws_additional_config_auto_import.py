@@ -73,3 +73,14 @@ class AwsAdditionalConfigAutoImport(AdditionalConfigAutoImport):
         from clearskies_aws.clients.dynamodb_resource import DynamoDbResource
 
         return DynamoDbResource()
+
+    def provide_sqs_retry(self) -> Any:
+        """
+        Provide the SQS retry helper for dependency injection.
+
+        The helper is configured via context_specifics (queue_url, receipt_handle, receive_count)
+        which are injected from the LambdaSqsStandard context at runtime.
+        """
+        from clearskies_aws.helpers.sqs_retry import SqsRetry
+
+        return SqsRetry()

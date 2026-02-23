@@ -11,6 +11,7 @@ from clearskies_aws.di.inject.sns_client import SnsClient
 
 # Service Clients (Recommended)
 from clearskies_aws.di.inject.sqs_client import SqsClient
+from clearskies_aws.di.inject.sqs_retry import SqsRetry
 from clearskies_aws.di.inject.step_functions_client import StepFunctionsClient
 
 __all__ = [
@@ -20,6 +21,7 @@ __all__ = [
     "ParameterStore",
     # Service Clients
     "SqsClient",
+    "SqsRetry",
     "SnsClient",
     "SesClient",
     "StepFunctionsClient",
