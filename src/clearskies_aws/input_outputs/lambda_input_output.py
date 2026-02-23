@@ -7,12 +7,13 @@ from typing import Any, cast
 from urllib.parse import urlencode
 
 from awslambdaric.lambda_context import LambdaContext
+from clearskies import Loggable
 from clearskies.configs import Any as AnyConfig
 from clearskies.configs import AnyDict, String
 from clearskies.input_outputs import InputOutput
 
 
-class LambdaInputOutput(InputOutput):
+class LambdaInputOutput(InputOutput, Loggable):
     """Base class for Lambda input/output handlers that provides common Lambda functionality."""
 
     event = AnyDict(default={})
