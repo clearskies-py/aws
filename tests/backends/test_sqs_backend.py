@@ -11,12 +11,28 @@ import pytest
 from clearskies.di import Di
 
 from clearskies_aws.backends.sqs_backend import SqsBackend
+from clearskies_aws.clients import SqsClient
+
+
+class MockSqsClient(SqsClient):
+    """Mock SQS client for testing."""
+
+    def __init__(self, mock_boto3_client):
+        super().__init__()
+        self.mock_boto3_client = mock_boto3_client
+
+    def __call__(self):
+        return self.mock_boto3_client
+
+    def __getattr__(self, name):
+        return getattr(self.mock_boto3_client, name)
 
 
 class SqsBackendTest(unittest.TestCase):
     def setUp(self):
-        sqsclient = SimpleNamespace(send_message=MagicMock(return_value={"name": "sup"}))
-        self.boto3 = SimpleNamespace(client=MagicMock(return_value=sqsclient))
+        self.mock_sqs_client = SimpleNamespace(send_message=MagicMock(return_value={"name": "sup"}))
+        self.sqs_client = MockSqsClient(self.mock_sqs_client)
+        self.boto3 = SimpleNamespace(client=MagicMock(return_value=self.mock_sqs_client))
         self.botocore = SimpleNamespace(client=SimpleNamespace(ClientError=Exception))
         self.environment = SimpleNamespace(get=MagicMock(return_value="us-east-1"))
 
@@ -41,6 +57,10 @@ class SqsBackendTest(unittest.TestCase):
         context = clearskies.contexts.Context(
             clearskies.endpoints.Callable(test_sqs_backend),
             classes=[User],
-            bindings={"boto3": self.boto3, "environment": self.environment},
+            bindings={
+                "boto3_sdk": self.boto3,
+                "environment": self.environment,
+                "sqs_client": self.sqs_client,
+            },
         )
         (status_code, response_data, response_headers) = context()

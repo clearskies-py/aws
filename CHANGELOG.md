@@ -5,9 +5,155 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.17] - 2026-02-23
+
+### Added
+- Add retry for sqs in [#14](https://github.com/clearskies-py/aws/pull/14)
+- Add aws clients for di
+
+## [2.0.16] - 2026-02-04
+
+### Changed
+- Bump version to v2.0.16 by @github-actions[bot]
+
+### Fixed
+- Update to clear-skies 2.0.42
+
+## [2.0.15] - 2026-02-03
+
+### Changed
+- Bump version to v2.0.15 by @github-actions[bot]
+
+### Fixed
+- Paramater not found exception
+
+## [2.0.14] - 2026-01-28
+
+### Added
+- Add retry for parameter store
+
+### Changed
+- Bump version to v2.0.14 by @github-actions[bot]
+
+### Fixed
+- Docs by updating to latest copier version
+
+## [2.0.13] - 2026-01-28
+
+### Added
+- Add support for aws secrets
+
+### Changed
+- Bump version to v2.0.13 by @github-actions[bot]
+- Update dependencies in [#13](https://github.com/clearskies-py/aws/pull/13)
+- Update to clearskies >=2.0.39
+
+## [2.0.12] - 2026-01-27
+
+### Added
+- Add docs
+- Add stepfucntions context with variables to ENV vars
+
+### Changed
+- Bump version to v2.0.12 by @github-actions[bot]
+- Merge pull request #11 from clearskies-py/stepfunctions-variables by @cmancone in [#11](https://github.com/clearskies-py/aws/pull/11)
+- Update docstrings of stepfunctions
+- Move Environment to the input output of step functions
+- Udpate to QueryResult
+- Update to latest copier template
+
+### Fixed
+- Ignore dynamodb mypy issues
+
+## [2.0.11] - 2026-01-21
+
+### Changed
+- Bump version to v2.0.11 by @github-actions[bot]
+
+### Fixed
+- Set correct type for context
+
+### Removed
+- Remove black
+
+## [2.0.10] - 2026-01-21
+
+### Changed
+- Bump version to v2.0.10 by @github-actions[bot]
+
+### Fixed
+- Jinja2 import
+
+## [2.0.9] - 2026-01-14
+
+### Changed
+- Bump version to v2.0.9 by @github-actions[bot]
+- Lock update
+- Check if url is set
+
+### Fixed
+- Don't add base class items in [#10](https://github.com/clearskies-py/aws/pull/10)
+
+## [2.0.8] - 2026-01-12
+
+### Changed
+- Bump version to v2.0.8 by @github-actions[bot]
+- Update clear-skies
+
+### Fixed
+- Ssm command
+
+## [2.0.7] - 2026-01-12
+
+### Changed
+- Bump version to v2.0.7 by @github-actions[bot]
+- Update clear-skies
+
+## [2.0.6] - 2026-01-12
+
+### Changed
+- Bump version to v2.0.6 by @github-actions[bot]
+
+### Removed
+- Remove handlers
+
+## [2.0.5] - 2026-01-12
+
+### Added
+- Add ssm portforwarder in [#9](https://github.com/clearskies-py/aws/pull/9)
+
+### Changed
+- Bump version to v2.0.5 by @github-actions[bot]
+
+## [2.0.4] - 2026-01-09
+
+### Added
+- Add rds mysql cursor
+
+### Changed
+- Bump version to v2.0.4 by @github-actions[bot]
+- Use the port forwarder class in [#8](https://github.com/clearskies-py/aws/pull/8)
+
+### Fixed
+- Make age dynamic instead of fixed
+
+## [2.0.3] - 2026-01-05
+
+### Changed
+- Bump version to v2.0.3 by @github-actions[bot]
+- Merge pull request #7 from clearskies-py/contexts by @cmancone in [#7](https://github.com/clearskies-py/aws/pull/7)
+- Require latest clearskies version per added feature by @cmancone
+- Bring up-to-date by @cmancone
+
+### Fixed
+- Inverted flag by @cmancone
+- Tooling by @cmancone
+- Mypy by @cmancone
+
 ## [2.0.2] - 2025-10-30
 
 ### Changed
+- Bump version to v2.0.2 by @github-actions[bot]
 - Update lock file
 
 ### Fixed
@@ -18,6 +164,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add simple body routing
+- Add parameter_store tests
+- Add actions
+- Add AwsAdditionalConfigAutoImport
+- Add __init__.py and imports for test module
 - Add parameter_store tests
 - Add actions
 - Add AwsAdditionalConfigAutoImport
@@ -33,19 +183,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use same backend for all
 - Mark failing test as broken
 - More migration work
+- Cleanup/tests by @cmancone
+- Working through basics by @cmancone
+- Moving along by @cmancone
+- Moving along by @cmancone
+- Try lambda sqs standard partial batch
+- Combine the v1 / v2 gateway to one
+- Input outputs
+- Use same backend for all
+- Mark failing test as broken
+- More migration work
 - First commit: Import from WIP by @cmancone
 
 ### Fixed
+- Rewrite sqs test
+- Merge in Tom's stuff by @cmancone
 - Rewrite sqs test
 
 ### Removed
 - Remove unneeded dependency
 - Remove clearskies_aws.di
+- Remove unneeded dependency
+- Remove clearskies_aws.di
 
 ## New Contributors
-* @github-actions[bot] made their first contribution
-* @ made their first contribution in [#4](https://github.com/clearskies-py/aws/pull/4)
 * @cmancone made their first contribution
+* @ made their first contribution
+* @github-actions[bot] made their first contribution
+[2.0.17]: https://github.com/clearskies-py/aws/compare/v2.0.16..v2.0.17
+[2.0.16]: https://github.com/clearskies-py/aws/compare/v2.0.15..v2.0.16
+[2.0.15]: https://github.com/clearskies-py/aws/compare/v2.0.14..v2.0.15
+[2.0.14]: https://github.com/clearskies-py/aws/compare/v2.0.13..v2.0.14
+[2.0.13]: https://github.com/clearskies-py/aws/compare/v2.0.12..v2.0.13
+[2.0.12]: https://github.com/clearskies-py/aws/compare/v2.0.11..v2.0.12
+[2.0.11]: https://github.com/clearskies-py/aws/compare/v2.0.10..v2.0.11
+[2.0.10]: https://github.com/clearskies-py/aws/compare/v2.0.9..v2.0.10
+[2.0.9]: https://github.com/clearskies-py/aws/compare/v2.0.8..v2.0.9
+[2.0.8]: https://github.com/clearskies-py/aws/compare/v2.0.7..v2.0.8
+[2.0.7]: https://github.com/clearskies-py/aws/compare/v2.0.6..v2.0.7
+[2.0.6]: https://github.com/clearskies-py/aws/compare/v2.0.5..v2.0.6
+[2.0.5]: https://github.com/clearskies-py/aws/compare/v2.0.4..v2.0.5
+[2.0.4]: https://github.com/clearskies-py/aws/compare/v2.0.3..v2.0.4
+[2.0.3]: https://github.com/clearskies-py/aws/compare/v2.0.2..v2.0.3
 [2.0.2]: https://github.com/clearskies-py/aws/compare/v2.0.1..v2.0.2
 
 <!-- generated by git-cliff -->

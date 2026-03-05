@@ -10,6 +10,22 @@ import pytest
 from clearskies.di import Di
 
 from clearskies_aws.actions.sqs import SQS
+from clearskies_aws.clients import SqsClient
+
+
+class MockSqsClient(SqsClient):
+    """Mock SqsClient for testing."""
+
+    def __init__(self, mock_boto_client):
+        super().__init__()
+        self.mock_boto_client = mock_boto_client
+
+    def __call__(self):
+        return self.mock_boto_client
+
+    def __getattr__(self, name):
+        # Delegate all attribute access to the mock boto client
+        return getattr(self.mock_boto_client, name)
 
 
 class User(clearskies.Model):
@@ -88,14 +104,6 @@ class SQSTest(unittest.TestCase):
         Returns:
             Configured SQS action ready for testing
         """
-        # Inject mocked dependencies
-        sqs_action.environment = self.environment
-        sqs_action.boto3 = self.boto3
-        sqs_action.region = "us-east-1"  # Set required region
-
-        # Configure the action
-        sqs_action.configure()
-
         # Mock the DI for callable resolution
         sqs_action.di = MagicMock()
 
@@ -104,6 +112,9 @@ class SQSTest(unittest.TestCase):
             return func(kwargs.get("model"))
 
         sqs_action.di.call_function = mock_call_function
+
+        # Mock environment for tests that need it
+        sqs_action.environment = self.environment
 
         return sqs_action
 
@@ -134,9 +145,11 @@ class SQSTest(unittest.TestCase):
     def test_send_basic_message(self):
         """Test basic SQS message sending functionality."""
         # Create and configure SQS action
+        mock_client_wrapper = MockSqsClient(self.sqs_client)
         sqs = SQS(
             queue_url="https://queue.example.com",
             when=self.condition_always_true,
+            client=mock_client_wrapper,
         )
         self._setup_sqs_action(sqs)
 
@@ -172,10 +185,12 @@ class SQSTest(unittest.TestCase):
     def test_send_message_with_group_id(self):
         """Test SQS message sending with static message group ID."""
         # Create and configure SQS action with callable message group ID that returns static value
+        mock_client_wrapper = MockSqsClient(self.sqs_client)
         sqs = SQS(
             queue_url="https://queue.example.com",
             when=self.condition_always_true,
             message_group_id=lambda model: "test-group-id",
+            client=mock_client_wrapper,
         )
         self._setup_sqs_action(sqs)
 
@@ -212,10 +227,12 @@ class SQSTest(unittest.TestCase):
     def test_send_message_with_callable_group_id(self):
         """Test SQS message sending with callable message group ID."""
         # Create and configure SQS action with callable message group ID
+        mock_client_wrapper = MockSqsClient(self.sqs_client)
         sqs = SQS(
             queue_url="https://queue.example.com",
             when=self.condition_always_true,
             message_group_id=lambda model: model.id,
+            client=mock_client_wrapper,
         )
         self._setup_sqs_action(sqs)
 
@@ -252,9 +269,11 @@ class SQSTest(unittest.TestCase):
     def test_conditional_execution_false(self):
         """Test that SQS action respects when condition returning False."""
         # Create and configure SQS action with false condition
+        mock_client_wrapper = MockSqsClient(self.sqs_client)
         sqs = SQS(
             queue_url="https://queue.example.com",
             when=self.condition_always_false,
+            client=mock_client_wrapper,
         )
         self._setup_sqs_action(sqs)
 
@@ -282,9 +301,11 @@ class SQSTest(unittest.TestCase):
         self.environment.get.return_value = "https://env-queue.example.com"
 
         # Create SQS action with environment-based queue URL
+        mock_client_wrapper = MockSqsClient(self.sqs_client)
         sqs = SQS(
             queue_url_environment_key="QUEUE_URL",
             when=self.condition_always_true,
+            client=mock_client_wrapper,
         )
         self._setup_sqs_action(sqs)
 
@@ -309,9 +330,11 @@ class SQSTest(unittest.TestCase):
             return f"https://queue-{model.id}.example.com"
 
         # Create SQS action with callable queue URL
+        mock_client_wrapper = MockSqsClient(self.sqs_client)
         sqs = SQS(
             queue_url_callable=get_queue_url,
             when=self.condition_always_true,
+            client=mock_client_wrapper,
         )
         self._setup_sqs_action(sqs)
 
@@ -332,9 +355,11 @@ class SQSTest(unittest.TestCase):
         self.environment.get.return_value = ""
 
         # Create SQS action with environment-based queue URL that returns empty
+        mock_client_wrapper = MockSqsClient(self.sqs_client)
         sqs = SQS(
             queue_url_environment_key="EMPTY_QUEUE_URL",
             when=self.condition_always_true,
+            client=mock_client_wrapper,
         )
         self._setup_sqs_action(sqs)
 
@@ -354,10 +379,12 @@ class SQSTest(unittest.TestCase):
             return {"user_id": model.id, "action": "created"}
 
         # Create SQS action with custom message formatter
+        mock_client_wrapper = MockSqsClient(self.sqs_client)
         sqs = SQS(
             queue_url="https://queue.example.com",
             message_callable=custom_message_formatter,
             when=self.condition_always_true,
+            client=mock_client_wrapper,
         )
         self._setup_sqs_action(sqs)
 

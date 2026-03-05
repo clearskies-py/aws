@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from awslambdaric.lambda_context import LambdaContext
 from clearskies.exceptions import ClientError
 from clearskies.input_outputs import Headers
 
@@ -15,7 +16,7 @@ class LambdaInvoke(lambda_input_output.LambdaInputOutput):
     def __init__(
         self,
         event: dict[str, Any],
-        context: dict[str, Any],
+        context: LambdaContext | dict[str, Any],
         request_method: str = "",
         url: str = "",
     ):
@@ -24,6 +25,7 @@ class LambdaInvoke(lambda_input_output.LambdaInputOutput):
 
         # Direct invocation specific initialization
         if url:
+            self.url = url
             self.path = url
         else:
             self.supports_url = True
@@ -58,10 +60,6 @@ class LambdaInvoke(lambda_input_output.LambdaInputOutput):
     def get_protocol(self) -> str:
         """Direct invocations don't have a protocol."""
         return "lambda"
-
-    def get_full_path(self) -> str:
-        """Return the configured path."""
-        return self.path
 
     def context_specifics(self) -> dict[str, Any]:
         """Provide direct invocation specific context data."""

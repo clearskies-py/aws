@@ -1,3 +1,145 @@
 {
-  "tree": []
+    "tree": [
+        {
+            "title": "Backends",
+            "source": "clearskies_aws.backends.Backend",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.backends.SqsBackend"
+            ]
+        },
+        {
+            "title": "Contexts",
+            "source": "clearskies.contexts.Context",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.contexts.CliWebSocketMock",
+                "clearskies_aws.contexts.LambdaAlb",
+                "clearskies_aws.contexts.LambdaApiGateway",
+                "clearskies_aws.contexts.LambdaApiGatewayWebSocket",
+                "clearskies_aws.contexts.LambdaInvoke",
+                "clearskies_aws.contexts.LambdaSns",
+                "clearskies_aws.contexts.LambdaSqsStandard",
+                "clearskies_aws.contexts.LambdaStepFunction"
+            ]
+        },
+        {
+            "title": "Cursors",
+            "source": "clearskies.cursors.Cursor",
+            "builder": "clearskies_doc_builder.builders.Module"
+        },
+        {
+            "title": "By IAM",
+            "source": "clearskies.cursors.Cursor",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.cursors.iam.RdsMysql"
+            ],
+            "parent": "Cursors"
+        },
+        {
+            "title": "Port Forwarding",
+            "source": "clearskies.cursors.port_forwarding.PortForwarder",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.cursors.port_forwarding.Ssm"
+            ],
+            "parent": "Cursors"
+        },
+        {
+            "title": "Clients",
+            "source": "clearskies_aws.clients.base_aws_client.BaseAwsClient",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.clients.BaseAwsClient",
+                "clearskies_aws.clients.DynamoDbClient",
+                "clearskies_aws.clients.DynamoDbResource",
+                "clearskies_aws.clients.SesClient",
+                "clearskies_aws.clients.SnsClient",
+                "clearskies_aws.clients.SqsClient",
+                "clearskies_aws.clients.StepFunctionsClient"
+            ]
+        },
+        {
+            "title": "Actions",
+            "source": "clearskies_aws.actions.action_aws.ActionAws",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.actions.AssumeRole",
+                "clearskies_aws.actions.SES",
+                "clearskies_aws.actions.SNS",
+                "clearskies_aws.actions.SQS",
+                "clearskies_aws.actions.StepFunction"
+            ]
+        },
+        {
+            "title": "Endpoints",
+            "source": "clearskies.endpoint.Endpoint",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.endpoints.SecretsManagerRotation"
+            ]
+        },
+        {
+            "title": "Secrets",
+            "source": "clearskies.secrets.Secrets",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.secrets.ParameterStore",
+                "clearskies_aws.secrets.SecretsManager"
+            ]
+        },
+        {
+            "title": "Cache Storage",
+            "source": "clearskies.secrets.cache_storage.SecretCache",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.secrets.cache_storage.ParameterStoreCache"
+            ],
+            "parent": "Secrets"
+        },
+        {
+            "title": "Models",
+            "source": "clearskies.Model",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.models.WebSocketConnectionModel"
+            ]
+        },
+        {
+            "title": "Dependency Injection",
+            "source": "clearskies.di.Di",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.di.AwsAdditionalConfigAutoImport"
+            ]
+        },
+        {
+            "title": "DI Inject",
+            "source": "clearskies.di.Di",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.di.inject.Boto3",
+                "clearskies_aws.di.inject.Boto3Session",
+                "clearskies_aws.di.inject.DynamoDbClient",
+                "clearskies_aws.di.inject.DynamoDbResource",
+                "clearskies_aws.di.inject.ParameterStore",
+                "clearskies_aws.di.inject.SesClient",
+                "clearskies_aws.di.inject.SnsClient",
+                "clearskies_aws.di.inject.SqsClient",
+                "clearskies_aws.di.inject.StepFunctionsClient"
+            ]
+        },
+        {
+            "title": "Mock Actions",
+            "source": "clearskies_aws.actions.action_aws.ActionAws",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.mocks.actions.SES",
+                "clearskies_aws.mocks.actions.SNS",
+                "clearskies_aws.mocks.actions.SQS",
+                "clearskies_aws.mocks.actions.StepFunction"
+            ]
+        }
+    ]
 }

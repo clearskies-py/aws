@@ -17,7 +17,7 @@ class AwsAdditionalConfigAutoImport(AdditionalConfigAutoImport):
     This DI auto injects boto3, boto3 Session and the parameter store.
     """
 
-    def provide_boto3(self) -> ModuleType:
+    def provide_boto3_sdk(self) -> ModuleType:
         import boto3
 
         return boto3
@@ -35,3 +35,52 @@ class AwsAdditionalConfigAutoImport(AdditionalConfigAutoImport):
 
         session = boto3.session.Session(region_name=environment.get("AWS_REGION", True))
         return session
+
+    def provide_sqs_client(self) -> Any:
+        """Provide the SQS client wrapper for dependency injection."""
+        from clearskies_aws.clients.sqs_client import SqsClient
+
+        # SqsClient is InjectableProperties, so DI will inject boto3 and environment
+        return SqsClient()
+
+    def provide_sns_client(self) -> Any:
+        """Provide the SNS client wrapper for dependency injection."""
+        from clearskies_aws.clients.sns_client import SnsClient
+
+        # SnsClient is InjectableProperties, so DI will inject boto3 and environment
+        return SnsClient()
+
+    def provide_ses_client(self) -> Any:
+        """Provide the SES client wrapper for dependency injection."""
+        from clearskies_aws.clients.ses_client import SesClient
+
+        return SesClient()
+
+    def provide_step_functions_client(self) -> Any:
+        """Provide the Step Functions client wrapper for dependency injection."""
+        from clearskies_aws.clients.step_functions_client import StepFunctionsClient
+
+        return StepFunctionsClient()
+
+    def provide_dynamodb_client(self) -> Any:
+        """Provide the DynamoDB client wrapper for dependency injection."""
+        from clearskies_aws.clients.dynamodb_client import DynamoDbClient
+
+        return DynamoDbClient()
+
+    def provide_dynamodb_resource(self) -> Any:
+        """Provide the DynamoDB resource wrapper for dependency injection."""
+        from clearskies_aws.clients.dynamodb_resource import DynamoDbResource
+
+        return DynamoDbResource()
+
+    def provide_sqs_retry(self) -> Any:
+        """
+        Provide the SQS retry helper for dependency injection.
+
+        The helper is configured via context_specifics (queue_url, receipt_handle, receive_count)
+        which are injected from the LambdaSqsStandard context at runtime.
+        """
+        from clearskies_aws.helpers.sqs_retry import SqsRetry
+
+        return SqsRetry()

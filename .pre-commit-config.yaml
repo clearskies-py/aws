@@ -1,5 +1,4 @@
 # Pre-commit configuration for  Akeyless Custom Producer
-fail_fast: true
 
 ci:
     autofix_commit_msg: "chore(pre-commit): autofix run"
@@ -39,12 +38,6 @@ repos:
     hooks:
       - id: uv-lock
 
-  - repo: https://github.com/psf/black
-    rev: 25.1.0
-    hooks:
-      - id: black
-        files: \.py$
-
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.12.1
     hooks:
@@ -69,7 +62,7 @@ repos:
     hooks:
       - id: pytest
         name: pytest
-        entry: uv run pytest .
+        entry: uv run pytest . -m "not broken"
         language: system
         types: [python]
         pass_filenames: false

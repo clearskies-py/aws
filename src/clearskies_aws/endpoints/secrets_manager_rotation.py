@@ -91,7 +91,7 @@ class SecretsManagerRotation(Endpoint):
             pending_secret_data = json.loads(pending_secret["SecretString"])
         except botocore.exceptions.ClientError as error:
             if error.response["Error"]["Code"] == "ResourceNotFoundException":
-                pending_secret_data = None
+                pending_secret_data = {}
             else:
                 raise error
 

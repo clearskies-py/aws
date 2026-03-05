@@ -9,6 +9,7 @@ from clearskies_aws.input_outputs.lambda_api_gateway_web_socket import (
 from clearskies_aws.input_outputs.lambda_invoke import LambdaInvoke
 from clearskies_aws.input_outputs.lambda_sns import LambdaSns
 from clearskies_aws.input_outputs.lambda_sqs_standard import LambdaSqsStandard
+from clearskies_aws.input_outputs.lambda_step_function import LambdaStepFunction
 
 __all__ = [
     "CliWebSocketMock",
@@ -18,4 +19,5 @@ __all__ = [
     "LambdaInvoke",
     "LambdaSns",
     "LambdaSqsStandard",
+    "LambdaStepFunction",
 ]

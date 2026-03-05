@@ -3,7 +3,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from clearskies.configs import AnyDict, String
+from awslambdaric.lambda_context import LambdaContext
+from clearskies.configs import AnyDict, Integer, String
 from clearskies.exceptions import ClientError
 from clearskies.input_outputs import Headers
 
@@ -15,20 +16,28 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
 
     record = AnyDict(default={})
     path = String(default="/")
+    queue_url = String(default="")
+    receive_count = Integer(default=0)
 
     def __init__(
         self,
         record: dict[str, Any],
         event: dict[str, Any],
-        context: dict[str, Any],
+        context: LambdaContext | dict[str, Any],
         url: str = "",
         request_method: str = "",
+        queue_url: str = "",
+        receive_count: int = 0,
     ):
         # Call parent constructor with the full event
         super().__init__(event, context)
 
         # Store the individual SQS record
         self.record = record
+
+        # Store queue context for retry helper
+        self.queue_url = queue_url
+        self.receive_count = receive_count
         # SQS specific initialization
         if url:
             self.path = url
@@ -68,12 +77,8 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
         """SQS events don't have a protocol."""
         return "sqs"
 
-    def get_full_path(self) -> str:
-        """Return the configured path."""
-        return self.path
-
     def context_specifics(self) -> dict[str, Any]:
-        """Provide SQS specific context data."""
+        """Provide SQS specific context data including retry helpers."""
         return {
             **super().context_specifics(),
             "message_id": self.record.get("messageId"),
@@ -83,4 +88,7 @@ class LambdaSqsStandard(lambda_input_output.LambdaInputOutput):
             "approximate_receive_count": self.record.get("attributes", {}).get("ApproximateReceiveCount"),
             "message_attributes": self.record.get("messageAttributes", {}),
             "record": self.record,
+            # Queue context for retry helper
+            "queue_url": self.queue_url,
+            "receive_count": self.receive_count,
         }

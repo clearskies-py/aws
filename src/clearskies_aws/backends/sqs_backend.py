@@ -5,9 +5,11 @@ from typing import Any
 
 from clearskies import Model
 from clearskies.query import Query
+from clearskies.query.result import CountQueryResult, RecordQueryResult, RecordsQueryResult, SuccessQueryResult
 from types_boto3_sqs import SQSClient
 
 from clearskies_aws.backends import backend
+from clearskies_aws.di import inject
 
 
 class SqsBackend(backend.Backend):
@@ -24,37 +26,24 @@ class SqsBackend(backend.Backend):
     If you want to do that, See the SQS context.
     """
 
-    _sqs: SQSClient
+    # Use service injectable for clean, type-safe client access
+    sqs = inject.SqsClient()
 
-    @property
-    def sqs(self) -> SQSClient:
-        if not hasattr(self, "_sqs"):
-            if not self.environment.get("AWS_REGION", True):
-                raise ValueError("To use SQS you must use set AWS_REGION in the .env file or an environment variable")
-
-            self._sqs = self.boto3.client("sqs", region_name=self.environment.get("AWS_REGION", True))
-
-        return self._sqs
-
-    def create(self, data: dict[str, Any], model: Model) -> dict[str, Any]:
+    def create(self, data: dict[str, Any], model: Model) -> RecordQueryResult:
         self.sqs.send_message(
             QueueUrl=model.destination_name(),
             MessageBody=json.dumps(data),
         )
-        return {**data}
+        return RecordQueryResult(record={**data})
 
-    def update(self, id: int | str, data: dict[str, Any], model: Model) -> dict[str, Any]:
+    def update(self, id: int | str, data: dict[str, Any], model: Model) -> RecordQueryResult:
         raise ValueError("The SQS backend only supports the create operation")
 
-    def delete(self, id: int | str, model: Model) -> bool:
+    def delete(self, id: int | str, model: Model) -> SuccessQueryResult:
         raise ValueError("The SQS backend only supports the create operation")
 
-    def count(self, query: Query) -> int:
+    def count(self, query: Query) -> CountQueryResult:
         raise ValueError("The SQS backend only supports the create operation")
 
-    def records(
-        self,
-        query: Query,
-        next_page_data: dict[str, str | int] | None = None,
-    ) -> list[dict[str, Any]]:
+    def records(self, query: Query) -> RecordsQueryResult:
         raise ValueError("The SQS backend only supports the create operation")

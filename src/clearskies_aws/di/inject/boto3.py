@@ -12,4 +12,4 @@ class Boto3(Injectable):
     def __get__(self, instance, parent) -> ModuleType:
         if instance is None:
             return self  # type: ignore
-        return self._di.build_from_name("boto3", cache=self.cache)
+        return self._di.build_from_name("boto3_sdk", cache=self.cache)

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from awslambdaric.lambda_context import LambdaContext
 from clearskies.exceptions import ClientError
 from clearskies.input_outputs import Headers
 
@@ -14,7 +15,7 @@ class LambdaSns(lambda_input_output.LambdaInputOutput):
 
     record: dict[str, Any]
 
-    def __init__(self, event: dict, context: dict[str, Any], url: str = "", request_method: str = ""):
+    def __init__(self, event: dict, context: LambdaContext | dict[str, Any], url: str = "", request_method: str = ""):
         # Call parent constructor
         super().__init__(event, context)
 
@@ -65,10 +66,6 @@ class LambdaSns(lambda_input_output.LambdaInputOutput):
     def get_protocol(self) -> str:
         """SNS events don't have a protocol."""
         return "sns"
-
-    def get_full_path(self) -> str:
-        """Return the configured path."""
-        return self.path
 
     def context_specifics(self) -> dict[str, Any]:
         """Provide SNS specific context data."""

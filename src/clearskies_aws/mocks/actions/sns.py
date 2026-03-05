@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any
 
 from clearskies import Model
-from types_boto3_sns import SNSClient
 
 from clearskies_aws.actions.sns import SNS as BaseSNS
 
@@ -16,8 +15,8 @@ class SNS(BaseSNS):
         cls.calls = []
         di.mock_class(BaseSNS, SNS)
 
-    def _execute_action(self, client: SNSClient, model: Model) -> None:
-        """Send a notification as configured."""
+    def __call__(self, model: Model) -> None:
+        """Record SNS publish call without actually publishing."""
         if SNS.calls is None:
             SNS.calls = []
 

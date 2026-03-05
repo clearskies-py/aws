@@ -6,22 +6,29 @@ from abc import abstractmethod
 from typing import Any, cast
 from urllib.parse import urlencode
 
+from awslambdaric.lambda_context import LambdaContext
+from clearskies import Loggable
+from clearskies.configs import Any as AnyConfig
 from clearskies.configs import AnyDict, String
 from clearskies.input_outputs import InputOutput
 
 
-class LambdaInputOutput(InputOutput):
+class LambdaInputOutput(InputOutput, Loggable):
     """Base class for Lambda input/output handlers that provides common Lambda functionality."""
 
     event = AnyDict(default={})
-    context = AnyDict(default={})
+    context = AnyConfig(default={})
     path = String(default="/")
 
     _cached_body = None
     _body_was_cached = False
 
     def __init__(
-        self, event: dict[str, Any], context: dict[str, Any], url: str | None = "", request_method: str | None = ""
+        self,
+        event: dict[str, Any],
+        context: LambdaContext | dict[str, Any],
+        url: str | None = "",
+        request_method: str | None = "",
     ):
         # Store event and context
         self.event = event
@@ -79,6 +86,8 @@ class LambdaInputOutput(InputOutput):
 
     def get_full_path(self) -> str:
         """Get full path."""
+        if self.url is not None:
+            return self.url
         return self.path
 
     def context_specifics(self) -> dict[str, Any]:
