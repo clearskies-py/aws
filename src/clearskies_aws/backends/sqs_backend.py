@@ -19,10 +19,9 @@ class SqsBackend(backend.Backend):
     This doesn't support setting message attributes.  The SQS call is simple enough that if you need
     those you may as well just invoke the boto3 SDK yourself.
 
-    Note that this is a *write-only* backend.  Reading from an SQS queue is different enough from
+    Note that this is a **create-only** backend.  Reading from an SQS queue is different enough from
     the way that clearskies models works that it doesn't make sense to try to make those happen here.
-
-    See the SQS context in this library for processing your queue data.
+    If you want to do that, See the SQS context.
     """
 
     _sqs: SQSClient

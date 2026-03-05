@@ -116,6 +116,7 @@ class LambdaApiGateway(lambda_input_output.LambdaInputOutput):
         return {
             **super().context_specifics(),
             "resource": self.resource,
+            "path": self.path,
             "stage": request_context.get("stage"),
             "request_id": request_context.get("requestId"),
             "api_id": request_context.get("apiId"),
