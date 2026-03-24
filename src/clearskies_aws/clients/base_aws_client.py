@@ -8,7 +8,8 @@ from clearskies.configurable import Configurable
 from clearskies.di.inject import Environment
 from clearskies.di.injectable_properties import InjectableProperties
 
-from clearskies_aws.actions.assume_role import AssumeRole
+from clearskies_aws.configs import AssumeRole, Region
+from clearskies_aws.actions.assume_role import AssumeRole as AssumeRoleConfig
 from clearskies_aws.di import inject as aws_inject
 
 
@@ -33,7 +34,7 @@ class BaseAwsClient(Configurable, InjectableProperties):
 
     When not provided, region detection follows this priority:
 
-     1. `region_name` parameter
+     1. `aws_region` parameter
      2. AWS_REGION environment variable
      3. DEFAULT_AWS_REGION environment variable
      4. None (uses boto3 defaults)
@@ -41,19 +42,20 @@ class BaseAwsClient(Configurable, InjectableProperties):
     ```python
     from clearskies_aws.clients import SqsClient
 
-    sqs = SqsClient(region_name='us-west-2')
+    sqs = SqsClient(aws_region='us-west-2')
     client = sqs()
     client.send_message(QueueUrl='https://queue.url', MessageBody='Hello')
     ```
     """
-
-    region_name: str | None = None
+    aws_region = Region()
 
     """
-    Optional IAM role to assume before creating the client.
+    Optional IAM role(s) to assume before creating the client.
 
     Allows the client to assume a different IAM role before creating the boto3 client or resource.
-    This is useful for cross-account access or when you need elevated permissions.
+    This is useful for cross-account access or when you need elevated permissions.  This accepts
+    either a single clearskies_aws.actions.AssumeRole instance or a list of them, for a chain
+    of assume role operations.
 
     ```python
     from clearskies_aws.clients import SnsClient
@@ -68,7 +70,7 @@ class BaseAwsClient(Configurable, InjectableProperties):
     client.publish(TopicArn='arn:aws:sns:us-west-2:123:topic', Message='Hello')
     ```
     """
-    assume_role_config: AssumeRole | None = None
+    assume_role = AssumeRoleConfig()
 
     """
     Whether to cache the created client or resource.
@@ -79,12 +81,10 @@ class BaseAwsClient(Configurable, InjectableProperties):
     """
     cache: bool = True
 
-    cached_client: object | None = None
-
     def __init__(
         self,
-        region_name: str | None = None,
-        assume_role_config: AssumeRole | None = None,
+        aws_region: str | None = None,
+        assume_role: AssumeRole | list[AssumeRole] = [],
         cache: bool = True,
     ) -> None:
         """
@@ -95,28 +95,27 @@ class BaseAwsClient(Configurable, InjectableProperties):
         from clearskies_aws.actions import AssumeRole
 
         # Basic initialization
-        sqs = SqsClient(region_name="us-west-2")
+        sqs = SqsClient(aws_region="us-west-2")
 
         # With role assumption and no caching
         assume_role = AssumeRole(role_arn="arn:aws:iam::123456789012:role/MyRole")
-        sqs = SqsClient(region_name="us-west-2", assume_role_config=assume_role, cache=False)
+        sqs = SqsClient(aws_region="us-west-2", assume_role_config=assume_role, cache=False)
         ```
         """
-        self.region_name = region_name
-        self.assume_role_config = assume_role_config
+        self.aws_region = aws_region
+        self.assume_role = assume_role
         self.cache = cache
-        self.cached_client = None
 
     def get_region(self) -> str | None:
         """
         Get the AWS region to use for client creation.
 
         Returns the region from the first available source:
-        region_name parameter, AWS_REGION environment variable,
+        aws_region parameter, AWS_REGION environment variable,
         DEFAULT_AWS_REGION environment variable, or None.
         """
-        if self.region_name:
-            return self.region_name
+        if self.aws_region:
+            return self.aws_region
 
         region = self.environment.get("AWS_REGION", silent=True)
         if region:
@@ -131,8 +130,8 @@ class BaseAwsClient(Configurable, InjectableProperties):
     def create_client(
         self,
         service_name: str,
-        region_name: str | None = None,
-        assume_role: AssumeRole | None = None,
+        aws_region: str | None = None,
+        assume_role: list[AssumeRole] | AssumeRole = [],
         **kwargs,
     ):
         """
@@ -144,27 +143,30 @@ class BaseAwsClient(Configurable, InjectableProperties):
         ```python
         from clearskies_aws.clients import BaseAwsClient
 
-        base_client = BaseAwsClient(region_name="us-west-2")
+        base_client = BaseAwsClient(aws_region="us-west-2")
         s3_client = base_client.create_client("s3")
         ```
         """
         boto3_module = self.boto3
 
         if assume_role or self.assume_role_config:
-            role = assume_role or self.assume_role_config
-            boto3_module = role(boto3_module)  # type: ignore
+            roles = assume_role or self.assume_role_config
+            if not isinstance(roles, list):
+                roles = [roles]
+            for role in roles:
+                boto3_module = role(boto3_module) # type: ignore
 
-        region = region_name or self.get_region()
+        region = aws_region or self.get_region()
 
         if region:
-            return boto3_module.client(service_name, region_name=region, **kwargs)
+            return boto3_module.client(service_name, aws_region=region, **kwargs)
 
         return boto3_module.client(service_name, **kwargs)
 
     def create_resource(
         self,
         service_name: str,
-        region_name: str | None = None,
+        aws_region: str | None = None,
         assume_role: AssumeRole | None = None,
         **kwargs,
     ):
@@ -177,7 +179,7 @@ class BaseAwsClient(Configurable, InjectableProperties):
         ```python
         from clearskies_aws.clients import BaseAwsClient
 
-        base_client = BaseAwsClient(region_name="us-west-2")
+        base_client = BaseAwsClient(aws_region="us-west-2")
         dynamodb_resource = base_client.create_resource("dynamodb")
         ```
         """
@@ -187,9 +189,9 @@ class BaseAwsClient(Configurable, InjectableProperties):
             role = assume_role or self.assume_role_config
             boto3_module = role(boto3_module)  # type: ignore
 
-        region = region_name or self.get_region()
+        region = aws_region or self.get_region()
 
         if region:
-            return boto3_module.resource(service_name, region_name=region, **kwargs)
+            return boto3_module.resource(service_name, aws_region=region, **kwargs)
 
         return boto3_module.resource(service_name, **kwargs)

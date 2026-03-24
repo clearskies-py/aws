@@ -16,6 +16,8 @@ class SesClient(BaseAwsClient):
     inherited [`BaseAwsClient`](base_aws_client.py) configuration options.
     """
 
+    cached_client: Boto3SESClient
+
     def __call__(self) -> Boto3SESClient:
         """
         Get or create the SES client.
@@ -85,12 +87,8 @@ class SesClient(BaseAwsClient):
             )
             ```
         """
-        if self.cache and self.cached_client is not None:
-            return self.cached_client  # type: ignore
+        if self.cache and hasattr(self, "cached_client"):
+            return self.cached_client
 
-        client = self.create_client("ses")
-
-        if self.cache:
-            self.cached_client = client
-
-        return client  # type: ignore
+        self.cached_client: Boto3SESClient = self.create_client("ses") # type: ignore
+        return self.cached_client

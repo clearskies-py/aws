@@ -1,3 +1,4 @@
 from clearskies_aws.cursors import iam, port_forwarding
+from clearskies_aws.cursors.dynamodb import Dynamodb
 
-__all__ = ["iam", "port_forwarding"]
+__all__ = ["Dynamodb", "iam", "port_forwarding"]

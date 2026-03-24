@@ -9,6 +9,7 @@ from clearskies.di.injectable import Injectable
 if TYPE_CHECKING:
     from clearskies_aws.helpers import SqsRetry as SqsRetryHelper
 
+from clearskies_aws.clients import SqsRetryClient
 
 class SqsRetry(Injectable):
     """
@@ -55,10 +56,10 @@ class SqsRetry(Injectable):
         ```
     """
 
-    def __get__(self, instance, parent) -> SqsRetryHelper:
-        if instance is None:
-            return self  # type: ignore
+    client_class = SqsRetryClient
 
-        # Build the helper with context
-        # The context will have already bound queue_url, receipt_handle, receive_count
-        return self._di.build("sqs_retry", cache=False)
+    def __get__(self, instance, parent) -> SqsRetryHelper:
+        if parent is None:
+            return instance # type: ignore
+
+        return self.build_client() # type: ignore

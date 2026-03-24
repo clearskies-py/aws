@@ -7,7 +7,7 @@ from types_boto3_dynamodb import DynamoDBClient as Boto3DynamoDBClient
 from clearskies_aws.clients.base_aws_client import BaseAwsClient
 
 
-class DynamoDbClient(BaseAwsClient):
+class DynamodbClient(BaseAwsClient):
     """
     Low-level DynamoDB operations.
 
@@ -19,6 +19,8 @@ class DynamoDbClient(BaseAwsClient):
     tasks. For most table operations, consider using [`DynamoDbResource`](dynamodb_resource.py)
     instead, which provides a higher-level, object-oriented interface.
     """
+
+    cached_client: Boto3DynamoDBClient
 
     def __call__(self) -> Boto3DynamoDBClient:
         """
@@ -32,7 +34,7 @@ class DynamoDbClient(BaseAwsClient):
             ```python
             from clearskies_aws.clients import DynamoDbClient
 
-            dynamodb = DynamoDbClient(region_name="us-west-2")
+            dynamodb = DynamoDbClient(aws_region="us-west-2")
             client = dynamodb()
 
             response = client.describe_table(TableName="Users")
@@ -64,7 +66,7 @@ class DynamoDbClient(BaseAwsClient):
             ```python
             from clearskies_aws.clients import DynamoDbClient
 
-            dynamodb = DynamoDbClient(region_name="us-east-1")
+            dynamodb = DynamoDbClient(aws_region="us-east-1")
             client = dynamodb()
 
             client.batch_write_item(
@@ -93,12 +95,8 @@ class DynamoDbClient(BaseAwsClient):
             )
             ```
         """
-        if self.cache and self.cached_client is not None:
-            return self.cached_client  # type: ignore
+        if self.cache and hasattr(self, "cached_client"):
+            return self.cached_client
 
-        client = self.create_client("dynamodb")
-
-        if self.cache:
-            self.cached_client = client
-
-        return client  # type: ignore
+        self.cached_client: Boto3DynamoDBClient = self.create_client("dynamodb") # type: ignore
+        return self.cached_client

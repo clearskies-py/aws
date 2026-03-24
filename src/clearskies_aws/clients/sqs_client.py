@@ -16,6 +16,8 @@ class SqsClient(BaseAwsClient):
     inherited [`BaseAwsClient`](base_aws_client.py) configuration options.
     """
 
+    cached_client: Boto3SQSClient
+
     def __call__(self) -> Boto3SQSClient:
         """
         Get or create the SQS client.
@@ -70,12 +72,8 @@ class SqsClient(BaseAwsClient):
             client.send_message_batch(QueueUrl="https://sqs.us-east-1.amazonaws.com/123/queue", Entries=entries)
             ```
         """
-        if self.cache and self.cached_client is not None:
-            return self.cached_client  # type: ignore
+        if self.cache and hasattr(self, "cached_client"):
+            return self.cached_client
 
-        client = self.create_client("sqs")
-
-        if self.cache:
-            self.cached_client = client
-
-        return client  # type: ignore
+        self.cached_client: Boto3SQSClient = self.create_client("sqs") # type: ignore
+        return self.cached_client

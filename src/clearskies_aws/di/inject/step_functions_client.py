@@ -5,6 +5,7 @@ from __future__ import annotations
 from clearskies.di.injectable import Injectable
 from types_boto3_stepfunctions import SFNClient as Boto3SFNClient
 
+from clearskies_aws.clients import StepFunctionsClient
 
 class StepFunctionsClient(Injectable):
     """
@@ -25,6 +26,8 @@ class StepFunctionsClient(Injectable):
                 self.sfn.start_execution(stateMachineArn="arn:aws:states:...", input='{"key": "value"}')
     """
 
+    client_class = StepFunctionsClient
+
     def __get__(self, instance, parent) -> Boto3SFNClient:
         """
         Get the Step Functions client from the DI container.
@@ -32,5 +35,7 @@ class StepFunctionsClient(Injectable):
         Returns:
             Boto3 Step Functions client instance
         """
-        sfn_client_wrapper = self._di.build("step_functions_client", cache=True)
-        return sfn_client_wrapper()
+        if parent is None:
+            return instance # type: ignore
+
+        return self.build_client() # type: ignore

@@ -16,6 +16,8 @@ class SnsClient(BaseAwsClient):
     inherited [`BaseAwsClient`](base_aws_client.py) configuration options.
     """
 
+    cached_client: Boto3SNSClient
+
     def __call__(self) -> Boto3SNSClient:
         """
         Get or create the SNS client.
@@ -68,12 +70,8 @@ class SnsClient(BaseAwsClient):
             )
             ```
         """
-        if self.cache and self.cached_client is not None:
-            return self.cached_client  # type: ignore
+        if self.cache and hasattr(self, "cached_client"):
+            return self.cached_client
 
-        client = self.create_client("sns")
-
-        if self.cache:
-            self.cached_client = client
-
-        return client  # type: ignore
+        self.cached_client: Boto3SNSClient = self.create_client("sns") # type: ignore
+        return self.cached_client

@@ -6,17 +6,18 @@ import json
 from decimal import Decimal
 from typing import Any, Callable
 
-from clearskies.configs import Select
 from clearskies.autodoc.schema import String as AutoDocString
-from clearskies.columns import Boolean, Float, Integer
+from clearskies.columns import Boolean, Float
 from clearskies.di import inject
 from types_boto3_dynamodb import DynamoDBClient
+from clearskies import Column
 
-from clearskies_aws.constants import regions
+from clearskies.backends import CursorBackend
 from clearskies_aws.backends import backend
 from clearskies_aws.di import inject
+from clearskies_aws.cursors import Dynamodb as DynamodbCursor
 
-class DynamoDbBackend(backend.Backend):
+class DynamoDbBackend(backend.Backend, CursorBackend):
     """
     Manage records in an AWS Dynamo DB table!
 
@@ -70,7 +71,7 @@ class DynamoDbBackend(backend.Backend):
 
     A scan operation operates on a subset of your records without a supporting index.  DynamoDB will instead
     fetch enough records to fill up its maximum record size (defined by the total amount of data - not some
-    specific number of records) and then filter and search on that subset.  As a result, a scan operation is
+    specific number of records) and then apply any filters on that subset.  As a result, a scan operation is
     both more expensive (in terms of query time and cost) and doesn't return comprehensive results in the
     same way that an SQL database would.  E.g., if you were to ask DynamoDB to sort your table on some column,
     descending, and your have more records than can fit into a single result set, then there is no guarantee
@@ -98,39 +99,20 @@ class DynamoDbBackend(backend.Backend):
     method to explicitly state wihch index you want to query on.
     """
 
-    """
-    The region to find your DynamoDB table in.
-
-    If unset, the dynamodb backend will fall back on the `AWS_REGION` environment variable and then `AWS_DEFAULT_REGION`.
-    """
-    aws_region = Select(clearskies_aws.constants.regions)
-
-    environment = inject.Environment()
-    _dynamodb: DynamoDBClient
-
-    def __init__(
-        self,
-        aws_region: str | None = None,
-        require_
-    ):
-        if region:
-            self.region = region
-        self.finalize_and_validate_configuration()
+    dynamodb = inject.DynamoDbClient()
 
     @property
-    def dynamodb(self) -> DynamoDBClient:
-        if not hasattr(self, "_dynamodb"):
-            region = self.aws_region
-            if not region:
-                region = self.environment.get("AWS_REGION", True)
-            if not region:
-                region = self.environment.get("AWS_DEFAULT_REGION", True)
-            if not region:
-                raise ValueError("To use the DynamoDB Backend you must use set the regionon the backend or provide one of AWS_REGION/AWS_DEFAULT_REGION in the .env file or an environment variable")
+    def cursor(self):
+        """
+        Lazily inject and return the dynamodb cursor instance.
 
-            self._dynamodb = self.boto3.client("dynamodb", region_name=region)
-
-        return self._dynamodb
+        Returns
+        -------
+            The cursor object used for executing dynamodb queries.
+        """
+        if not hasattr(self, "_cursor"):
+            self._cursor = self.di.build(DynamodbCursor, self.dynamodb)
+        return self._cursor
 
     def validate_pagination_kwargs(self, kwargs: dict[str, Any], case_mapping: Callable) -> str:
         extra_keys = set(kwargs.keys()) - set(self.allowed_pagination_keys())
@@ -160,7 +142,7 @@ class DynamoDbBackend(backend.Backend):
     def documentation_pagination_parameters(self, case_mapping: Callable) -> list[tuple[Any]]:
         return [(AutoDocString(case_mapping("next_token"), example=""), "A token to fetch the next page of results")]
 
-    def column_from_backend(self, column, value):
+    def column_from_backend(self, column: Column, value: Any) -> Any:
         """We have a couple columns we want to override transformations for."""
         # We're pretty much ignoring the BOOL type for dynamodb, because it doesn't work in indexes
         # (and 99% of the time when I have a boolean, it gets used in an index).  Therefore,
@@ -174,7 +156,7 @@ class DynamoDbBackend(backend.Backend):
                 return bool(value)
         return super().column_from_backend(column, value)
 
-    def column_to_backend(self, column, backend_data):
+    def column_to_backend(self, column: Column, backend_data: dict[str, Any]) -> dict[str, Any]:
         """We have a couple columns we want to override transformations for."""
         # most importantly, there's no need to transform a JSON column in either direction
         if isinstance(column, Boolean):
