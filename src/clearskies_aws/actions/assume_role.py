@@ -37,7 +37,7 @@ class AssumeRole:
                                 SQS(
                                     queue_url="https://queue.url.example.aws.com",
                                     assume_role=AssumeRole(
-                                        role_arn="arn:aws:iam:role/name",
+                                        role_arn="arn:aws:123456789012:iam:role/name",
                                         external_id="12345",
                                     ),
                                 )

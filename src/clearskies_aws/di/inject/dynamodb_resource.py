@@ -23,6 +23,8 @@ class DynamoDbResource(Injectable):
         bindings = {
             "dynamo_db_resource": DynamoDbResource(region_name="us-east-1")
         }
+
+    NOTE: WIP and not functional yet
     """
 
     def __init__(

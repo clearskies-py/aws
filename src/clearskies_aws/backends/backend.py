@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Any, Callable
 
 import clearskies
+from clearskies_aws.configs import AssumeRole, Region
+from clearskies_aws.actions import AssumeRole as AssumeRoleAction
 import clearskies.model
 import clearskies.query
 from clearskies.autodoc.schema import Schema as AutoDocSchema
@@ -36,6 +38,113 @@ class Backend(clearskies.backends.Backend, clearskies.di.InjectableProperties):
 
     boto3 = inject.Boto3()
     environment = Environment()
+
+    """
+    The region of AWS to work in.
+
+    Set the region for your backend resource.  If unset, the backend will fallback on the `AWS_REGION` or
+    `AWS_DEFAULT_REGION`environment variable.
+    """
+    aws_region = Region()
+
+    """
+    Assume role configuration: either a single assume role declaration or a list of them to assume a chain of roles.
+
+    The assume role operation is described via an instance of `clearskies_aws.actions.AssumeRole()`.
+
+    Example usage of a single assume role:
+
+    ```
+    import clearskies
+    import clearskies_aws
+    from clearskies_aws.actions import AssumeRole
+
+    class MyModel(clearskies.Model):
+        id_column_name = "id"
+        backend = clearskies_aws.backends.DynamoDbBackend(
+            assume_role=AssumeRole(
+                role_arn="arn:aws:123456789012:iam:role/name",
+                external_id="12345",
+            )
+        )
+
+        id = clearskies.columns.Uuid()
+        name = clearskies.columns.String()
+    ```
+
+    Or a chain of assume roles:
+
+    ```
+    import clearskies
+    import clearskies_aws
+    from clearskies_aws.actions import AssumeRole
+
+    class MyModel(clearskies.Model):
+        id_column_name = "id"
+        backend = clearskies_aws.backends.DynamoDbBackend(
+            assume_role=[
+                AssumeRole(
+                    role_arn="arn:aws:123456789012:iam:role/name",
+                    external_id="12345",
+                ),
+                AssumeRole(
+                    role_arn="arn:aws:210987654321:iam:role/name",
+                    external_id="54321",
+                ),
+            ]
+        )
+
+        id = clearskies.columns.Uuid()
+        name = clearskies.columns.String()
+    ```
+
+    """
+    assume_role = AssumeRole()
+
+    """
+    A dependency injection name from which the client can be fetched.
+
+    Instead of specifying region and assume role settins on the backend, you can specify a
+    dependency injection name that the client can be fetched from.  This can be handy for increased
+    flexibilty, since the client settings can be configured at the context level/overriden during testing/etc...
+
+    ```
+    import clearskies
+    import clearskies_aws
+    from clearskies_aws.actions import AssumeRole
+
+    class MyModel(clearskies.Model):
+        id_column_name = "id"
+        backend = clearskies_aws.backends.DynamoDbBackend(
+            client_injection_name="dynamodb_client"
+        )
+
+        id = clearskies.columns.Uuid()
+        name = clearskies.columns.String()
+
+    wsgi = clearskies.contexts.WsgiRef(
+        clearskies.endpoints.Callable(
+            lambda my_models: my_models.create({"name":"hello world!"})
+        ),
+        bindings={
+            "dynamodb_client": clearskies_aws.clients.DynamoDbClient
+        }
+    )
+    wsgi()
+    ```
+    """
+    client_injection_name = String()
+
+    def __init__(
+        self,
+        aws_region: str | None = None,
+        assume_role: AssumeRoleAction | list[AssumeRoleAction] = [],
+        client_injection_name: str = "",
+    ):
+        self.aws_region = aws_region
+        self.assume_role = assume_role
+        self.client_injection_name = client_injection_name
+        self.finalize_and_validate_configuration()
 
     def update(self, id: int | str, data: dict[str, Any], model: clearskies.model.Model) -> RecordQueryResult:
         """Update the record with the given id with the information from the data dictionary."""

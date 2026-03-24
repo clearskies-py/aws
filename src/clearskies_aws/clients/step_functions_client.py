@@ -16,6 +16,8 @@ class StepFunctionsClient(BaseAwsClient):
     inherited [`BaseAwsClient`](base_aws_client.py) configuration options.
     """
 
+    cached_client: Boto3SFNClient
+
     def __call__(self) -> Boto3SFNClient:
         """
         Get or create the Step Functions client.
@@ -81,12 +83,8 @@ class StepFunctionsClient(BaseAwsClient):
             print(f"Started execution: {execution_arn}")
             ```
         """
-        if self.cache and self.cached_client is not None:
-            return self.cached_client  # type: ignore
+        if self.cache and hasattr(self, "cached_client"):
+            return self.cached_client
 
-        client = self.create_client("stepfunctions")
-
-        if self.cache:
-            self.cached_client = client
-
-        return client  # type: ignore
+        self.cached_client: Boto3SFNClient = self.create_client("stepfunctions") # type: ignore
+        return self.cached_client
