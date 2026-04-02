@@ -5,7 +5,8 @@ from __future__ import annotations
 from clearskies.di.injectable import Injectable
 from types_boto3_ses import SESClient as Boto3SESClient
 
-from clearskies_aws.clients import SesClient
+if TYPE_CHECKING:
+    from clearskies_aws.clients import BaseAwsClient
 
 class Ses(Injectable):
     """
@@ -29,6 +30,11 @@ class Ses(Injectable):
                     Message={...},
                 )
     """
+
+    @property
+    def client_class(self) -> type[BaseAwsClient]:
+        from clearskies_aws.clients import SesClient
+        return SesClient
 
     client_class = SesClient
 

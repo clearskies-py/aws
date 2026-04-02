@@ -6,8 +6,7 @@ from clearskies.di.injectable import Injectable
 
 if TYPE_CHECKING:
     from types_boto3_sqs import SQSClient as Boto3SQSClient
-
-from clearskies_aws.clients import SqsClient
+    from clearskies_aws.clients import BaseAwsClient
 
 class SqsClient(Injectable):
     """
@@ -24,7 +23,10 @@ class SqsClient(Injectable):
         }
     """
 
-    client_class = SqsClient
+    @property
+    def client_class(self) -> type[BaseAwsClient]:
+        from clearskies_aws.clients import SqsClient
+        return SqsClient
 
     def __get__(self, instance, parent) -> Boto3SQSClient:
         if parent is None:

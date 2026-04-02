@@ -8,8 +8,7 @@ from clearskies.di.injectable import Injectable
 
 if TYPE_CHECKING:
     from clearskies_aws.helpers import SqsRetry as SqsRetryHelper
-
-from clearskies_aws.clients import SqsRetryClient
+    from clearskies_aws.clients import BaseAwsClient
 
 class SqsRetry(Injectable):
     """
@@ -56,7 +55,10 @@ class SqsRetry(Injectable):
         ```
     """
 
-    client_class = SqsRetryClient
+    @property
+    def client_class(self) -> type[BaseAwsClient]:
+        from clearskies_aws.clients import SqsRetryClient
+        return SqsRetryClient
 
     def __get__(self, instance, parent) -> SqsRetryHelper:
         if parent is None:
