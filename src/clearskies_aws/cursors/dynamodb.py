@@ -41,9 +41,11 @@ class Dynamodb(Cursor):
         -------
             Result of cursor.execute().
         """
+        print(sql)
+        print(parameters)
         try:
             self.logger.debug(f"Executing SQL: {sql} with parameters: {parameters}")
-            return self.cursor.execute(sql, parameters)
+            return self.execute_partiql(sql, parameters)
         except Exception:
             self.logger.exception(f"Error executing Partiql: {sql} with parameters: {parameters}")
             raise

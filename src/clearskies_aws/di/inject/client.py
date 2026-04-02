@@ -1,8 +1,10 @@
 from __future__ import annotations
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from clearskies.di.injectable import Injectable
-from clearskies_aws.clients import BaseAwsClient
+
+if TYPE_CHECKING:
+    from clearskies_aws.clients import BaseAwsClient
 
 class Client(Injectable):
     """
@@ -26,7 +28,10 @@ class Client(Injectable):
     """
 
     client: BaseAwsClient
-    client_class: type[BaseAwsClient]
+
+    @property
+    def client_class(self) -> type[BaseAwsClient]:
+        pass
 
     def build_client(self, instance: Any) -> Any:
         if hasattr(self, "_boto3_client"):

@@ -17,7 +17,7 @@ from clearskies_aws.backends import backend
 from clearskies_aws.di import inject
 from clearskies_aws.cursors import Dynamodb as DynamodbCursor
 
-class DynamoDbBackend(backend.Backend, CursorBackend):
+class DynamodbBackend(backend.Backend, CursorBackend):
     """
     Manage records in an AWS Dynamo DB table!
 
@@ -34,14 +34,17 @@ class DynamoDbBackend(backend.Backend, CursorBackend):
     import clearskies
     import clearskies_aws
 
-    class MyModel(clearskies.Model):
+    class MyModel(clearskies_aws.models.Dynamodb):
         id_column_name = "id"
-        backend = clearskies_aws.backends.DynamoDbBackend()
+        backend = clearskies_aws.backends.DynamodbBackend()
 
         id = clearskies.columns.Uuid()
     ```
 
-    the model will work with a dynamodb table called `my_models`.
+    the model will work with a dynamodb table called `my_models`.  Note that there is an associated model you
+    should extend when using Dynamodb.  This model comes with an extra method - `query_with_index` that will
+    tell clearskies to execute a query operation (instead of a scan) and specify which index to use for the
+    query.
 
     ## Understanding Indexes and Search/Sorting
 
@@ -113,6 +116,76 @@ class DynamoDbBackend(backend.Backend, CursorBackend):
         if not hasattr(self, "_cursor"):
             self._cursor = self.di.build(DynamodbCursor, self.dynamodb)
         return self._cursor
+
+    def as_sql(self, query: Query) -> tuple[str, tuple[Any]]:
+        """
+        Convert a query to SQL
+
+        The rules for building PartiQL are just different enough that it's easier to modify this function,
+        even though there is a fair amount of overlap.  In particular:
+
+         1. Pagination information (limit and next_token) doesn't go in the query, but is provided directly to boto3
+         2. Columns don't get table name prefixes, because all queries are always on a single table
+         3. Sorting information comes from elsewhere in the query, since sorts directives correspond to index names, not columns
+         4. Parameters are list of dictionaries rather than a tuple of values
+        """
+        table_name = query.model_class.destination_name()
+        order_by = ""
+        self.logger.debug(f"Generating SQL for table: {table_name} from model: {query.model_class.__name__}")
+        wheres, parameters = self.conditions_as_wheres_and_parameters(
+            query.conditions, query.model_class.destination_name()
+        )
+        select_parts = []
+        if query.select_all:
+            select_parts.append("*")
+        if query.selects:
+            select_parts.extend(query.selects)
+        select = ", ".join(select_parts)
+
+        # we need to pass the limit and next token directly to boto3, but the cursor flow
+        # doesn't really leave us a great way to do this.  Therefore, we'll cheat and pass
+        # these in as parameters which the cursor will find and pull out
+        if query.limit:
+            parameters.append({"LIMIT": query.limit})
+
+        if query.query_with_index:
+            order_by = f"ORDER BY {query.query_with_index} {query.query_direction} {query.query_nulls}".rstrip(" ")
+
+        table_name = self._finalize_table_name(table_name)
+        return (
+            f"SELECT {select} FROM {table_name}{wheres}{order_by}".strip(),
+            parameters,
+        )
+
+    def conditions_as_wheres_and_parameters(
+        self, conditions: list[Condition], default_table_name: str
+    ) -> tuple[str, tuple[Any]]:
+        if not conditions:
+            return ("", ())  # type: ignore
+
+        parameters = []
+        where_parts = []
+        for condition in conditions:
+            for value in condition.values:
+                parameters.append(self.as_partiql_parameter(value))
+            column = condition.column_name
+            where_parts.append(
+                condition._with_placeholders(
+                    column,
+                    condition.operator,
+                    condition.values,
+                    escape=False,
+                    placeholder=self.cursor.value_placeholder,
+                )
+            )
+        return (" WHERE " + " AND ".join(where_parts), parameters)  # type: ignore
+
+    def as_partiql_parameter(self, value: Any) -> dict[str, Any]:
+        if isinstance(value, int) or isinstance(value, float):
+            return {"N": str(value)}
+        if isinstance(value, bool):
+            return {"BOOL": value}
+        return {"S": str(value)}
 
     def validate_pagination_kwargs(self, kwargs: dict[str, Any], case_mapping: Callable) -> str:
         extra_keys = set(kwargs.keys()) - set(self.allowed_pagination_keys())

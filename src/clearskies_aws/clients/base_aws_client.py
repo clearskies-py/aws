@@ -9,8 +9,8 @@ from clearskies.di.inject import Environment
 from clearskies.di.injectable_properties import InjectableProperties
 
 from clearskies_aws.configs import AssumeRole, Region
-from clearskies_aws.actions.assume_role import AssumeRole as AssumeRoleConfig
-from clearskies_aws.di import inject as aws_inject
+from clearskies_aws.actions.assume_role import AssumeRole as AssumeRoleAction
+import clearskies_aws.di.inject.boto3
 
 
 class BaseAwsClient(Configurable, InjectableProperties):
@@ -26,7 +26,7 @@ class BaseAwsClient(Configurable, InjectableProperties):
     These inherit all configuration options and behavior from this base class.
     """
 
-    boto3 = aws_inject.Boto3()
+    boto3 = clearskies_aws.di.inject.boto3.Boto3()
     environment = Environment()
 
     """
@@ -70,7 +70,7 @@ class BaseAwsClient(Configurable, InjectableProperties):
     client.publish(TopicArn='arn:aws:sns:us-west-2:123:topic', Message='Hello')
     ```
     """
-    assume_role = AssumeRoleConfig()
+    assume_role = AssumeRole()
 
     """
     Whether to cache the created client or resource.
@@ -84,7 +84,7 @@ class BaseAwsClient(Configurable, InjectableProperties):
     def __init__(
         self,
         aws_region: str | None = None,
-        assume_role: AssumeRole | list[AssumeRole] = [],
+        assume_role: AssumeRoleAction | list[AssumeRoleAction] = [],
         cache: bool = True,
     ) -> None:
         """
@@ -131,7 +131,7 @@ class BaseAwsClient(Configurable, InjectableProperties):
         self,
         service_name: str,
         aws_region: str | None = None,
-        assume_role: list[AssumeRole] | AssumeRole = [],
+        assume_role: list[AssumeRoleAction] | AssumeRoleAction = [],
         **kwargs,
     ):
         """
@@ -167,7 +167,7 @@ class BaseAwsClient(Configurable, InjectableProperties):
         self,
         service_name: str,
         aws_region: str | None = None,
-        assume_role: AssumeRole | None = None,
+        assume_role: AssumeRoleAction | None = None,
         **kwargs,
     ):
         """
