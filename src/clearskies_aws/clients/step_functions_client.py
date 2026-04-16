@@ -17,6 +17,7 @@ class StepFunctionsClient(BaseAwsClient):
     """
 
     cached_client: Boto3SFNClient
+    service_name = "stepfunctions"
 
     def __call__(self) -> Boto3SFNClient:
         """

@@ -21,6 +21,7 @@ class DynamodbClient(BaseAwsClient):
     """
 
     cached_client: Boto3DynamoDBClient
+    service_name = "dynamodb"
 
     def __call__(self) -> Boto3DynamoDBClient:
         """

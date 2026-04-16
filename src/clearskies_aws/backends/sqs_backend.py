@@ -29,13 +29,6 @@ class SqsBackend(backend.Backend):
     # Use service injectable for clean, type-safe client access
     sqs = inject.SqsClient()
 
-    def __init__(
-        self,
-        aws_region: str | None = None,
-        assume_role_arn: str | None = None,
-    ):
-        super().__init__(aws_region=aws_region, assume_role_arn=assume_role_arn
-
     def create(self, data: dict[str, Any], model: Model) -> RecordQueryResult:
         self.sqs.send_message(
             QueueUrl=model.destination_name(),

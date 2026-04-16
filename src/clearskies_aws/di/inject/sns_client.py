@@ -29,7 +29,7 @@ class SnsClient(Injectable):
         return SnsClient
 
     def __get__(self, instance, parent) -> Boto3SNSClient:
-        if parent is None:
-            return instance # type: ignore
+        if instance is None:
+            return self # type: ignore
 
         return self.build_client() # type: ignore

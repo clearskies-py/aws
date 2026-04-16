@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from types_boto3_dynamodb import DynamoDBClient as Boto3DynamoDBClient
     from clearskies_aws.clients import BaseAwsClient
 
-class DynamoDbClient(Client):
+class DynamodbClient(Client):
     """
     Injectable for AWS DynamoDB client.
     """
@@ -19,7 +19,7 @@ class DynamoDbClient(Client):
         return DynamodbClient
 
     def __get__(self, instance, parent) -> Boto3DynamoDBClient:
-        if parent is None:
-            return instance # type: ignore
+        if instance is None:
+            return self # type: ignore
 
         return self.build_client(instance) # type: ignore

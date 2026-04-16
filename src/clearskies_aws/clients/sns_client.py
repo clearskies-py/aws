@@ -17,6 +17,7 @@ class SnsClient(BaseAwsClient):
     """
 
     cached_client: Boto3SNSClient
+    service_name = "sns"
 
     def __call__(self) -> Boto3SNSClient:
         """

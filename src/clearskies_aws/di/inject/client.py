@@ -28,6 +28,7 @@ class Client(Injectable):
     """
 
     client: BaseAwsClient
+    _boto3_client: Any
 
     @property
     def client_class(self) -> type[BaseAwsClient]:
@@ -38,9 +39,10 @@ class Client(Injectable):
             return self._boto3_client
 
         if hasattr(instance, "client_injection_name") and instance.client_injection_name:
-            return self.di.build_from_name(instance.client_injection_name)
+            self._boto3_client = self._di.build_from_name(instance.client_injection_name)
+            return self._boto3_client
 
-        if not hasattr(self, "_client"):
-            self.client = self.di.build_class(self.client_class, aws_region=self.aws_region, assume_role=self.assume_role)
-
-        return self.client()
+        self._di.inject_properties(self.client_class)
+        client = self.client_class(aws_region=instance.aws_region, assume_role=instance.assume_role)
+        self._boto3_client = client.create_client()
+        return self._boto3_client
