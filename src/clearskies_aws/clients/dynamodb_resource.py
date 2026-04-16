@@ -7,7 +7,7 @@ from types_boto3_dynamodb import DynamoDBServiceResource
 from clearskies_aws.clients.base_aws_client import BaseAwsClient
 
 
-class DynamoDbResource(BaseAwsClient):
+class DynamodbResource(BaseAwsClient):
     """
     High-level DynamoDB table operations.
 

@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from clearskies_aws.actions import AssumeRole
 
 
-class DynamoDbResource(Injectable):
+class DynamodbResource(Injectable):
     """
     Injectable for AWS DynamoDB resource.
 

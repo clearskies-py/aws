@@ -13,6 +13,7 @@ from clearskies_aws import (
     input_outputs,
     mocks,
     models,
+    query,
     secrets,
 )
 
@@ -29,5 +30,6 @@ __all__ = [
     "input_outputs",
     "mocks",
     "models",
+    "query",
     "secrets",
 ]

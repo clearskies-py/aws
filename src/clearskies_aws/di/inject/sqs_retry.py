@@ -61,7 +61,7 @@ class SqsRetry(Injectable):
         return SqsRetryClient
 
     def __get__(self, instance, parent) -> SqsRetryHelper:
-        if parent is None:
-            return instance # type: ignore
+        if instance is None:
+            return self # type: ignore
 
         return self.build_client() # type: ignore

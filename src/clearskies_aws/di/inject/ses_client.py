@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from clearskies.di.injectable import Injectable
 from types_boto3_ses import SESClient as Boto3SESClient
 
 if TYPE_CHECKING:
     from clearskies_aws.clients import BaseAwsClient
 
-class Ses(Injectable):
+class SesClient(Injectable):
     """
     Injectable wrapper for SES client.
 
@@ -36,8 +38,6 @@ class Ses(Injectable):
         from clearskies_aws.clients import SesClient
         return SesClient
 
-    client_class = SesClient
-
     def __get__(self, instance, parent) -> Boto3SESClient:
         """
         Get the SES client from the DI container.
@@ -45,7 +45,7 @@ class Ses(Injectable):
         Returns:
             Boto3 SES client instance
         """
-        if parent is None:
-            return instance # type: ignore
+        if instance is None:
+            return self # type: ignore
 
         return self.build_client()  # type: ignore

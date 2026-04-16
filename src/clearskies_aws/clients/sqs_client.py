@@ -17,6 +17,7 @@ class SqsClient(BaseAwsClient):
     """
 
     cached_client: Boto3SQSClient
+    service_name = "sqs"
 
     def __call__(self) -> Boto3SQSClient:
         """

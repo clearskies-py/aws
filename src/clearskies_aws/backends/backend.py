@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Any, Callable
 
 import clearskies
+from clearskies.configs import String
+
 from clearskies_aws.configs import AssumeRole, Region
 from clearskies_aws.actions import AssumeRole as AssumeRoleAction
 import clearskies.model
@@ -148,23 +150,23 @@ class Backend(clearskies.backends.Backend, clearskies.di.InjectableProperties):
 
     def update(self, id: int | str, data: dict[str, Any], model: clearskies.model.Model) -> RecordQueryResult:
         """Update the record with the given id with the information from the data dictionary."""
-        return RecordQueryResult(record={})
+        raise NotImplementedError(f"The backend {self.__class__.__name__} doesn't support updates")
 
     def create(self, data: dict[str, Any], model: clearskies.model.Model) -> RecordQueryResult:
         """Create a record with the information from the data dictionary."""
-        return RecordQueryResult(record={})
+        raise NotImplementedError(f"The backend {self.__class__.__name__} doesn't support creation")
 
     def delete(self, id: int | str, model: clearskies.model.Model) -> SuccessQueryResult:
         """Delete the record with the given id."""
-        return SuccessQueryResult()
+        raise NotImplementedError(f"The backend {self.__class__.__name__} doesn't support deletion")
 
     def count(self, query: clearskies.query.Query) -> CountQueryResult:
         """Return the number of records which match the given query configuration."""
-        return CountQueryResult(count=1)
+        raise NotImplementedError(f"The backend {self.__class__.__name__} doesn't support counting.")
 
     def records(self, query: clearskies.query.Query) -> RecordsQueryResult:
         """Return a list of records that match the given query configuration."""
-        return RecordsQueryResult(records=[])
+        raise NotImplementedError(f"The backend {self.__class__.__name__} doesn't support fetching records")
 
     def validate_pagination_data(self, data: dict[str, Any], case_mapping: Callable[[str], str]) -> str:
         """

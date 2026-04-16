@@ -29,7 +29,7 @@ class SqsClient(Injectable):
         return SqsClient
 
     def __get__(self, instance, parent) -> Boto3SQSClient:
-        if parent is None:
-            return instance # type: ignore
+        if instance is None:
+            return self # type: ignore
 
         return self.build_client() # type: ignore

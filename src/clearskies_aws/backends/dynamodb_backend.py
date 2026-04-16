@@ -7,34 +7,42 @@ from decimal import Decimal
 from typing import Any, Callable
 
 from clearskies.autodoc.schema import String as AutoDocString
-from clearskies.columns import Boolean, Float
-from clearskies.di import inject
+from clearskies.columns import Boolean, Float, Integer
+from clearskies_aws.di import inject
 from types_boto3_dynamodb import DynamoDBClient
-from clearskies import Column
+from clearskies import Column, configs
+from clearskies.query import ParsedCondition, Query
+from clearskies.query.result import (
+    CountQueryResult,
+    RecordQueryResult,
+    RecordsQueryResult,
+)
 
 from clearskies.backends import CursorBackend
 from clearskies_aws.backends import backend
 from clearskies_aws.di import inject
 from clearskies_aws.cursors import Dynamodb as DynamodbCursor
 
-class DynamodbBackend(backend.Backend, CursorBackend):
+
+class DynamodbBackend(CursorBackend, backend.Backend):
     """
     Manage records in an AWS Dynamo DB table!
 
     ## Usage
 
     By default the DynamoDb backend will point to DynamoDB in the region specified by the `AWS_REGION` or
-   `AWS_DEFAULT_REGION`environment variable (in that order).  If you need to use a different region than
-    defined via the environment, then you can explicitly provide the region to the backend.  Per cleraskies
-    norms, the table name will be automatically determined by converting the class name to snake case
-    and making it plural, or you can specify this directly by overriding the `destination_name` class
+   `AWS_DEFAULT_REGION`environment variable (in that order).  If your connection details are different you
+    can provide aws_region/assume_role/client_injection_name to the backend.
+
+    Per cleraskies norms, the table name will be automatically determined by converting the class name to snake
+    case and making it plural, or you can specify this directly by overriding the `destination_name` class
     method on the model class.  So, in this example:
 
     ```
     import clearskies
     import clearskies_aws
 
-    class MyModel(clearskies_aws.models.Dynamodb):
+    class MyModel(clearskies_aws.models.DynamodbModel):
         id_column_name = "id"
         backend = clearskies_aws.backends.DynamodbBackend()
 
@@ -102,7 +110,43 @@ class DynamodbBackend(backend.Backend, CursorBackend):
     method to explicitly state wihch index you want to query on.
     """
 
-    dynamodb = inject.DynamoDbClient()
+    """
+    The list of columns that are indexed in the dynamodb table.
+
+    During an update operation, you must provide all indexed columns to dynamodb even if they are not
+    being changed.  For example, consider a table with two indexes: one on id with a sort key of 'created_at'
+    and another on 'category' with a sort key of 'age'.  If you were to update some other column, dynamodb
+    forces you to execute the equivalent of:
+
+    ```
+    UPDATE my_table SET some_column='asdf' where id='1-2-3-4' AND created_at='02/02/2026' AND category='Toys' AND age=25;
+    ```
+
+    To support this, clearskies automatically provides all current column values as `column=value` search clauses
+    in the `WHERE` condition of the corresponding update call, even though most probably aren't in indexes.
+    If desired, you can use this property to tell clearskies which columns are actually present in indexes,
+    so that only those columns will be sent along on an update operation.
+
+    Note that if you set this configuration but don't actually provide all the indexed columns, then you will
+    get a ValidationException from dynamodb about "Where clause does not contain a mandatory equality on all key attributes"
+    """
+    indexed_columns = configs.StringList()
+
+    dynamodb = inject.DynamodbClient()
+
+    def __init__(
+        self,
+        aws_region: str | None = None,
+        assume_role: AssumeRoleAction | list[AssumeRoleAction] = [],
+        client_injection_name: str = "",
+        indexed_columns: list[str] = [],
+    ):
+        self.aws_region = aws_region
+        self.assume_role = assume_role
+        self.client_injection_name = client_injection_name
+        self.indexed_columns = indexed_columns
+        self.table_prefix = ""
+        self.finalize_and_validate_configuration()
 
     @property
     def cursor(self):
@@ -114,8 +158,19 @@ class DynamodbBackend(backend.Backend, CursorBackend):
             The cursor object used for executing dynamodb queries.
         """
         if not hasattr(self, "_cursor"):
-            self._cursor = self.di.build(DynamodbCursor, self.dynamodb)
+            self._cursor = DynamodbCursor(self.dynamodb)
         return self._cursor
+
+    def records(self, query: Query) -> RecordsQueryResult:
+        sql, parameters = self.as_sql(query)
+        ### RIGHT HERE!!! I need to pull back the records and the pagination data from the cursor
+        self.cursor.execute(sql, parameters)
+        records = [row for row in self.cursor]
+        next_page_data = None
+        limit = query.limit
+        if self.cursor.next_token:
+            next_page_data = {"next_token": self.cursor.next_token}
+        return RecordsQueryResult(records=records, next_page_data=next_page_data)
 
     def as_sql(self, query: Query) -> tuple[str, tuple[Any]]:
         """
@@ -132,6 +187,19 @@ class DynamodbBackend(backend.Backend, CursorBackend):
         table_name = query.model_class.destination_name()
         order_by = ""
         self.logger.debug(f"Generating SQL for table: {table_name} from model: {query.model_class.__name__}")
+
+        # condition values usually come across as strings, which is perfectly fine for databases in general,
+        # but dynamodb is more picky about this and needs everything to have the correct type.  Therefore,
+        # go through our conditions and force convert things to the right type (mostly, I just care about integers).
+        columns = query.model_class.get_columns()
+        for condition in query.conditions:
+            if condition.column_name not in columns:
+                continue
+            column = columns[condition.column_name]
+            if isinstance(column, Integer):
+                for (index, value) in enumerate(condition.values):
+                    condition.values[index] = int(condition.values[index])
+
         wheres, parameters = self.conditions_as_wheres_and_parameters(
             query.conditions, query.model_class.destination_name()
         )
@@ -142,14 +210,31 @@ class DynamodbBackend(backend.Backend, CursorBackend):
             select_parts.extend(query.selects)
         select = ", ".join(select_parts)
 
-        # we need to pass the limit and next token directly to boto3, but the cursor flow
-        # doesn't really leave us a great way to do this.  Therefore, we'll cheat and pass
-        # these in as parameters which the cursor will find and pull out
-        if query.limit:
-            parameters.append({"LIMIT": query.limit})
+        if hasattr(query, "with_index") and query.with_index:
+            query_parts = [query.with_index]
+            if query.query_direction:
+                query_parts.append(query.query_direction)
+            if query.query_nulls is not None:
+                query_parts.extend(["NULLS", ("FIRST" if query.query_nulls else "LAST")])
 
-        if query.query_with_index:
-            order_by = f"ORDER BY {query.query_with_index} {query.query_direction} {query.query_nulls}".rstrip(" ")
+            order_clause = " ".join(query_parts)
+            order_by = f"ORDER BY {query.with_index} {query.query_direction} {query.query_nulls}".rstrip(" ")
+
+        # There are a few parameters that don't go in the query string itself, but which go in the call to
+        # boto3.execute_statement.  This is tricky because with the way the cursor backend is designed, the
+        # original query object doesn't go into the execution flow.  Instead, just the query string and the
+        # parameters.  So, to pass this information around (without re-writing the query flow in clearskies)
+        # we'll shove these query options into the parameters for the query, and then the dynamodb cursor
+        # will pull them out and process them as needed.  This works out because the parameters are already
+        # a list of dicts, so we can at least pass them along in an easy-to-recognize way.  I use all
+        # capitals for the key names here because dynamodb does that for it's own key names in the parameters.
+        # it doesn't really matter, but :shrug:.
+        if query.limit:
+            parameters += ({"LIMIT": query.limit},)
+        if hasattr(query, "consistent_read") and isinstance(query.consistent_read, bool):
+            parameters += ({"CONSISTENT_READ": query.consistent_read},)
+        if query.pagination.get("next_token"):
+            parameters += ({"NEXT_TOKEN": query.pagination.get("next_token")},)
 
         table_name = self._finalize_table_name(table_name)
         return (
@@ -160,14 +245,14 @@ class DynamodbBackend(backend.Backend, CursorBackend):
     def conditions_as_wheres_and_parameters(
         self, conditions: list[Condition], default_table_name: str
     ) -> tuple[str, tuple[Any]]:
+        parameters = ()
         if not conditions:
-            return ("", ())  # type: ignore
+            return ("", parameters)
 
-        parameters = []
         where_parts = []
         for condition in conditions:
             for value in condition.values:
-                parameters.append(self.as_partiql_parameter(value))
+                parameters += (self.cursor.as_partiql_parameter(value),)
             column = condition.column_name
             where_parts.append(
                 condition._with_placeholders(
@@ -178,14 +263,39 @@ class DynamodbBackend(backend.Backend, CursorBackend):
                     placeholder=self.cursor.value_placeholder,
                 )
             )
-        return (" WHERE " + " AND ".join(where_parts), parameters)  # type: ignore
+        return (" WHERE " + " AND ".join(where_parts), parameters)
 
-    def as_partiql_parameter(self, value: Any) -> dict[str, Any]:
-        if isinstance(value, int) or isinstance(value, float):
-            return {"N": str(value)}
-        if isinstance(value, bool):
-            return {"BOOL": value}
-        return {"S": str(value)}
+    def update(self, id: int | str, data: dict[str, Any], model: Model) -> RecordQueryResult:
+        query_parts = []
+        parameters = []
+        for key, val in data.items():
+            query_parts.append(self.cursor.column_equals_with_placeholder(key))
+            parameters.append(val)
+        updates = ", ".join(query_parts)
+
+        # update the record
+        table_name = self._finalize_table_name(model.destination_name())
+        column_equals = []
+
+        # dynamodb requires us to include a WHERE COLUMN=VALUE for any column that is in an index (either the key or sort).
+        # This is tricky, since we don't know what the indexes are so we don't know what columns we have to include.
+        # Therefore, include everything unless the developer has told us what we need.
+        columns = self.indexed_columns if self.indexed_columns else model.get_columns()
+        for (key, value) in model.get_raw_data().items():
+            if key not in columns:
+                continue
+            column_equals.append(self.cursor.column_equals_with_placeholder(key))
+            parameters.append(value)
+        print(column_equals)
+
+        self.cursor.execute(f"UPDATE {table_name} SET {updates} WHERE " + " AND ".join(column_equals), tuple(parameters))
+
+        # and now query again to fetch the updated record.
+        records_response = self.records(
+            Query(model.__class__, conditions=[ParsedCondition(model.id_column_name, "=", [str(id)])])
+        )
+        records = records_response.data
+        return RecordQueryResult(record=records[0])
 
     def validate_pagination_kwargs(self, kwargs: dict[str, Any], case_mapping: Callable) -> str:
         extra_keys = set(kwargs.keys()) - set(self.allowed_pagination_keys())
@@ -228,6 +338,16 @@ class DynamodbBackend(backend.Backend, CursorBackend):
             else:
                 return bool(value)
         return super().column_from_backend(column, value)
+
+    def validate_pagination_data(self, data: dict[str, Any], case_mapping: Callable) -> str:
+        extra_keys = set(data.keys()) - set(self.allowed_pagination_keys())
+        if len(extra_keys):
+            key_name = case_mapping("next_token")
+            return "Invalid pagination key(s): '" + "','".join(extra_keys) + f"'.  Only '{key_name}' is allowed"
+        if "next_token" not in data:
+            key_name = case_mapping("next_token")
+            return f"You must specify '{key_name}' when setting pagination"
+        return ""
 
     def column_to_backend(self, column: Column, backend_data: dict[str, Any]) -> dict[str, Any]:
         """We have a couple columns we want to override transformations for."""
