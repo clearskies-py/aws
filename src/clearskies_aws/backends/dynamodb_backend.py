@@ -16,6 +16,7 @@ from clearskies.query.result import (
     CountQueryResult,
     RecordQueryResult,
     RecordsQueryResult,
+    SuccessQueryResult,
 )
 
 from clearskies.backends import CursorBackend
@@ -286,7 +287,6 @@ class DynamodbBackend(CursorBackend, backend.Backend):
                 continue
             column_equals.append(self.cursor.column_equals_with_placeholder(key))
             parameters.append(value)
-        print(column_equals)
 
         self.cursor.execute(f"UPDATE {table_name} SET {updates} WHERE " + " AND ".join(column_equals), tuple(parameters))
 
@@ -296,6 +296,49 @@ class DynamodbBackend(CursorBackend, backend.Backend):
         )
         records = records_response.data
         return RecordQueryResult(record=records[0])
+
+    def create(self, data: dict[str, Any], model: Model) -> RecordQueryResult:
+        # for some reason the insert statement for partiql requires a single quote, not an apostrophe
+        escape = "'"
+        parts = []
+        for key in data.keys():
+            parts.append(f'{escape}{key}{escape}: {self.cursor.value_placeholder}')
+        inserts = ", ".join(parts)
+
+        table_name = self._finalize_table_name(model.destination_name())
+        self.cursor.execute(
+            "INSERT INTO " + table_name + " VALUE {" + inserts + "}",
+            tuple([self.cursor.as_partiql_parameter(value) for value in data.values()])
+        )
+        new_id = data.get(model.id_column_name)
+        if not new_id:
+            new_id = self.cursor.lastrowid
+        if not new_id:
+            raise ValueError("I can't figure out what the id is for a newly created record :(")
+
+        records_response = self.records(
+            Query(model.__class__, conditions=[ParsedCondition(model.id_column_name, "=", [new_id])])
+        )
+        records = records_response.data
+        return RecordQueryResult(record=records[0])
+
+    def delete(self, id: int | str, model: Model) -> SuccessQueryResult:
+        table_name = self._finalize_table_name(model.destination_name())
+
+        # dynamodb requires us to include a WHERE COLUMN=VALUE for any column that is in an index (either the key or sort).
+        # This is tricky, since we don't know what the indexes are so we don't know what columns we have to include.
+        # Therefore, include everything unless the developer has told us what we need.
+        parameters = []
+        column_equals = []
+        columns = self.indexed_columns if self.indexed_columns else model.get_columns()
+        for (key, value) in model.get_raw_data().items():
+            if key not in columns:
+                continue
+            column_equals.append(self.cursor.column_equals_with_placeholder(key))
+            parameters.append(value)
+
+        self.cursor.execute(f"DELETE FROM {table_name} WHERE " + " AND ".join(column_equals), tuple(parameters))
+        return SuccessQueryResult()
 
     def validate_pagination_kwargs(self, kwargs: dict[str, Any], case_mapping: Callable) -> str:
         extra_keys = set(kwargs.keys()) - set(self.allowed_pagination_keys())
