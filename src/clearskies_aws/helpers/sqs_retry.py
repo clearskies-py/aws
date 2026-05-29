@@ -10,6 +10,8 @@ from clearskies.configs import Integer, Select, String
 from clearskies.decorators import parameters_to_properties
 from clearskies.di.injectable_properties import InjectableProperties
 
+from clearskies_aws.actions import AssumeRole as AssumeRoleAction
+from clearskies_aws.configs import AssumeRole, Region
 from clearskies_aws.di import inject as aws_inject
 from clearskies_aws.exceptions import MaxRetriesExceeded
 
@@ -91,6 +93,9 @@ class SqsRetry(Configurable, InjectableProperties, Loggable):
     base_delay = Integer(default=10)
     max_delay = Integer(default=900)  # 15 minutes
     max_retries = Integer(default=5)
+    aws_region = Region()
+    assume_role = AssumeRole()
+    client_injection_name = String()
 
     backoff_callable = CallableConfig(required=False)  # Custom backoff function
 
@@ -105,6 +110,9 @@ class SqsRetry(Configurable, InjectableProperties, Loggable):
         max_delay: int | None = None,
         max_retries: int | None = None,
         backoff_callable: Any | None = None,
+        aws_region: str = "",
+        assume_role: AssumeRoleAction | list[AssumeRoleAction] = [],
+        client_injection_name: str = "",
     ):
         """
         Initialize SqsRetry helper.
@@ -115,6 +123,9 @@ class SqsRetry(Configurable, InjectableProperties, Loggable):
             receive_count: Current receive count of the message
             **kwargs: Additional configuration options (strategy, base_delay, etc.)
         """
+        self.aws_region = aws_region
+        self.client_injection_name = client_injection_name
+        self.assume_role = assume_role
         self.finalize_and_validate_configuration()
 
     def retry_later(self, reason: str = "", delay: int | None = None) -> None:

@@ -2,13 +2,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from clearskies.di.injectable import Injectable
+from clearskies_aws.di.inject.client import Client
 
 if TYPE_CHECKING:
     from types_boto3_sns import SNSClient as Boto3SNSClient
+
     from clearskies_aws.clients import BaseAwsClient
 
-class SnsClient(Injectable):
+
+class SnsClient(Client):
     """
     Injectable for AWS SNS client.
 
@@ -26,10 +28,11 @@ class SnsClient(Injectable):
     @property
     def client_class(self) -> type[BaseAwsClient]:
         from clearskies_aws.clients import SnsClient
+
         return SnsClient
 
     def __get__(self, instance, parent) -> Boto3SNSClient:
         if instance is None:
-            return self # type: ignore
+            return self  # type: ignore
 
-        return self.build_client() # type: ignore
+        return self.build_client(instance)  # type: ignore

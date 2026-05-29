@@ -3,13 +3,10 @@ from __future__ import annotations
 from typing import Any, Callable
 
 import clearskies
-from clearskies.configs import String
-
-from clearskies_aws.configs import AssumeRole, Region
-from clearskies_aws.actions import AssumeRole as AssumeRoleAction
 import clearskies.model
 import clearskies.query
 from clearskies.autodoc.schema import Schema as AutoDocSchema
+from clearskies.configs import String
 from clearskies.di.inject import Environment
 from clearskies.query.result import (
     CountQueryResult,
@@ -18,6 +15,8 @@ from clearskies.query.result import (
     SuccessQueryResult,
 )
 
+from clearskies_aws.actions import AssumeRole as AssumeRoleAction
+from clearskies_aws.configs import AssumeRole, Region
 from clearskies_aws.di import inject
 
 
@@ -139,7 +138,7 @@ class Backend(clearskies.backends.Backend, clearskies.di.InjectableProperties):
 
     def __init__(
         self,
-        aws_region: str | None = None,
+        aws_region: str = "",
         assume_role: AssumeRoleAction | list[AssumeRoleAction] = [],
         client_injection_name: str = "",
     ):

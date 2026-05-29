@@ -1,10 +1,12 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from clearskies.configs import Config
 
 if TYPE_CHECKING:
     from clearskies_aws.clients import BaseAwsClient
+
 
 class AwsClient(Config):
     def __set__(self, instance, value: BaseAwsClient):

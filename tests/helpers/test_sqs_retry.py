@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import unittest
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock
 
 from clearskies.di import Di
 
@@ -16,10 +16,10 @@ class SqsRetryTest(unittest.TestCase):
 
     def setUp(self):
         """Set up test dependencies."""
-        self.mock_boto3_client = Mock()
-        # SqsClient wrapper should be callable returning the boto3 client
-        self.mock_sqs_client_wrapper = Mock(return_value=self.mock_boto3_client)
-        self.di = Di(bindings={"sqs_client": self.mock_sqs_client_wrapper})
+        self.mock_boto3_client = MagicMock()
+        self.mock_boto3_client.change_message_visibility = MagicMock()
+        self.di = Di(bindings={"sqs_client": self.mock_boto3_client})
+        self.di.inject_properties(SqsRetry)
 
     def test_exponential_backoff_calculation(self):
         """Test exponential backoff calculation."""
@@ -31,10 +31,8 @@ class SqsRetryTest(unittest.TestCase):
             base_delay=10,
             max_delay=900,
             max_retries=5,
+            client_injection_name="sqs_client",
         )
-        helper._di = self.di
-
-        SqsRetry.sqs_client._di = self.di
 
         # receive_count=1: 10 * 2^0 = 10
         self.assertEqual(helper._calculate_backoff(), 10)
@@ -61,6 +59,7 @@ class SqsRetryTest(unittest.TestCase):
             base_delay=10,
             max_delay=900,
             max_retries=5,
+            client_injection_name="sqs_client",
         )
         helper._di = self.di
 
@@ -91,6 +90,7 @@ class SqsRetryTest(unittest.TestCase):
             base_delay=10,
             max_delay=900,
             max_retries=5,
+            client_injection_name="sqs_client",
         )
         helper._di = self.di
 
@@ -132,6 +132,7 @@ class SqsRetryTest(unittest.TestCase):
             max_delay=900,
             max_retries=5,
             backoff_callable=custom_backoff,
+            client_injection_name="sqs_client",
         )
         helper._di = self.di
 
@@ -147,6 +148,7 @@ class SqsRetryTest(unittest.TestCase):
             receipt_handle="test-receipt-handle",
             receive_count=3,
             max_retries=5,
+            client_injection_name="sqs_client",
         )
         helper._di = self.di
 
@@ -159,6 +161,7 @@ class SqsRetryTest(unittest.TestCase):
             receipt_handle="test-receipt-handle",
             receive_count=5,
             max_retries=5,
+            client_injection_name="sqs_client",
         )
         helper._di = self.di
 
@@ -171,6 +174,7 @@ class SqsRetryTest(unittest.TestCase):
             receipt_handle="test-receipt-handle",
             receive_count=6,
             max_retries=5,
+            client_injection_name="sqs_client",
         )
         helper._di = self.di
 
@@ -185,10 +189,8 @@ class SqsRetryTest(unittest.TestCase):
             strategy="exponential",
             base_delay=10,
             max_retries=5,
+            client_injection_name="sqs_client",
         )
-        helper._di = self.di
-
-        SqsRetry.sqs_client._di = self.di
 
         helper.retry_later("Resource not ready")
 
@@ -206,10 +208,8 @@ class SqsRetryTest(unittest.TestCase):
             receipt_handle="test-receipt-handle",
             receive_count=2,
             max_retries=5,
+            client_injection_name="sqs_client",
         )
-        helper._di = self.di
-
-        SqsRetry.sqs_client._di = self.di
 
         helper.retry_later("Resource not ready", delay=300)
 
@@ -227,10 +227,8 @@ class SqsRetryTest(unittest.TestCase):
             receipt_handle="test-receipt-handle",
             receive_count=2,
             max_retries=5,
+            client_injection_name="sqs_client",
         )
-        helper._di = self.di
-
-        SqsRetry.sqs_client._di = self.di
 
         # Try to set huge delay
         helper.retry_later("Resource not ready", delay=100000)
@@ -249,10 +247,8 @@ class SqsRetryTest(unittest.TestCase):
             receipt_handle="test-receipt-handle",
             receive_count=5,
             max_retries=5,
+            client_injection_name="sqs_client",
         )
-        helper._di = self.di
-
-        SqsRetry.sqs_client._di = self.di
 
         with self.assertRaises(MaxRetriesExceeded) as context:
             helper.retry_later("Resource not ready")
@@ -287,6 +283,7 @@ class SqsRetryTest(unittest.TestCase):
             base_delay=30,
             max_delay=900,
             max_retries=5,
+            client_injection_name="sqs_client",
         )
 
         # Test known fibonacci numbers
@@ -310,6 +307,7 @@ class SqsRetryTest(unittest.TestCase):
             base_delay=30,
             max_delay=900,
             max_retries=5,
+            client_injection_name="sqs_client",
         )
         helper._di = self.di
 

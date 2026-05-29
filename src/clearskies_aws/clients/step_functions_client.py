@@ -87,5 +87,5 @@ class StepFunctionsClient(BaseAwsClient):
         if self.cache and hasattr(self, "cached_client"):
             return self.cached_client
 
-        self.cached_client: Boto3SFNClient = self.create_client("stepfunctions") # type: ignore
+        self.cached_client: Boto3SFNClient = self.create_client("stepfunctions")  # type: ignore
         return self.cached_client

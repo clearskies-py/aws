@@ -1,5 +1,7 @@
 from clearskies.configs import Config
+
 from clearskies_aws.actions.assume_role import AssumeRole as AssumeRoleAction
+
 
 class AssumeRole(Config):
     def __set__(self, instance, value: AssumeRoleAction | list[AssumeRoleAction]):

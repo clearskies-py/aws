@@ -40,7 +40,7 @@ class SqsBackendTest(unittest.TestCase):
         class User(
             clearskies.Model,
         ):
-            backend = SqsBackend()
+            backend = SqsBackend(client_injection_name="sqs_client")
 
             @classmethod
             def destination_name(cls) -> str:
