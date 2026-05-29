@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from clearskies.di.injectable import Injectable
+from clearskies_aws.di.inject.client import Client
 
 if TYPE_CHECKING:
-    from clearskies_aws.helpers import SqsRetry as SqsRetryHelper
     from clearskies_aws.clients import BaseAwsClient
+    from clearskies_aws.helpers import SqsRetry as SqsRetryHelper
 
-class SqsRetry(Injectable):
+
+class SqsRetry(Client):
     """
     Injectable for SQS retry helper.
 
@@ -57,11 +58,12 @@ class SqsRetry(Injectable):
 
     @property
     def client_class(self) -> type[BaseAwsClient]:
-        from clearskies_aws.clients import SqsRetryClient
-        return SqsRetryClient
+        from clearskies_aws.clients import SqsClient
+
+        return SqsClient
 
     def __get__(self, instance, parent) -> SqsRetryHelper:
         if instance is None:
-            return self # type: ignore
+            return self  # type: ignore
 
-        return self.build_client() # type: ignore
+        return self.build_client(instance)  # type: ignore

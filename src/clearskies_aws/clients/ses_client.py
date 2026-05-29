@@ -91,5 +91,5 @@ class SesClient(BaseAwsClient):
         if self.cache and hasattr(self, "cached_client"):
             return self.cached_client
 
-        self.cached_client: Boto3SESClient = self.create_client("ses") # type: ignore
+        self.cached_client: Boto3SESClient = self.create_client("ses")  # type: ignore
         return self.cached_client

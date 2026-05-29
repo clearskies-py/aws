@@ -1,14 +1,16 @@
 from __future__ import annotations
-from typing import Any, TYPE_CHECKING
+
+from typing import TYPE_CHECKING, Any
 
 from clearskies.di.injectable import Injectable
 
 if TYPE_CHECKING:
     from clearskies_aws.clients import BaseAwsClient
 
+
 class Client(Injectable):
     """
-    Base class to inject a boto3 client
+    Base class to inject a boto3 client.
 
     The extending class must have an attribute named `client_class` which points to a class in
     clearskies_aws.clients that will be responsible for actually building the client, if needed.
@@ -32,10 +34,10 @@ class Client(Injectable):
 
     @property
     def client_class(self) -> type[BaseAwsClient]:
-        pass
+        raise NotImplementedError()
 
     def build_client(self, instance: Any) -> Any:
-        if hasattr(self, "_boto3_client"):
+        if hasattr(self, "_boto3_client") and self._boto3_client:
             return self._boto3_client
 
         if hasattr(instance, "client_injection_name") and instance.client_injection_name:
@@ -46,3 +48,7 @@ class Client(Injectable):
         client = self.client_class(aws_region=instance.aws_region, assume_role=instance.assume_role)
         self._boto3_client = client.create_client()
         return self._boto3_client
+
+    def set_di(self, di):
+        self._di = di
+        self._boto3_client = None

@@ -113,7 +113,7 @@ class DynamodbResource(BaseAwsClient):
             response = table.scan(FilterExpression=Attr("status").eq("active") & Attr("age").gte(18))
             ```
         """
-        if self.cache and self.cached_client is not None:
+        if self.cache and self.cached_client is not None:  # type: ignore
             return self.cached_client  # type: ignore
 
         resource = self.create_resource("dynamodb")

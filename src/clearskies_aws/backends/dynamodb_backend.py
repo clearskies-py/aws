@@ -6,33 +6,34 @@ import json
 from decimal import Decimal
 from typing import Any, Callable
 
+from clearskies import Column, Model, configs
 from clearskies.autodoc.schema import String as AutoDocString
+from clearskies.backends import CursorBackend
 from clearskies.columns import Boolean, Float, Integer
-from clearskies_aws.di import inject
-from types_boto3_dynamodb import DynamoDBClient
-from clearskies import Column, configs
-from clearskies.query import ParsedCondition, Query
+from clearskies.query import Condition, ParsedCondition, Query
 from clearskies.query.result import (
     CountQueryResult,
     RecordQueryResult,
     RecordsQueryResult,
     SuccessQueryResult,
 )
+from types_boto3_dynamodb import DynamoDBClient
 
-from clearskies.backends import CursorBackend
+from clearskies_aws.actions.assume_role import AssumeRole as AssumeRoleAction
 from clearskies_aws.backends import backend
 from clearskies_aws.di import inject
 from clearskies_aws.cursors import Dynamodb as DynamodbCursor
+from clearskies_aws.di import inject
 
 
 class DynamodbBackend(CursorBackend, backend.Backend):
     """
-    Manage records in an AWS Dynamo DB table!
+    Manage records in an AWS Dynamo DB table.
 
     ## Usage
 
     By default the DynamoDb backend will point to DynamoDB in the region specified by the `AWS_REGION` or
-   `AWS_DEFAULT_REGION`environment variable (in that order).  If your connection details are different you
+    `AWS_DEFAULT_REGION`environment variable (in that order).  If your connection details are different you
     can provide aws_region/assume_role/client_injection_name to the backend.
 
     Per cleraskies norms, the table name will be automatically determined by converting the class name to snake
@@ -42,6 +43,7 @@ class DynamodbBackend(CursorBackend, backend.Backend):
     ```
     import clearskies
     import clearskies_aws
+
 
     class MyModel(clearskies_aws.models.DynamodbModel):
         id_column_name = "id"
@@ -74,10 +76,11 @@ class DynamodbBackend(CursorBackend, backend.Backend):
 
     To support this, the DynamoDB backend comes with a DynamoDB model that adds an additonal method to your model:
     `query_with_index`.  When you wish to perform a query operation, you must call this method and specify the
-    name of the index to query on.  Your AWS principal must also have permission to `dynamodb:DescribeTable`
-    for the table associated with your model.  Clearskies will use fetch the details of your desired index so it
-    can verify you have provided all the necessary information to execute the query, as well as to understand
-    how to properly make use of the index.
+    name of the index to query on.
+
+    Under the hood, the dynamodb backend uses PartiQL which defaults to the primary index for the table.  So,
+    if your primary index is for the id column of your table, searches using `id=value` will use a query
+    operation by default.
 
     ### Scan
 
@@ -93,22 +96,28 @@ class DynamodbBackend(CursorBackend, backend.Backend):
 
     For example, imagine you have the following table, organized as so:
 
-    | Name      |
+    | Age       |
     |-----------|
-    | Snake     |
-    | Cat       |
-    | Alligator |
-    | Dog       |
+    | 5         |
+    | 1         |
+    | 18        |
+    | 20        |
 
     and your record size is such that only two records can be processed at a time.  If you performed a scan
-    operation and asked DynamoDB to sort by name asc, you would get two result sets with the following records
+    operation and asked DynamoDB to find records with `Age>10`, you would get two result sets with the following records
     returned:
 
-     1. `["Cat", "Snake"]`
-     2. `["Alligator", "Dog"]`
+     1. `[]`
+     2. `[18, 20]`
 
-    Remember that the DynamoDB backend will always execute a scan operation unless you use the `query_with_index`
-    method to explicitly state wihch index you want to query on.
+    To emphasize: DynamoDB can only process two records at a time (in this hypothetical example).  As a result, it
+    pulls two records out of the table, finds that none of them matches the conditions, and so returns an empty
+    result set.  However, this would come with a pagination token because there are more records.  You could then
+    use that to fetch the next page of results, which will then bring back records that do match.
+
+    Keep in mind that the DynamoDB backend will always execute a scan operation unless you use the `query_with_index`
+    method to explicitly state wihch index you want to query on (with a minor exception for searching on the id
+    column if it is the primary index for the table).
     """
 
     """
@@ -137,7 +146,7 @@ class DynamodbBackend(CursorBackend, backend.Backend):
 
     def __init__(
         self,
-        aws_region: str | None = None,
+        aws_region: str = "",
         assume_role: AssumeRoleAction | list[AssumeRoleAction] = [],
         client_injection_name: str = "",
         indexed_columns: list[str] = [],
@@ -158,7 +167,7 @@ class DynamodbBackend(CursorBackend, backend.Backend):
         -------
             The cursor object used for executing dynamodb queries.
         """
-        if not hasattr(self, "_cursor"):
+        if not hasattr(self, "_cursor") or not self._cursor:
             self._cursor = DynamodbCursor(self.dynamodb)
         return self._cursor
 
@@ -175,7 +184,7 @@ class DynamodbBackend(CursorBackend, backend.Backend):
 
     def as_sql(self, query: Query) -> tuple[str, tuple[Any]]:
         """
-        Convert a query to SQL
+        Convert a query to SQL.
 
         The rules for building PartiQL are just different enough that it's easier to modify this function,
         even though there is a fair amount of overlap.  In particular:
@@ -186,7 +195,6 @@ class DynamodbBackend(CursorBackend, backend.Backend):
          4. Parameters are list of dictionaries rather than a tuple of values
         """
         table_name = query.model_class.destination_name()
-        order_by = ""
         self.logger.debug(f"Generating SQL for table: {table_name} from model: {query.model_class.__name__}")
 
         # condition values usually come across as strings, which is perfectly fine for databases in general,
@@ -198,7 +206,7 @@ class DynamodbBackend(CursorBackend, backend.Backend):
                 continue
             column = columns[condition.column_name]
             if isinstance(column, Integer):
-                for (index, value) in enumerate(condition.values):
+                for index, value in enumerate(condition.values):
                     condition.values[index] = int(condition.values[index])
 
         wheres, parameters = self.conditions_as_wheres_and_parameters(
@@ -211,15 +219,30 @@ class DynamodbBackend(CursorBackend, backend.Backend):
             select_parts.extend(query.selects)
         select = ", ".join(select_parts)
 
-        if hasattr(query, "with_index") and query.with_index:
-            query_parts = [query.with_index]
-            if query.query_direction:
-                query_parts.append(query.query_direction)
-            if query.query_nulls is not None:
-                query_parts.extend(["NULLS", ("FIRST" if query.query_nulls else "LAST")])
+        order_by = ""
+        if query.sorts:
+            if len(query.sorts) > 1:
+                raise ValueError(
+                    "Dynamodb only supports sorting by a single column, but two sort directives were present in the query"
+                )
+            sort = query.sorts[0]
+            if sort.table_name and sort.table_name != query.model_class.destination_name():
+                raise ValueError(
+                    f"Dynamodb does not support sorting by any table except the primary table, but this query wants to sort on '{sort.table_name}' rather than '{query.model_class.destination_name()}'"
+                )
+            if not hasattr(query, "with_index") or not query.with_index:
+                more_error = ""
+                if not hasattr(query.model_class, "query_with_index"):
+                    more_error = ". Also, your model class must extend clearskies_aws.models.DynamodbModel, which currently it doesn't."
+                raise ValueError(
+                    f"Dynamodb only supports sorting when using an index and executing a query request.  However, no index has been specified.  You must call '{query.model_class.__name__}.query_with_index(index_name)' in order to sort{more_error}"
+                )
 
-            order_clause = " ".join(query_parts)
-            order_by = f"ORDER BY {query.with_index} {query.query_direction} {query.query_nulls}".rstrip(" ")
+            sort_parts = [query.sorts[0].column_name, query.sorts[0].direction]
+            if query.nulls_first is not None:
+                sort_parts.extend(["NULLS", ("FIRST" if query.nulls_first else "LAST")])
+
+            order_by = " ORDER BY " + " ".join(sort_parts)
 
         # There are a few parameters that don't go in the query string itself, but which go in the call to
         # boto3.execute_statement.  This is tricky because with the way the cursor backend is designed, the
@@ -231,13 +254,18 @@ class DynamodbBackend(CursorBackend, backend.Backend):
         # capitals for the key names here because dynamodb does that for it's own key names in the parameters.
         # it doesn't really matter, but :shrug:.
         if query.limit:
-            parameters += ({"LIMIT": query.limit},)
+            parameters += ({"LIMIT": query.limit},)  #  type: ignore
         if hasattr(query, "consistent_read") and isinstance(query.consistent_read, bool):
-            parameters += ({"CONSISTENT_READ": query.consistent_read},)
+            parameters += ({"CONSISTENT_READ": query.consistent_read},)  #  type: ignore
         if query.pagination.get("next_token"):
-            parameters += ({"NEXT_TOKEN": query.pagination.get("next_token")},)
+            parameters += ({"NEXT_TOKEN": query.pagination.get("next_token")},)  #  type: ignore
 
-        table_name = self._finalize_table_name(table_name)
+        table_name = self._finalize_table_name(
+            ".".join([table_name, query.with_index])
+            if hasattr(query, "with_index") and query.with_index
+            else table_name
+        )
+
         return (
             f"SELECT {select} FROM {table_name}{wheres}{order_by}".strip(),
             parameters,
@@ -282,13 +310,15 @@ class DynamodbBackend(CursorBackend, backend.Backend):
         # This is tricky, since we don't know what the indexes are so we don't know what columns we have to include.
         # Therefore, include everything unless the developer has told us what we need.
         columns = self.indexed_columns if self.indexed_columns else model.get_columns()
-        for (key, value) in model.get_raw_data().items():
+        for key, value in model.get_raw_data().items():
             if key not in columns:
                 continue
             column_equals.append(self.cursor.column_equals_with_placeholder(key))
             parameters.append(value)
 
-        self.cursor.execute(f"UPDATE {table_name} SET {updates} WHERE " + " AND ".join(column_equals), tuple(parameters))
+        self.cursor.execute(
+            f"UPDATE {table_name} SET {updates} WHERE " + " AND ".join(column_equals), tuple(parameters)
+        )
 
         # and now query again to fetch the updated record.
         records_response = self.records(
@@ -302,13 +332,13 @@ class DynamodbBackend(CursorBackend, backend.Backend):
         escape = "'"
         parts = []
         for key in data.keys():
-            parts.append(f'{escape}{key}{escape}: {self.cursor.value_placeholder}')
+            parts.append(f"{escape}{key}{escape}: {self.cursor.value_placeholder}")
         inserts = ", ".join(parts)
 
         table_name = self._finalize_table_name(model.destination_name())
         self.cursor.execute(
             "INSERT INTO " + table_name + " VALUE {" + inserts + "}",
-            tuple([self.cursor.as_partiql_parameter(value) for value in data.values()])
+            tuple([self.cursor.as_partiql_parameter(value) for value in data.values()]),
         )
         new_id = data.get(model.id_column_name)
         if not new_id:
@@ -331,7 +361,7 @@ class DynamodbBackend(CursorBackend, backend.Backend):
         parameters = []
         column_equals = []
         columns = self.indexed_columns if self.indexed_columns else model.get_columns()
-        for (key, value) in model.get_raw_data().items():
+        for key, value in model.get_raw_data().items():
             if key not in columns:
                 continue
             column_equals.append(self.cursor.column_equals_with_placeholder(key))

@@ -1,6 +1,8 @@
 from clearskies.configs import Config
+
 from clearskies_aws.actions.assume_role import AssumeRole as AssumeRoleAction
 from clearskies_aws.constants import regions
+
 
 class Region(Config):
     def __set__(self, instance, value: str):
@@ -16,7 +18,8 @@ class Region(Config):
         if value and value not in regions:
             error_prefix = self._error_prefix(instance)
             raise ValueError(
-                f"{error_prefix} attempt to set a value of '{value.__class__.__name__}' when an AWS regoin is reuired.  Supported regions: '" + "', '".join(regions)
+                f"{error_prefix} attempt to set a value of '{value.__class__.__name__}' when an AWS regoin is reuired.  Supported regions: '"
+                + "', '".join(regions)
             )
 
         instance._set_config(self, value)

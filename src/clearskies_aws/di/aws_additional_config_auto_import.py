@@ -64,15 +64,15 @@ class AwsAdditionalConfigAutoImport(AdditionalConfigAutoImport):
 
     def provide_dynamodb_client(self) -> Any:
         """Provide the DynamoDB client wrapper for dependency injection."""
-        from clearskies_aws.clients.dynamodb_client import DynamoDbClient
+        from clearskies_aws.clients.dynamodb_client import DynamodbClient
 
-        return DynamoDbClient()
+        return DynamodbClient()
 
     def provide_dynamodb_resource(self) -> Any:
         """Provide the DynamoDB resource wrapper for dependency injection."""
-        from clearskies_aws.clients.dynamodb_resource import DynamoDbResource
+        from clearskies_aws.clients.dynamodb_resource import DynamodbResource
 
-        return DynamoDbResource()
+        return DynamodbResource()
 
     def provide_sqs_retry(self) -> Any:
         """

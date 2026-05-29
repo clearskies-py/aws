@@ -8,9 +8,9 @@ from clearskies.configurable import Configurable
 from clearskies.di.inject import ByStandardLib, Environment
 from clearskies.di.injectable_properties import InjectableProperties
 
-from clearskies_aws.configs import AssumeRole, Region
-from clearskies_aws.actions.assume_role import AssumeRole as AssumeRoleAction
 import clearskies_aws.di.inject.boto3
+from clearskies_aws.actions.assume_role import AssumeRole as AssumeRoleAction
+from clearskies_aws.configs import AssumeRole, Region
 
 
 class BaseAwsClient(Configurable, InjectableProperties):
@@ -25,6 +25,7 @@ class BaseAwsClient(Configurable, InjectableProperties):
     client classes like [`SqsClient`](sqs_client.py), [`SnsClient`](sns_client.py), etc.
     These inherit all configuration options and behavior from this base class.
     """
+
     service_name = ""
 
     boto3 = ByStandardLib("boto3")
@@ -103,10 +104,8 @@ class BaseAwsClient(Configurable, InjectableProperties):
         sqs = SqsClient(aws_region="us-west-2", assume_role_config=assume_role, cache=False)
         ```
         """
-        if self.aws_region:
-            self.aws_region = aws_region
-        if self.assume_role:
-            self.assume_role = assume_role
+        self.aws_region = aws_region if aws_region else ""
+        self.assume_role = assume_role if assume_role else []
         self.cache = cache
 
     def get_region(self) -> str | None:
@@ -156,12 +155,12 @@ class BaseAwsClient(Configurable, InjectableProperties):
             if not isinstance(roles, list):
                 roles = [roles]
             for role in roles:
-                boto3_module = role(boto3_module) # type: ignore
+                boto3_module = role(boto3_module)  # type: ignore
 
         region = aws_region or self.get_region()
 
         if region:
-            return boto3_module.client(self.service_name, aws_region=region, **kwargs)
+            return boto3_module.client(self.service_name, region_name=region, **kwargs)
 
         return boto3_module.client(self.service_name, **kwargs)
 

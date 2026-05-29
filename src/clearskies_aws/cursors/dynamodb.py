@@ -1,15 +1,13 @@
-from typing import Any
 import json
+from typing import Any, Iterator
 
 import clearskies.configs
 from clearskies.cursors.cursor import Cursor
-
 from types_boto3_dynamodb import DynamoDBClient as Boto3DynamoDBClient
 
+
 class Dynamodb(Cursor):
-    """
-    A clearskies PartiQL cursor for DynamoDB.
-    """
+    """A clearskies PartiQL cursor for DynamoDB."""
 
     dynamodb: Boto3DynamoDBClient
     table_escape_character = '"'
@@ -19,10 +17,7 @@ class Dynamodb(Cursor):
     next_token: str = ""
     records: list[dict[str, Any]] = []
 
-    def __init__(
-        self,
-        dynamodb: Boto3DynamoDBClient
-    ):
+    def __init__(self, dynamodb: Boto3DynamoDBClient):
         self.dynamodb = dynamodb
 
     @property
@@ -60,11 +55,13 @@ class Dynamodb(Cursor):
 
     @property
     def lastrowid(self) -> int | None:
-        """Dynmaodb does not support lastrowid"""
-        raise NotImplementedError("Dynamodb doesn't support lastrowid.  Make sure you are using a uuid (or some other auto-generated value) for your model id.")
+        """Dynmaodb does not support lastrowid."""
+        raise NotImplementedError(
+            "Dynamodb doesn't support lastrowid.  Make sure you are using a uuid (or some other auto-generated value) for your model id."
+        )
 
-    def execute_partiql(self, sql: str, parameters: tuple[Any]):
-        kwargs = {
+    def execute_partiql(self, sql: str, parameters: tuple | list = ()):
+        kwargs: dict[str, Any] = {
             "Statement": sql,
             "Parameters": [],
             "ReturnConsumedCapacity": "INDEXES",
@@ -95,8 +92,8 @@ class Dynamodb(Cursor):
 
         self.records = []
         for record in result["Items"]:
-            mapped = {}
-            for (name, typed_value) in record.items():
+            mapped: dict[str, Any] = {}
+            for name, typed_value in record.items():
                 first_key = list(typed_value.keys())[0]
                 if first_key == "N":
                     mapped[name] = int(typed_value[first_key])
@@ -108,9 +105,8 @@ class Dynamodb(Cursor):
             self.records.append(mapped)
         self.next_token = result.get("NextToken", "")
 
-    def __iter__(self) -> list[dict[str, Any]]:
-        for record in self.records:
-            yield record
+    def __iter__(self):
+        return iter([*self.records])
 
     def as_partiql_parameter(self, value: Any) -> dict[str, Any]:
         if isinstance(value, int) or isinstance(value, float):
