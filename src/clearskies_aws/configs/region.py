@@ -18,7 +18,7 @@ class Region(Config):
         if value and value not in regions:
             error_prefix = self._error_prefix(instance)
             raise ValueError(
-                f"{error_prefix} attempt to set a value of '{value.__class__.__name__}' when an AWS regoin is reuired.  Supported regions: '"
+                f"{error_prefix} attempt to set a value of '{value.__class__.__name__}' when an AWS region is required.  Supported regions: '"
                 + "', '".join(regions)
             )
 
