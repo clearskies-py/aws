@@ -4,12 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from types_boto3_stepfunctions import SFNClient as Boto3SFNClient
 
 from clearskies_aws.di.inject.client import Client
 
 if TYPE_CHECKING:
-    from types_boto3_sns import SNSClient as Boto3SNSClient
+    from types_boto3_stepfunctions import SFNClient as Boto3SFNClient
 
     from clearskies_aws.clients import BaseAwsClient
 

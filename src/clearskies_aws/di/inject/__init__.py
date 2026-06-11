@@ -4,7 +4,6 @@ from __future__ import annotations
 from clearskies_aws.di.inject.boto3 import Boto3
 from clearskies_aws.di.inject.boto3_session import Boto3Session
 from clearskies_aws.di.inject.dynamodb_client import DynamodbClient
-from clearskies_aws.di.inject.dynamodb_resource import DynamodbResource
 from clearskies_aws.di.inject.parameter_store import ParameterStore
 from clearskies_aws.di.inject.ses_client import SesClient
 from clearskies_aws.di.inject.sns_client import SnsClient
@@ -26,5 +25,4 @@ __all__ = [
     "SesClient",
     "StepFunctionsClient",
     "DynamodbClient",
-    "DynamodbResource",
 ]

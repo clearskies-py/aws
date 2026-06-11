@@ -163,36 +163,3 @@ class BaseAwsClient(Configurable, InjectableProperties):
             return boto3_module.client(self.service_name, region_name=region, **kwargs)
 
         return boto3_module.client(self.service_name, **kwargs)
-
-    def create_resource(
-        self,
-        service_name: str,
-        aws_region: str | None = None,
-        assume_role: AssumeRoleAction | None = None,
-        **kwargs,
-    ):
-        """
-        Create a boto3 resource for the specified AWS service.
-
-        This is typically called by service-specific resource classes rather than directly.
-        Automatically handles region configuration and role assumption.
-
-        ```python
-        from clearskies_aws.clients import BaseAwsClient
-
-        base_client = BaseAwsClient(aws_region="us-west-2")
-        dynamodb_resource = base_client.create_resource("dynamodb")
-        ```
-        """
-        boto3_module: ModuleType = self.boto3
-
-        if assume_role or self.assume_role:
-            role = assume_role or self.assume
-            boto3_module = role(boto3_module)  # type: ignore
-
-        region = aws_region or self.get_region()
-
-        if region:
-            return boto3_module.resource(service_name, aws_region=region, **kwargs)
-
-        return boto3_module.resource(service_name, **kwargs)

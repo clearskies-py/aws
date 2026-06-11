@@ -55,7 +55,7 @@ class Dynamodb(Cursor):
 
     @property
     def lastrowid(self) -> int | None:
-        """Dynmaodb does not support lastrowid."""
+        """Dynamodb does not support lastrowid."""
         raise NotImplementedError(
             "Dynamodb doesn't support lastrowid.  Make sure you are using a uuid (or some other auto-generated value) for your model id."
         )
