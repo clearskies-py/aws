@@ -23,7 +23,6 @@ from clearskies_aws.actions.assume_role import AssumeRole as AssumeRoleAction
 from clearskies_aws.backends import backend
 from clearskies_aws.di import inject
 from clearskies_aws.cursors import Dynamodb as DynamodbCursor
-from clearskies_aws.di import inject
 
 
 class DynamodbBackend(CursorBackend, backend.Backend):

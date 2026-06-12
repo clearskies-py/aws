@@ -58,9 +58,7 @@ class SqsRetry(Client):
 
     @property
     def client_class(self) -> type[BaseAwsClient]:
-        from clearskies_aws.clients import SqsClient
-
-        return SqsClient
+        return SqsRetryHelper
 
     def __get__(self, instance, parent) -> SqsRetryHelper:
         if instance is None:
