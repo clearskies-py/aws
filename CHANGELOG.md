@@ -5,11 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-06-26
+
+### Added
+- Address MR comments by @cmancone
+
+### Changed
+- Updates per PR comments by @cmancone in [#15](https://github.com/clearskies-py/aws/pull/15)
+- So close by @cmancone
+- Delete by @cmancone
+- Queries and updates by @cmancone
+- Working out dependency tree by @cmancone
+- Working through basics of configuration by @cmancone
+- Moving along by @cmancone
+- Wrong docs url by @cmancone in [#16](https://github.com/clearskies-py/aws/pull/16)
+
 ## [2.0.17] - 2026-02-23
 
 ### Added
 - Add retry for sqs in [#14](https://github.com/clearskies-py/aws/pull/14)
 - Add aws clients for di
+
+### Changed
+- Bump version to v2.0.17 by @github-actions[bot]
 
 ## [2.0.16] - 2026-02-04
 
@@ -210,6 +228,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * @cmancone made their first contribution
 * @ made their first contribution
 * @github-actions[bot] made their first contribution
+[2.1.0]: https://github.com/clearskies-py/aws/compare/v2.0.17..v2.1.0
 [2.0.17]: https://github.com/clearskies-py/aws/compare/v2.0.16..v2.0.17
 [2.0.16]: https://github.com/clearskies-py/aws/compare/v2.0.15..v2.0.16
 [2.0.15]: https://github.com/clearskies-py/aws/compare/v2.0.14..v2.0.15
