@@ -7,6 +7,7 @@ import clearskies.model
 import clearskies.query
 from clearskies.autodoc.schema import Schema as AutoDocSchema
 from clearskies.configs import String
+from clearskies.decorators import parameters_to_properties
 from clearskies.di.inject import Environment
 from clearskies.query.result import (
     CountQueryResult,
@@ -136,15 +137,18 @@ class Backend(clearskies.backends.Backend, clearskies.di.InjectableProperties):
     """
     client_injection_name = String()
 
+    @parameters_to_properties
     def __init__(
         self,
         aws_region: str = "",
         assume_role: AssumeRoleAction | list[AssumeRoleAction] = [],
         client_injection_name: str = "",
+        can_create: bool | None = None,
+        can_update: bool | None = None,
+        can_delete: bool | None = None,
+        can_query: bool | None = None,
     ):
-        self.aws_region = aws_region
-        self.assume_role = assume_role
-        self.client_injection_name = client_injection_name
+        """Initialize the backend."""
         self.finalize_and_validate_configuration()
 
     def update(self, id: int | str, data: dict[str, Any], model: clearskies.model.Model) -> RecordQueryResult:
