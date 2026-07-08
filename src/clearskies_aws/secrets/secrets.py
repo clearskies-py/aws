@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import profile
 from typing import Generic, Protocol, TypeVar
 
-from clearskies.di.inject import Di, Environment
+from clearskies.di.inject import Environment
 from clearskies.secrets import Secrets as BaseSecrets
 
 from clearskies_aws.di import inject

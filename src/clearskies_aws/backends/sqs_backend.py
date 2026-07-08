@@ -6,7 +6,6 @@ from typing import Any
 from clearskies import Model
 from clearskies.query import Query
 from clearskies.query.result import CountQueryResult, RecordQueryResult, RecordsQueryResult, SuccessQueryResult
-from types_boto3_sqs import SQSClient
 
 from clearskies_aws.backends import backend
 from clearskies_aws.di import inject

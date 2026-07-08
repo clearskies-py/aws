@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any
 
 from awslambdaric.lambda_context import LambdaContext
-from clearskies.authentication import Public
 from clearskies.contexts.context import Context
 
 from clearskies_aws.input_outputs import LambdaSns as LambdaSnsInputOutput
@@ -117,7 +116,7 @@ class LambdaSns(Context):
 
     def __call__(
         self, event: dict[str, Any], context: LambdaContext | dict[str, Any], request_method: str = "", url: str = ""
-    ):  # type: ignore[override]
+    ):  # ty: ignore[invalid-method-override]
         try:
             return self.execute_application(
                 LambdaSnsInputOutput(event, context, request_method=request_method, url=url)

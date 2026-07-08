@@ -59,7 +59,7 @@ class SecretsManager(secrets.Secrets[SecretsManagerClient]):
         )
         return self.secrets_manager
 
-    def create(self, secret_id: str, value: Any, kms_key_id: str | None = None) -> bool:
+    def create(self, secret_id: str, value: Any, kms_key_id: str | None = None) -> bool:  # ty:ignore[invalid-method-override]
         """
         Create a new secret in Secrets Manager.
 
@@ -72,16 +72,16 @@ class SecretsManager(secrets.Secrets[SecretsManagerClient]):
             "KmsKeyId": kms_key_id,
         }
         calling_parameters = {key: value for (key, value) in calling_parameters.items() if value}
-        result = self.boto3_client.create_secret(**calling_parameters)
+        result = self.boto3_client.create_secret(**calling_parameters)  # ty:ignore[invalid-argument-type]
         return bool(result.get("ARN"))
 
-    def get(  # type: ignore[override]
+    def get(
         self,
         secret_id: str,
         version_id: str | None = None,
         version_stage: str | None = None,
         silent_if_not_found: bool = False,
-    ) -> str | bytes | None:
+    ) -> str | bytes | None:  # ty:ignore[invalid-method-override]
         """
         Retrieve a secret value from Secrets Manager.
 
@@ -128,7 +128,7 @@ class SecretsManager(secrets.Secrets[SecretsManagerClient]):
         )
         return results["SecretList"]
 
-    def update(self, secret_id: str, value: str, kms_key_id: str | None = None) -> bool:  # type: ignore[override]
+    def update(self, secret_id: str, value: str, kms_key_id: str | None = None) -> bool:  # ty:ignore[invalid-method-override]
         """
         Update an existing secret's value.
 
@@ -146,7 +146,7 @@ class SecretsManager(secrets.Secrets[SecretsManagerClient]):
         result = self.boto3_client.update_secret(**calling_parameters)
         return bool(result.get("ARN"))
 
-    def upsert(self, secret_id: str, value: str, kms_key_id: str | None = None) -> bool:  # type: ignore[override]
+    def upsert(self, secret_id: str, value: str, kms_key_id: str | None = None) -> bool:  # ty:ignore[invalid-method-override]
         """
         Create or update a secret value.
 
@@ -164,7 +164,7 @@ class SecretsManager(secrets.Secrets[SecretsManagerClient]):
         result = self.boto3_client.put_secret_value(**calling_parameters)
         return bool(result.get("ARN"))
 
-    def delete(self, secret_id: str, force_delete: bool = False) -> bool:
+    def delete(self, secret_id: str, force_delete: bool = False) -> bool:  # ty:ignore[invalid-method-override]
         """
         Delete a secret from Secrets Manager.
 
@@ -184,7 +184,7 @@ class SecretsManager(secrets.Secrets[SecretsManagerClient]):
                 return False
             raise e
 
-    def list_sub_folders(self, path: str, value: str) -> list[str]:  # type: ignore[override]
+    def list_sub_folders(self, path: str, value: str) -> list[str]:  # ty:ignore[invalid-method-override]
         """
         List sub-folders at the given path.
 

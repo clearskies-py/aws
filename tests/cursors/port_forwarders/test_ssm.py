@@ -30,7 +30,6 @@ class TestSsmPortForwarder(unittest.TestCase):
         self.socket.socket.return_value.settimeout = MagicMock()
         self.socket.socket.return_value.close = MagicMock()
         self.ssm_proc.poll.side_effect = [None, None]
-        import time as real_time
 
         with patch("time.time", side_effect=[0, 0.1, 0.2, 0.3, 0.4, 0.5]):
             with patch("time.sleep", return_value=None):
@@ -59,7 +58,6 @@ class TestSsmPortForwarder(unittest.TestCase):
         self.socket.socket.return_value.settimeout = MagicMock()
         self.socket.socket.return_value.close = MagicMock()
         self.ssm_proc.poll.side_effect = [None, None]
-        import time as real_time
 
         with patch("time.time", side_effect=[0, 0.1, 0.2, 0.3, 0.4, 0.5]):
             with patch("time.sleep", return_value=None):

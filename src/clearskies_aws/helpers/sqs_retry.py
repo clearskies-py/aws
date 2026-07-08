@@ -8,6 +8,7 @@ from clearskies import Configurable, Loggable
 from clearskies.configs import Callable as CallableConfig
 from clearskies.configs import Integer, Select, String
 from clearskies.decorators import parameters_to_properties
+from clearskies.di.inject import Di
 from clearskies.di.injectable_properties import InjectableProperties
 
 from clearskies_aws.actions import AssumeRole as AssumeRoleAction
@@ -97,6 +98,8 @@ class SqsRetry(Configurable, InjectableProperties, Loggable):
     assume_role = AssumeRole()
     client_injection_name = String()
 
+    di = Di()
+
     backoff_callable = CallableConfig(required=False)  # Custom backoff function
 
     @parameters_to_properties
@@ -168,7 +171,7 @@ class SqsRetry(Configurable, InjectableProperties, Loggable):
         """
         # Use custom callable if provided and strategy is "custom"
         if self.strategy == "custom" and self.backoff_callable:
-            return self._di.call_function(
+            return self.di.call_function(
                 self.backoff_callable,
                 receive_count=self.receive_count,
                 base_delay=self.base_delay,

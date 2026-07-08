@@ -105,7 +105,7 @@ class LambdaStepFunction(Context):
         super().__init__(endpoint, **kwargs)
         self._environment_keys = environment_keys
 
-    def __call__(  # type: ignore[override]
+    def __call__(  # ty: ignore[invalid-method-override]
         self,
         event: dict[str, Any],
         context: dict[str, Any],

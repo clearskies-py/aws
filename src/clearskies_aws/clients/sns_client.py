@@ -74,5 +74,5 @@ class SnsClient(BaseAwsClient):
         if self.cache and hasattr(self, "cached_client"):
             return self.cached_client
 
-        self.cached_client: Boto3SNSClient = self.create_client("sns")  # type: ignore
+        self.cached_client: Boto3SNSClient = self.create_client("sns")
         return self.cached_client

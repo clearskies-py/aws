@@ -78,5 +78,5 @@ class LambdaAlb(Context):
     ```
     """
 
-    def __call__(self, event: dict[str, Any], context: LambdaContext | dict[str, Any]) -> Any:  # type: ignore[override]
+    def __call__(self, event: dict[str, Any], context: LambdaContext | dict[str, Any]) -> Any:  # ty: ignore[invalid-method-override]
         return self.execute_application(LambdaAlbInputOutput(event, context))

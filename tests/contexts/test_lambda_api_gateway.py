@@ -4,7 +4,6 @@ import json
 import unittest
 
 import clearskies
-from clearskies import columns, validators
 
 from clearskies_aws.contexts.lambda_api_gateway import LambdaApiGateway
 

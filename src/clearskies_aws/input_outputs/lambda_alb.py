@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any
 
 from awslambdaric.lambda_context import LambdaContext
-from clearskies.configs import String
 from clearskies.input_outputs import Headers
 
 from clearskies_aws.input_outputs import lambda_input_output

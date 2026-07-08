@@ -23,4 +23,4 @@ class DynamodbClient(Client):
         if instance is None:
             return self  # type: ignore
 
-        return self.build_client(instance)  # type: ignore
+        return self.build_client(instance)

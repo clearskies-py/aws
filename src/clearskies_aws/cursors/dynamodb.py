@@ -1,7 +1,6 @@
 import json
-from typing import Any, Iterator
+from typing import Any, cast
 
-import clearskies.configs
 from clearskies.cursors.cursor import Cursor
 from types_boto3_dynamodb import DynamoDBClient as Boto3DynamoDBClient
 
@@ -94,14 +93,15 @@ class Dynamodb(Cursor):
         for record in result["Items"]:
             mapped: dict[str, Any] = {}
             for name, typed_value in record.items():
-                first_key = list(typed_value.keys())[0]
+                typed_value_dict = cast(dict[str, Any], typed_value)
+                first_key = list(typed_value_dict.keys())[0]
                 if first_key == "N":
-                    mapped[name] = int(typed_value[first_key])
+                    mapped[name] = int(typed_value_dict[first_key])
                 elif first_key == "NULL":
-                    if typed_value[first_key]:
+                    if typed_value_dict[first_key]:
                         mapped[name] = None
                 else:
-                    mapped[name] = typed_value[first_key]
+                    mapped[name] = typed_value_dict[first_key]
             self.records.append(mapped)
         self.next_token = result.get("NextToken", "")
 

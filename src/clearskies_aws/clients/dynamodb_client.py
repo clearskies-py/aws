@@ -99,5 +99,5 @@ class DynamodbClient(BaseAwsClient):
         if self.cache and hasattr(self, "cached_client"):
             return self.cached_client
 
-        self.cached_client: Boto3DynamoDBClient = self.create_client("dynamodb")  # type: ignore
+        self.cached_client: Boto3DynamoDBClient = self.create_client("dynamodb")
         return self.cached_client

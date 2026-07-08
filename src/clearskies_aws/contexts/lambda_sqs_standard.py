@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-import traceback
 from typing import Any
 
 from awslambdaric.lambda_context import LambdaContext
-from clearskies.authentication import Public
 from clearskies.contexts.context import Context
 
-from clearskies_aws.di import inject as aws_inject
 from clearskies_aws.exceptions import (
     MaxRetriesExceeded,
     SqsPermanentErrorException,
@@ -177,7 +174,7 @@ class LambdaSqsStandard(Context):
         super().__init__(endpoint, **kwargs)
         self.max_retries = max_retries
 
-    def __call__(  # type: ignore[override]
+    def __call__(  # ty: ignore[invalid-method-override]
         self, event: dict[str, Any], context: LambdaContext | dict[str, Any], url: str = "", request_method: str = ""
     ) -> dict[str, Any]:
         """

@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 from clearskies_aws.di.inject.client import Client
 
 if TYPE_CHECKING:
-    from clearskies_aws.clients import BaseAwsClient
     from clearskies_aws.helpers import SqsRetry as SqsRetryHelper
 
 
@@ -57,11 +56,11 @@ class SqsRetry(Client):
     """
 
     @property
-    def client_class(self) -> type[BaseAwsClient]:
+    def client_class(self) -> type[SqsRetryHelper]:
         return SqsRetryHelper
 
     def __get__(self, instance, parent) -> SqsRetryHelper:
         if instance is None:
             return self  # type: ignore
 
-        return self.build_client(instance)  # type: ignore
+        return self.build_client(instance)

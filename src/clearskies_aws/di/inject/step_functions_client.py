@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-
 from clearskies_aws.di.inject.client import Client
 
 if TYPE_CHECKING:
@@ -48,4 +47,4 @@ class StepFunctionsClient(Client):
         if instance is None:
             return self  # type: ignore
 
-        return self.build_client(instance)  # type: ignore
+        return self.build_client(instance)
