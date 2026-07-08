@@ -2,6 +2,7 @@ indent-width = 4
 extend-exclude = [".vscode", ".idea", "__pycache__", ".python-version", ".ruff.toml", "ruff.toml", "setup.cfg", "pyproject.toml", "*_test.py", "docs/*"]
 line-length = 120
 show-fixes = true
+preview = true
 
 [format]
 quote-style = "double"
@@ -14,7 +15,7 @@ line-ending = "lf"
 
 [lint]
 # D - Enable all `pydocstyle` rules, limiting to those that adhere to the Pep257 convention enabled via `convention = "pep257"` below
-select = ["I", "D"]
+select = ["I", "D", "F401"]
 ignore = [
     "D100",  # pydocstyle: Missing docstring in public module.
     "D101",  # pydocstyle: Missing docstring in public class.
@@ -27,3 +28,6 @@ ignore = [
 
 [lint.pydocstyle]
 convention = "pep257"
+
+[lint.per-file-ignores]
+"**/__init__.py" = ["I001"]

@@ -5,10 +5,13 @@ from typing import Self
 import clearskies
 
 import clearskies_aws
+from clearskies_aws.query import DynamodbQuery
 
 
 class DynamodbModel(clearskies.Model):
     backend = clearskies_aws.backends.DynamodbBackend()
+
+    _query: DynamodbQuery | None = None
 
     def query_with_index(self, index_name: str, consistent_read: bool | None = None, check_query=True):
         """
@@ -23,9 +26,15 @@ class DynamodbModel(clearskies.Model):
         )
         return okay
 
-    def get_query(self) -> clearskies.query.Query:
+    def get_query(self) -> DynamodbQuery:
         """Fetch the query object in the model."""
         return self._query if self._query else clearskies_aws.query.DynamodbQuery(self.__class__)
+
+    def set_query(self, query: DynamodbQuery) -> Self:  # ty:ignore[invalid-method-override]
+        """Set the query object."""
+        self._query = query
+        self._query_executed = False
+        return self
 
     def sort_by(
         self: Self,

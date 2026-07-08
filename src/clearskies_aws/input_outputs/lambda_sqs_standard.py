@@ -5,7 +5,6 @@ from typing import Any
 
 from awslambdaric.lambda_context import LambdaContext
 from clearskies.configs import AnyDict, Integer, String
-from clearskies.exceptions import ClientError
 from clearskies.input_outputs import Headers
 
 from clearskies_aws.input_outputs import lambda_input_output

@@ -1,18 +1,14 @@
 from __future__ import annotations
 
-import json
 import unittest
-from collections import OrderedDict
 from types import SimpleNamespace
 from unittest.mock import MagicMock, call
 
 import clearskies
-import pytest
-from clearskies.di import Di
 
 from clearskies_aws.backends.dynamodb_backend import DynamodbBackend
-from clearskies_aws.clients import SqsClient
 from clearskies_aws.models import DynamodbModel
+
 
 class User(DynamodbModel):
     id_column_name = "id"
@@ -21,6 +17,7 @@ class User(DynamodbModel):
     name = clearskies.columns.String()
     age = clearskies.columns.Integer()
     category = clearskies.columns.Select(["Auto", "Toy"])
+
 
 class DynamodbBackendTest(unittest.TestCase):
     def setUp(self):
@@ -36,12 +33,12 @@ class DynamodbBackendTest(unittest.TestCase):
                 "NextToken": "asdf",
                 "Items": [
                     {
-                        "id": { "S": "1-2-3-4" },
-                        "name": { "S": "Bob" },
-                        "age": { "N": "15" },
+                        "id": {"S": "1-2-3-4"},
+                        "name": {"S": "Bob"},
+                        "age": {"N": "15"},
                     }
                 ],
-            }
+            },
         ]
         self.environment = SimpleNamespace(get=MagicMock(return_value="us-east-1"))
         self.uuid = MagicMock()
@@ -50,11 +47,13 @@ class DynamodbBackendTest(unittest.TestCase):
 
     def test_create_records(self):
         def create_records(users):
-            users.create({
-                "name": "Bob",
-                "age": 20,
-                "category": "Auto",
-            })
+            users.create(
+                {
+                    "name": "Bob",
+                    "age": 20,
+                    "category": "Auto",
+                }
+            )
 
         context = clearskies.contexts.Context(
             create_records,
@@ -67,25 +66,33 @@ class DynamodbBackendTest(unittest.TestCase):
         )
         (status_code, response_data, response_headers) = context()
         assert 2 == self.mock_dynamodb_client.execute_statement.call_count
-        assert call(
-            Statement="INSERT INTO \"users\" VALUE {'name': ?, 'age': ?, 'category': ?, 'id': ?}",
-            Parameters=[{"S": "Bob"}, {"N": "20"}, {"S": "Auto"}, {"S": "1-2-3-4"}],
-            ReturnConsumedCapacity="INDEXES",
-        ) == self.mock_dynamodb_client.execute_statement.call_args_list[0]
-        assert call(
-            Statement="SELECT * FROM \"users\" WHERE id=?",
-            Parameters=[{"S": "1-2-3-4"}],
-            ReturnConsumedCapacity="INDEXES",
-        ) == self.mock_dynamodb_client.execute_statement.call_args_list[1]
+        assert (
+            call(
+                Statement="INSERT INTO \"users\" VALUE {'name': ?, 'age': ?, 'category': ?, 'id': ?}",
+                Parameters=[{"S": "Bob"}, {"N": "20"}, {"S": "Auto"}, {"S": "1-2-3-4"}],
+                ReturnConsumedCapacity="INDEXES",
+            )
+            == self.mock_dynamodb_client.execute_statement.call_args_list[0]
+        )
+        assert (
+            call(
+                Statement='SELECT * FROM "users" WHERE id=?',
+                Parameters=[{"S": "1-2-3-4"}],
+                ReturnConsumedCapacity="INDEXES",
+            )
+            == self.mock_dynamodb_client.execute_statement.call_args_list[1]
+        )
 
     def test_update_records(self):
         def update_records(users):
             user = users.model({"id": "1-2-3-4", "name": "Bob", "category": "Auto"})
-            user.save({
-                "name": "Alice",
-                "age": 20,
-                "category": "Toy",
-            })
+            user.save(
+                {
+                    "name": "Alice",
+                    "age": 20,
+                    "category": "Toy",
+                }
+            )
 
         context = clearskies.contexts.Context(
             update_records,
@@ -98,16 +105,22 @@ class DynamodbBackendTest(unittest.TestCase):
         )
         (status_code, response_data, response_headers) = context()
         assert 2 == self.mock_dynamodb_client.execute_statement.call_count
-        assert call(
-            Statement="UPDATE \"users\" SET \"name\"=?, \"age\"=?, \"category\"=? WHERE \"id\"=? AND \"name\"=? AND \"category\"=?",
-            Parameters=[{"S": "Alice"}, {"N": "20"}, {"S": "Toy"}, {"S": "1-2-3-4"}, {"S": "Bob"}, {"S": "Auto"}],
-            ReturnConsumedCapacity="INDEXES",
-        ) == self.mock_dynamodb_client.execute_statement.call_args_list[0]
-        assert call(
-            Statement="SELECT * FROM \"users\" WHERE id=?",
-            Parameters=[{"S": "1-2-3-4"}],
-            ReturnConsumedCapacity="INDEXES",
-        ) == self.mock_dynamodb_client.execute_statement.call_args_list[1]
+        assert (
+            call(
+                Statement='UPDATE "users" SET "name"=?, "age"=?, "category"=? WHERE "id"=? AND "name"=? AND "category"=?',
+                Parameters=[{"S": "Alice"}, {"N": "20"}, {"S": "Toy"}, {"S": "1-2-3-4"}, {"S": "Bob"}, {"S": "Auto"}],
+                ReturnConsumedCapacity="INDEXES",
+            )
+            == self.mock_dynamodb_client.execute_statement.call_args_list[0]
+        )
+        assert (
+            call(
+                Statement='SELECT * FROM "users" WHERE id=?',
+                Parameters=[{"S": "1-2-3-4"}],
+                ReturnConsumedCapacity="INDEXES",
+            )
+            == self.mock_dynamodb_client.execute_statement.call_args_list[1]
+        )
 
     def test_delete_records(self):
         def delete_records(users):
@@ -125,11 +138,14 @@ class DynamodbBackendTest(unittest.TestCase):
         )
         (status_code, response_data, response_headers) = context()
         assert 1 == self.mock_dynamodb_client.execute_statement.call_count
-        assert call(
-            Statement="DELETE FROM \"users\" WHERE \"id\"=? AND \"name\"=? AND \"category\"=?",
-            Parameters=[{"S": "1-2-3-4"}, {"S": "Bob"}, {"S": "Auto"}],
-            ReturnConsumedCapacity="INDEXES",
-        ) == self.mock_dynamodb_client.execute_statement.call_args_list[0]
+        assert (
+            call(
+                Statement='DELETE FROM "users" WHERE "id"=? AND "name"=? AND "category"=?',
+                Parameters=[{"S": "1-2-3-4"}, {"S": "Bob"}, {"S": "Auto"}],
+                ReturnConsumedCapacity="INDEXES",
+            )
+            == self.mock_dynamodb_client.execute_statement.call_args_list[0]
+        )
 
     def test_list_records_scan(self):
         def list_records_scan(users):
@@ -145,11 +161,14 @@ class DynamodbBackendTest(unittest.TestCase):
         )
         (status_code, response_data, response_headers) = context()
         assert 1 == self.mock_dynamodb_client.execute_statement.call_count
-        assert call(
-            Statement="SELECT * FROM \"users\" WHERE id=? AND category=?",
-            Parameters=[{"S": "1-2-3-4"}, {"S": "Auto"}],
-            ReturnConsumedCapacity="INDEXES",
-        ) == self.mock_dynamodb_client.execute_statement.call_args_list[0]
+        assert (
+            call(
+                Statement='SELECT * FROM "users" WHERE id=? AND category=?',
+                Parameters=[{"S": "1-2-3-4"}, {"S": "Auto"}],
+                ReturnConsumedCapacity="INDEXES",
+            )
+            == self.mock_dynamodb_client.execute_statement.call_args_list[0]
+        )
 
     def test_list_records_query(self):
         def list_records_query(users):
@@ -167,9 +186,12 @@ class DynamodbBackendTest(unittest.TestCase):
         )
         (status_code, response_data, response_headers) = context()
         assert 1 == self.mock_dynamodb_client.execute_statement.call_count
-        assert call(
-            Statement="SELECT * FROM \"users\".\"category-age\" WHERE category=? ORDER BY age DESC",
-            Parameters=[{"S": "toy"}],
-            ReturnConsumedCapacity="INDEXES",
-        ) == self.mock_dynamodb_client.execute_statement.call_args_list[0]
+        assert (
+            call(
+                Statement='SELECT * FROM "users"."category-age" WHERE category=? ORDER BY age DESC',
+                Parameters=[{"S": "toy"}],
+                ReturnConsumedCapacity="INDEXES",
+            )
+            == self.mock_dynamodb_client.execute_statement.call_args_list[0]
+        )
         assert response_data == {"next_token": "asdf"}

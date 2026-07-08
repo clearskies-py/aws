@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from types import ModuleType
+from typing import Any
 
 from clearskies.configurable import Configurable
 from clearskies.di.inject import ByStandardLib, Environment
 from clearskies.di.injectable_properties import InjectableProperties
 
-import clearskies_aws.di.inject.boto3
 from clearskies_aws.actions.assume_role import AssumeRole as AssumeRoleAction
 from clearskies_aws.configs import AssumeRole, Region
 
@@ -82,6 +81,10 @@ class BaseAwsClient(Configurable, InjectableProperties):
     to create multiple instances with different configurations.
     """
     cache: bool = True
+
+    def __call__(self) -> Any:
+        """Return the boto3 client/resource for this service in subclasses."""
+        raise NotImplementedError("AWS client wrappers must implement __call__")
 
     def __init__(
         self,

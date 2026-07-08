@@ -76,7 +76,10 @@ class StepFunctionsClient(BaseAwsClient):
                 stateMachineArn="arn:aws:states:us-east-1:123456789012:stateMachine:DataPipeline",
                 name="daily-pipeline-2024-01-15",
                 input=json.dumps(
-                    {"source": "s3://my-bucket/data.csv", "destination": "s3://my-bucket/processed/"}
+                    {
+                        "source": "s3://my-bucket/data.csv",
+                        "destination": "s3://my-bucket/processed/",
+                    }
                 ),
             )
 
@@ -87,5 +90,5 @@ class StepFunctionsClient(BaseAwsClient):
         if self.cache and hasattr(self, "cached_client"):
             return self.cached_client
 
-        self.cached_client: Boto3SFNClient = self.create_client("stepfunctions")  # type: ignore
+        self.cached_client: Boto3SFNClient = self.create_client("stepfunctions")
         return self.cached_client

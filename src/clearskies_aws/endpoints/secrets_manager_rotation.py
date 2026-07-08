@@ -4,9 +4,8 @@ import json
 from collections.abc import Callable
 from typing import Any
 
-import botocore
-import clearskies
-from clearskies import Endpoint
+from botocore.exceptions import ClientError as BotoClientError
+from clearskies import Endpoint, exceptions
 from clearskies.configs import Callable as CallableConfig
 from clearskies.configs import Schema as SchemaConfig
 from clearskies.configs import StringList
@@ -35,52 +34,81 @@ class SecretsManagerRotation(Endpoint):
     @parameters_to_properties
     def __init__(
         self,
-        steps: list[str] | None,
-        create_secret: Callable | None,
-        set_secret: Callable | None,
-        test_secret: Callable | None,
-        finish_secret: Callable | None,
-        schema: list[dict] | None,
-    ):
+        steps: list[str] | None = None,
+        create_secret: Callable | None = None,
+        set_secret: Callable | None = None,
+        test_secret: Callable | None = None,
+        finish_secret: Callable | None = None,
+        schema: list[dict[str, Any]] | None = None,
+    ) -> None:
         super().__init__()
 
-    def configure(self):
+    def configure(self) -> None:
         self.finalize_and_validate_configuration()
         class_name = self.__class__.__name__
         if not self.create_secret:
             raise KeyError(f"Missing required configuration 'createSecret' for handler {class_name}")
 
-        for config_name in self.steps:
-            config = getattr(self, config_name)
-            if config is None:
-                continue
+        allowed_steps = {"createSecret", "setSecret", "testSecret", "finishSecret"}
+        for step in self.steps:
+            if step not in allowed_steps:
+                raise KeyError(
+                    f"Invalid configured step '{step}' for handler {class_name}. Allowed steps: {sorted(allowed_steps)}"
+                )
 
-    def handle(self, input_output: InputOutput):
+        for config in [self.create_secret, self.set_secret, self.test_secret, self.finish_secret]:
+            if config is not None and not callable(config):
+                raise TypeError("Configured rotation step handlers must be callables")
+
+    def _parse_request_data(self, input_output: InputOutput) -> dict[str, Any]:
         request_data = json.loads(input_output.get_body())
+        if not isinstance(request_data, dict):
+            raise ClientError("Invalid payload: request body must be a JSON object")
+        return request_data
 
-        self.find_input_errors(request_data, input_output, self.schema)
+    def _validate_secret_data(self, secret_data: dict[str, Any], input_output: InputOutput, label: str) -> None:
+        if not self.schema:
+            return
+        try:
+            self.find_input_errors(secret_data, input_output, self.schema)
+        except exceptions.InputErrors as error:
+            raise ValueError(f"The {label} did not match the configured schema: {error}") from error
+
+    def _load_secret_json(self, secret_response: dict[str, Any], label: str) -> dict[str, Any]:
+        secret_string = secret_response.get("SecretString")
+        if not isinstance(secret_string, str):
+            raise ValueError(f"The {label} is missing a valid SecretString")
+        parsed = json.loads(secret_string)
+        if not isinstance(parsed, dict):
+            raise ValueError(f"The {label} must be a JSON object")
+        return parsed
+
+    def handle(self, input_output: InputOutput) -> None:
+        request_data = self._parse_request_data(input_output)
+
+        if self.schema:
+            self.find_input_errors(request_data, input_output, self.schema)
 
         arn = request_data.get("SecretId")
         request_token = request_data.get("ClientRequestToken")
         step = request_data.get("Step")
+        if not isinstance(arn, str) or not arn:
+            raise ClientError("Invalid payload: SecretId is required and must be a string")
+        if not isinstance(request_token, str) or not request_token:
+            raise ClientError("Invalid payload: ClientRequestToken is required and must be a string")
+        if not isinstance(step, str) or not step:
+            raise ClientError("Invalid payload: Step is required and must be a string")
+
         secretsmanager = self.boto3.client("secretsmanager")
         metadata = secretsmanager.describe_secret(SecretId=arn)
 
         self._validate_secret_and_request(step, arn, metadata, request_token)
 
-        current_secret_data = {}
-        pending_secret_data = {}
-
         current_secret = secretsmanager.get_secret_value(SecretId=arn, VersionStage=self.current)
-        current_secret_data = json.loads(current_secret["SecretString"])
+        current_secret_data = self._load_secret_json(current_secret, "current secret")
+        self._validate_secret_data(current_secret_data, input_output, "current secret")
 
-        # validate the current secret
-        secret_errors = {
-            **self._extra_column_errors(current_secret_data),
-            **self._find_input_errors(current_secret_data),
-        }
-        if secret_errors:
-            raise ValueError(f"The current secret did not match the configured schema: {secret_errors}")
+        pending_secret_data: dict[str, Any] = {}
 
         # check for a pending secret.  Note that this is not always available.  In the event that we are retrying a failed
         # rotation it will already be set, in which case we need to skip the createSecret step.
@@ -88,15 +116,15 @@ class SecretsManagerRotation(Endpoint):
             pending_secret = secretsmanager.get_secret_value(
                 SecretId=arn, VersionId=request_token, VersionStage=self.pending
             )
-            pending_secret_data = json.loads(pending_secret["SecretString"])
-        except botocore.exceptions.ClientError as error:
+            pending_secret_data = self._load_secret_json(pending_secret, "pending secret")
+        except BotoClientError as error:
             if error.response["Error"]["Code"] == "ResourceNotFoundException":
                 pending_secret_data = {}
             else:
-                raise error
+                raise
 
         # we can't call the createSecret step if we already have a pending secret or this will generate an error from AWS.
-        if step == "createSecret" and pending_secret_data is not None:
+        if step == "createSecret" and pending_secret_data:
             return
 
         # call the appropriate step and pass along *everything*.
@@ -107,9 +135,10 @@ class SecretsManagerRotation(Endpoint):
             metadata=metadata,
             request_token=request_token,
             arn=arn,
+            input_output=input_output,
         )
 
-    def _validate_secret_and_request(self, step: str, arn: str, metadata: dict[str, Any], request_token: str):
+    def _validate_secret_and_request(self, step: str, arn: str, metadata: dict[str, Any], request_token: str) -> None:
         """Perform basic checks suggested by AWS of both the request and the secret to ensure validity."""
         if step not in self.steps:
             raise ClientError(f"Invalid step: {step}")
@@ -128,7 +157,10 @@ class SecretsManagerRotation(Endpoint):
         elif self.pending not in versions[request_token]:
             raise ValueError(f"{prefix} it hasn't been set to pending yet, which makes no sense!")
 
-    def createSecret(self, **kwargs):
+    def createSecret(self, **kwargs) -> None:
+        if not self.create_secret:
+            return
+
         new_secret_data = self.di.call_function(self.create_secret, **kwargs)
         if new_secret_data is None:
             raise ValueError(
@@ -139,14 +171,8 @@ class SecretsManagerRotation(Endpoint):
                 f"I called the configured createSecret function but it didn't return a dictionary.  The createSecret function must return a dictionary."
             )
 
-        secret_errors = {
-            **self._extra_column_errors(new_secret_data),
-            **self.find_input_errors(new_secret_data),
-        }
-        if secret_errors:
-            raise ValueError(
-                f"The secret data returned by the call to createSecret did not match the configured schema: {secret_errors}"
-            )
+        input_output = kwargs["input_output"]
+        self._validate_secret_data(new_secret_data, input_output, "secret data returned by createSecret")
 
         # if we get this far we can store the new data
         secretsmanager = kwargs["secretsmanager"]
@@ -159,19 +185,19 @@ class SecretsManagerRotation(Endpoint):
             VersionStages=[self.pending],
         )
 
-    def setSecret(self, **kwargs):
-        if not self._configuration.get("setSecret"):
+    def setSecret(self, **kwargs) -> None:
+        if not self.set_secret:
             return
-        self._di.call_function(self._configuration["setSecret"], **kwargs)
+        self.di.call_function(self.set_secret, **kwargs)
 
-    def testSecret(self, **kwargs):
-        if not self._configuration.get("testSecret"):
+    def testSecret(self, **kwargs) -> None:
+        if not self.test_secret:
             return
-        self._di.call_function(self._configuration["testSecret"], **kwargs)
+        self.di.call_function(self.test_secret, **kwargs)
 
-    def finishSecret(self, **kwargs):
-        if self._configuration.get("finishSecret"):
-            self._di.call_function(self._configuration["finishSecret"], **kwargs)
+    def finishSecret(self, **kwargs) -> None:
+        if self.finish_secret:
+            self.di.call_function(self.finish_secret, **kwargs)
 
         secretsmanager = kwargs["secretsmanager"]
         request_token = kwargs["request_token"]

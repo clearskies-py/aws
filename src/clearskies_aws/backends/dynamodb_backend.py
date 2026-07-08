@@ -12,17 +12,15 @@ from clearskies.backends import CursorBackend
 from clearskies.columns import Boolean, Float, Integer
 from clearskies.query import Condition, ParsedCondition, Query
 from clearskies.query.result import (
-    CountQueryResult,
     RecordQueryResult,
     RecordsQueryResult,
     SuccessQueryResult,
 )
-from types_boto3_dynamodb import DynamoDBClient
 
 from clearskies_aws.actions.assume_role import AssumeRole as AssumeRoleAction
 from clearskies_aws.backends import backend
-from clearskies_aws.di import inject
 from clearskies_aws.cursors import Dynamodb as DynamodbCursor
+from clearskies_aws.di import inject
 
 
 class DynamodbBackend(CursorBackend, backend.Backend):
@@ -253,11 +251,11 @@ class DynamodbBackend(CursorBackend, backend.Backend):
         # capitals for the key names here because dynamodb does that for it's own key names in the parameters.
         # it doesn't really matter, but :shrug:.
         if query.limit:
-            parameters += ({"LIMIT": query.limit},)  #  type: ignore
+            parameters += ({"LIMIT": query.limit},)
         if hasattr(query, "consistent_read") and isinstance(query.consistent_read, bool):
-            parameters += ({"CONSISTENT_READ": query.consistent_read},)  #  type: ignore
+            parameters += ({"CONSISTENT_READ": query.consistent_read},)
         if query.pagination.get("next_token"):
-            parameters += ({"NEXT_TOKEN": query.pagination.get("next_token")},)  #  type: ignore
+            parameters += ({"NEXT_TOKEN": query.pagination.get("next_token")},)
 
         table_name = self._finalize_table_name(
             ".".join([table_name, query.with_index])

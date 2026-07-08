@@ -5,7 +5,6 @@ from typing import Any, Callable
 
 import clearskies
 import jinja2
-from botocore.exceptions import ClientError
 from clearskies import Model
 from clearskies.configs import Any as AnyConfig
 from clearskies.configs import Email, EmailOrEmailListOrCallable, String
@@ -120,9 +119,7 @@ class SES(action_aws.ActionAws[SESClient]):
                                     sender="orders@example.com",
                                     to=get_admin_emails,
                                     subject="Order Status Changed",
-                                    message_callable=lambda model: (
-                                        f"Order {model.id} status: {model.status}"
-                                    ),
+                                    message_callable=lambda model: f"Order {model.id} status: {model.status}",
                                 )
                             ],
                         ),

@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any
 
 from awslambdaric.lambda_context import LambdaContext
-from clearskies.authentication import Public
 from clearskies.contexts.context import Context
 
 from clearskies_aws.input_outputs import LambdaInvoke as LambdaInvokeInputOutput
@@ -126,7 +125,7 @@ class LambdaInvoke(Context):
 
     """
 
-    def __call__(  # type: ignore[override]
+    def __call__(  # ty: ignore[invalid-method-override]
         self, event: dict[str, Any], context: LambdaContext | dict[str, Any], request_method: str = "", url: str = ""
     ) -> dict[str, Any]:
         return self.execute_application(

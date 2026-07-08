@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import json
 import unittest
-from collections import OrderedDict
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock
 
 import clearskies
-import pytest
 from clearskies.di import Di
 
 from clearskies_aws.actions.sqs import SQS

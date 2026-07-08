@@ -1,6 +1,5 @@
 from clearskies.configs import Config
 
-from clearskies_aws.actions.assume_role import AssumeRole as AssumeRoleAction
 from clearskies_aws.constants import regions
 
 

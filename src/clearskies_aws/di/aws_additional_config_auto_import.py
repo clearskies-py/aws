@@ -1,11 +1,9 @@
-import datetime
 from types import ModuleType
 from typing import Any
 
 import boto3 as boto3_module
 from clearskies import Environment
 from clearskies.di import AdditionalConfigAutoImport
-from clearskies.di.additional_config import AdditionalConfig
 
 from clearskies_aws.secrets import ParameterStore
 
@@ -67,12 +65,6 @@ class AwsAdditionalConfigAutoImport(AdditionalConfigAutoImport):
         from clearskies_aws.clients.dynamodb_client import DynamodbClient
 
         return DynamodbClient()
-
-    def provide_dynamodb_resource(self) -> Any:
-        """Provide the DynamoDB resource wrapper for dependency injection."""
-        from clearskies_aws.clients.dynamodb_resource import DynamodbResource
-
-        return DynamodbResource()
 
     def provide_sqs_retry(self) -> Any:
         """

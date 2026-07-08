@@ -47,15 +47,6 @@ exclude = [
     "tests/**"
 ]
 
-[tool.mypy]
-python_version = "3.11"
-
-exclude = [
-    ".*_test\\.py$",
-    "docs/.*",
-    "tests/.*"
-]
-
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "-ra -q --showlocals --tb=long"
@@ -73,7 +64,7 @@ markers = [
 # This is the dedicated section for uv"s configuration
 [dependency-groups]
 dev = [
-    "mypy>=1.18.1",
+    "ty>=0.0.1",
     "pre-commit>=4.3.0",
     "pytest>=8.4.1",
     "pytest-cov>=6.2.1",

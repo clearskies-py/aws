@@ -74,7 +74,7 @@ class LambdaApiGatewayWebSocket(Context):
 
     """
 
-    def __call__(  # type: ignore[override]
+    def __call__(  # ty: ignore[invalid-method-override]
         self, event: dict[str, Any], context: LambdaContext | dict[str, Any], url: str = "", request_method: str = ""
     ) -> dict[str, Any]:
         return self.execute_application(LambdaApiGatewayWebSocketInputOutput(event, context, url))

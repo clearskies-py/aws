@@ -17,4 +17,4 @@ class CliWebSocketMock(cli.Cli):
     """
 
     def __call__(self):
-        return self.execute_application(CLIWebSocketMockInputOutput())
+        return self.execute_application(CliWebSocketMockInputOutput())

@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import unittest
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, call
 
-import clearskies
 import jinja2
-import pytest
 from clearskies.di import Di
 
 from clearskies_aws.actions.ses import SES

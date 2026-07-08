@@ -31,10 +31,13 @@ To use the SSM parameter store you just inject the `secrets` variable into your 
 ```python
 import clearskies_aws
 
+
 def parameter_store_demo(secrets):
-    return secrets.get('/path/to/parameter')
+    return secrets.get("/path/to/parameter")
+
 
 execute_demo_in_elb = clearskies_aws.contexts.lambda_alb(parameter_store_demo)
+
 
 def lambda_handler(event, context):
     return execute_demo_in_elb(event, context)

@@ -95,7 +95,7 @@ class ParameterStore(secrets.Secrets[SSMClient]):
         """
         return self.update(path, value)
 
-    def get(self, path: str, silent_if_not_found: bool = False) -> str | None:  # type: ignore[override]
+    def get(self, path: str, silent_if_not_found: bool = False) -> str | None:  # ty: ignore[invalid-method-override]
         """
         Retrieve a parameter value from Parameter Store.
 
@@ -127,7 +127,7 @@ class ParameterStore(secrets.Secrets[SSMClient]):
         response = self.boto3_client.get_parameters_by_path(Path=sanitized_path, Recursive=False)
         return [parameter["Name"] for parameter in response["Parameters"] if "Name" in parameter]
 
-    def update(self, path: str, value: str) -> bool:  # type: ignore[override]
+    def update(self, path: str, value: str) -> bool:  # ty: ignore[invalid-method-override]
         """
         Update or create a secret as a SecureString.
 
@@ -143,7 +143,7 @@ class ParameterStore(secrets.Secrets[SSMClient]):
         )
         return True
 
-    def upsert(self, path: str, value: str) -> bool:  # type: ignore[override]
+    def upsert(self, path: str, value: str) -> bool:  # ty: ignore[invalid-method-override]
         """
         Create or update a secret.
 

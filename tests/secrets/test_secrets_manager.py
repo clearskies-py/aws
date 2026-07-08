@@ -5,7 +5,6 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import clearskies
-import pytest
 
 from clearskies_aws.secrets.secrets_manager import SecretsManager
 
