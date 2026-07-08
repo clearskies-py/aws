@@ -5,12 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2026-07-08
+
+### Changed
+- Backend permissions by @tnijboer in [#18](https://github.com/clearskies-py/aws/pull/18)
+- Update to latest version 0.0.51 in [#17](https://github.com/clearskies-py/aws/pull/17)
+
+## New Contributors
+* @tnijboer made their first contribution in [#18](https://github.com/clearskies-py/aws/pull/18)
 ## [2.1.0] - 2026-06-26
 
 ### Added
 - Address MR comments by @cmancone
 
 ### Changed
+- Bump version to v2.1.0 by @github-actions[bot]
 - Updates per PR comments by @cmancone in [#15](https://github.com/clearskies-py/aws/pull/15)
 - So close by @cmancone
 - Delete by @cmancone
@@ -228,6 +237,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * @cmancone made their first contribution
 * @ made their first contribution
 * @github-actions[bot] made their first contribution
+[2.1.1]: https://github.com/clearskies-py/aws/compare/v2.1.0..v2.1.1
 [2.1.0]: https://github.com/clearskies-py/aws/compare/v2.0.17..v2.1.0
 [2.0.17]: https://github.com/clearskies-py/aws/compare/v2.0.16..v2.0.17
 [2.0.16]: https://github.com/clearskies-py/aws/compare/v2.0.15..v2.0.16
