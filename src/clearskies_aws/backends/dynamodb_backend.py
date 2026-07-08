@@ -147,10 +147,10 @@ class DynamodbBackend(CursorBackend, backend.Backend):
         assume_role: AssumeRoleAction | list[AssumeRoleAction] = [],
         client_injection_name: str = "",
         indexed_columns: list[str] = [],
-        can_create: bool | None = None,
-        can_update: bool | None = None,
-        can_delete: bool | None = None,
-        can_query: bool | None = None,
+        can_create: bool | None = True,
+        can_update: bool | None = True,
+        can_delete: bool | None = True,
+        can_query: bool | None = True,
     ):
         """Initialize the backend."""
         self.table_prefix = ""
