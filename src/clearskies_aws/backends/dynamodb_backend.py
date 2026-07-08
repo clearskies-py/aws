@@ -147,13 +147,22 @@ class DynamodbBackend(CursorBackend, backend.Backend):
         assume_role: AssumeRoleAction | list[AssumeRoleAction] = [],
         client_injection_name: str = "",
         indexed_columns: list[str] = [],
+        can_create: bool | None = True,
+        can_update: bool | None = True,
+        can_delete: bool | None = True,
+        can_query: bool | None = True,
     ):
-        self.aws_region = aws_region
-        self.assume_role = assume_role
-        self.client_injection_name = client_injection_name
-        self.indexed_columns = indexed_columns
+        """Initialize the backend."""
         self.table_prefix = ""
-        self.finalize_and_validate_configuration()
+        self.aws_region = aws_region
+        self.client_injection_name = client_injection_name
+        self.assume_role = assume_role
+        super().__init__(
+            can_create=can_create,
+            can_update=can_update,
+            can_delete=can_delete,
+            can_query=can_query,
+        )
 
     @property
     def cursor(self):
