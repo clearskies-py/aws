@@ -129,7 +129,7 @@ class Backend(clearskies.backends.Backend, clearskies.di.InjectableProperties):
             lambda my_models: my_models.create({"name":"hello world!"})
         ),
         bindings={
-            "dynamodb_client": clearskies_aws.clients.DynamoDbClient
+            "dynamodb_client": clearskies_aws.clients.DynamodbClient
         }
     )
     wsgi()

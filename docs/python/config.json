@@ -52,8 +52,7 @@
             "builder": "clearskies_doc_builder.builders.Module",
             "classes": [
                 "clearskies_aws.clients.BaseAwsClient",
-                "clearskies_aws.clients.DynamoDbClient",
-                "clearskies_aws.clients.DynamoDbResource",
+                "clearskies_aws.clients.DynamodbClient",
                 "clearskies_aws.clients.SesClient",
                 "clearskies_aws.clients.SnsClient",
                 "clearskies_aws.clients.SqsClient",
