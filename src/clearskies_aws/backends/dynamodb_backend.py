@@ -10,7 +10,6 @@ from clearskies import Column, Model, configs
 from clearskies.autodoc.schema import String as AutoDocString
 from clearskies.backends import CursorBackend
 from clearskies.columns import Boolean, Float, Integer
-from clearskies.decorators import parameters_to_properties
 from clearskies.query import Condition, ParsedCondition, Query
 from clearskies.query.result import (
     RecordQueryResult,
@@ -142,7 +141,6 @@ class DynamodbBackend(CursorBackend, backend.Backend):
 
     dynamodb = inject.DynamodbClient()
 
-    @parameters_to_properties
     def __init__(
         self,
         aws_region: str = "",
@@ -156,7 +154,15 @@ class DynamodbBackend(CursorBackend, backend.Backend):
     ):
         """Initialize the backend."""
         self.table_prefix = ""
-        self.finalize_and_validate_configuration()
+        self.aws_region = aws_region
+        self.client_injection_name = client_injection_name
+        self.assume_role = assume_role
+        super().__init__(
+            can_create=can_create,
+            can_update=can_update,
+            can_delete=can_delete,
+            can_query=can_query,
+        )
 
     @property
     def cursor(self):
