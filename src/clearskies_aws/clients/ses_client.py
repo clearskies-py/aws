@@ -91,5 +91,8 @@ class SesClient(BaseAwsClient):
         if self.cache and hasattr(self, "cached_client"):
             return self.cached_client
 
-        self.cached_client: Boto3SESClient = self.create_client("ses")
+        # Note: `create_client()` no longer takes a positional service name argument - it reads
+        # `self.service_name` internally. Passing "ses" here used to silently clobber `region_name`
+        # (it bound to `create_client`'s `aws_region` parameter), ignoring any configured region.
+        self.cached_client: Boto3SESClient = self.create_client()
         return self.cached_client

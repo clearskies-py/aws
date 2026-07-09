@@ -27,6 +27,13 @@ class BaseAwsClient(Configurable, InjectableProperties):
 
     service_name = ""
 
+    """
+    The real boto3 module.
+
+    Resolved via `AwsAdditionalConfigAutoImport.provide_boto3()`, with a raw `import boto3` fallback
+    (from `ByStandardLib`) for apps that use this client without registering
+    `modules=[clearskies_aws, ...]`.
+    """
     boto3 = ByStandardLib("boto3")
     environment = Environment()
 
@@ -141,14 +148,16 @@ class BaseAwsClient(Configurable, InjectableProperties):
         """
         Create a boto3 client for the specified AWS service.
 
-        This is typically called by service-specific client classes rather than directly.
-        Automatically handles region configuration and role assumption.
+        This is typically called by service-specific client classes rather than directly. It reads
+        the service name from `self.service_name` (set by the subclass, e.g. `SqsClient.service_name
+        = "sqs"`) - it does not take the service name as an argument. Automatically handles region
+        configuration and role assumption.
 
         ```python
-        from clearskies_aws.clients import BaseAwsClient
+        from clearskies_aws.clients import SqsClient
 
-        base_client = BaseAwsClient(aws_region="us-west-2")
-        s3_client = base_client.create_client("s3")
+        sqs_client = SqsClient(aws_region="us-west-2")
+        boto3_sqs = sqs_client.create_client()
         ```
         """
         boto3_module = self.boto3

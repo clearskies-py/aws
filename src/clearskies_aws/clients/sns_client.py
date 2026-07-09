@@ -74,5 +74,8 @@ class SnsClient(BaseAwsClient):
         if self.cache and hasattr(self, "cached_client"):
             return self.cached_client
 
-        self.cached_client: Boto3SNSClient = self.create_client("sns")
+        # Note: `create_client()` no longer takes a positional service name argument - it reads
+        # `self.service_name` internally. Passing "sns" here used to silently clobber `region_name`
+        # (it bound to `create_client`'s `aws_region` parameter), ignoring any configured region.
+        self.cached_client: Boto3SNSClient = self.create_client()
         return self.cached_client
