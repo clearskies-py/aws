@@ -54,7 +54,7 @@ class SqsBackendTest(unittest.TestCase):
             clearskies.endpoints.Callable(test_sqs_backend),
             classes=[User],
             bindings={
-                "boto3_sdk": self.boto3,
+                "boto3": self.boto3,
                 "environment": self.environment,
                 "sqs_client": self.sqs_client,
             },
