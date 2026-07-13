@@ -8,6 +8,19 @@ from clearskies_aws.actions.ses import SES as BaseSES
 
 
 class SES(BaseSES):
+    """
+    Mock SES action that records calls instead of sending emails.
+
+    ### Usage
+
+    ```python
+    from clearskies_aws.mocks.actions import SES as MockSES
+
+    MockSES.mock(di)
+    ```
+    """
+
+    """Recorded SES calls captured during test execution."""
     calls: list[dict[str, Any]] | None = None
 
     @classmethod

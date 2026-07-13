@@ -132,11 +132,23 @@ class StepFunction(ActionAws[SFNClient]):
     """
 
     # Default client for Step Functions service
+    """
+    AWS client wrapper used to start Step Functions executions.
+
+    Defaults to `clearskies_aws.clients.StepFunctionsClient()`.
+    """
     client = configs.AwsClient(required=True, default=clients.StepFunctionsClient())
 
+    """Static Step Functions state machine ARN."""
     arn = String(required=False)
+
+    """Environment key containing the state machine ARN."""
     arn_environment_key = String(required=False)
+
+    """Callable returning the state machine ARN for a given model."""
     arn_callable = CallableConfig(required=False)
+
+    """Optional model column where the returned execution ARN is stored."""
     column_to_store_execution_arn = String(required=False)
 
     @parameters_to_properties

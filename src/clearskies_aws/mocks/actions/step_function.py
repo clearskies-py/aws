@@ -8,6 +8,19 @@ from clearskies_aws.actions.step_function import StepFunction as BaseStepFunctio
 
 
 class StepFunction(BaseStepFunction):
+    """
+    Mock Step Functions action that records start-execution calls.
+
+    ### Usage
+
+    ```python
+    from clearskies_aws.mocks.actions import StepFunction as MockStepFunction
+
+    MockStepFunction.mock(di)
+    ```
+    """
+
+    """Recorded Step Functions start-execution payloads captured during tests."""
     calls: list[dict[str, Any]] | None = None
 
     @classmethod

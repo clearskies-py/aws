@@ -156,11 +156,23 @@ class SQS(ActionAws[SQSClient]):
     """
 
     # Default client for SQS service
+    """
+    AWS client wrapper used to send SQS messages.
+
+    Defaults to `clearskies_aws.clients.SqsClient()`.
+    """
     client = configs.AwsClient(required=True, default=clients.SqsClient())
 
+    """Static SQS queue URL."""
     queue_url = String(required=False)
+
+    """Environment key containing the SQS queue URL."""
     queue_url_environment_key = String(required=False)
+
+    """Callable returning the SQS queue URL for a given model."""
     queue_url_callable = CallableConfig(required=False)
+
+    """Static or callable message group id used for FIFO queues."""
     message_group_id = CallableConfig(required=False)
 
     @parameters_to_properties

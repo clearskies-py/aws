@@ -35,8 +35,13 @@ class ActionAws(Generic[ClientType], Action, Configurable, InjectableProperties)
     (region, role assumption, caching) is handled by the client wrappers.
     """
 
+    """Logger used by AWS action implementations."""
     logging = logging.getLogger(__name__)
+
+    """Environment dependency used to resolve environment-based configuration."""
     environment = Environment()
+
+    """Dependency injection container used to invoke configured callables."""
     di = Di()
 
     """

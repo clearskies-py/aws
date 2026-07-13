@@ -18,17 +18,137 @@ from clearskies_aws.di import inject
 
 
 class SecretsManagerRotation(Endpoint):
+    """
+    Handle AWS Secrets Manager rotation events.
+
+    This endpoint implements the standard AWS rotation workflow steps (`createSecret`,
+    `setSecret`, `testSecret`, and `finishSecret`) and dispatches each step to configurable
+    callables.
+
+    ### Usage
+
+    ```python
+    import clearskies_aws
+
+
+    def create_secret(current_secret_data, **kwargs):
+        return {
+            "username": current_secret_data["username"],
+            "password": "new-password",
+        }
+
+
+    def set_secret(pending_secret_data, **kwargs):
+        # Apply pending credentials to your resource.
+        return None
+
+
+    def test_secret(pending_secret_data, **kwargs):
+        # Verify pending credentials.
+        return None
+
+
+    endpoint = clearskies_aws.endpoints.SecretsManagerRotation(
+        create_secret=create_secret,
+        set_secret=set_secret,
+        test_secret=test_secret,
+    )
+    ```
+    """
+
     di = Di()
     boto3 = inject.Boto3()
 
     current = "AWSCURRENT"
     pending = "AWSPENDING"
 
+    """
+    The ordered list of allowed rotation steps.
+
+    This controls both validation of incoming `Step` values and which step handlers may be
+    invoked.
+
+    ```python
+    endpoint = clearskies_aws.endpoints.SecretsManagerRotation(
+        create_secret=create_secret,
+        steps=["createSecret", "setSecret", "testSecret", "finishSecret"],
+    )
+    ```
+    """
     steps = StringList(default=["createSecret", "setSecret", "testSecret", "finishSecret"])
+
+    """
+    Callable for the `createSecret` rotation step.
+
+    The callable should return the new secret data as a dictionary.
+
+    ```python
+    def create_secret(current_secret_data, **kwargs):
+        return {
+            "username": current_secret_data["username"],
+            "password": "new-password",
+        }
+    ```
+    """
     create_secret = CallableConfig(default=None)
+
+    """
+    Callable for the `setSecret` rotation step.
+
+    Use this to apply the pending secret to the downstream resource.
+
+    ```python
+    def set_secret(pending_secret_data, **kwargs):
+        # Update the target service with pending credentials.
+        return None
+    ```
+    """
     set_secret = CallableConfig(default=None)
+
+    """
+    Callable for the `testSecret` rotation step.
+
+    Use this to verify that the pending secret is valid before promotion.
+
+    ```python
+    def test_secret(pending_secret_data, **kwargs):
+        # Connect with pending credentials and assert success.
+        return None
+    ```
+    """
     test_secret = CallableConfig(default=None)
+
+    """
+    Callable for the `finishSecret` rotation step.
+
+    This is invoked before the endpoint moves `AWSCURRENT` to the pending version.
+
+    ```python
+    def finish_secret(current_secret_data, pending_secret_data, **kwargs):
+        # Optional cleanup or notifications.
+        return None
+    ```
+    """
     finish_secret = CallableConfig(default=None)
+
+    """
+    Optional schema used to validate request and secret payloads.
+
+    When set, request data, current secret data, and pending secret data are validated
+    against this schema.
+
+    ```python
+    schema = [
+        {"name": "username", "type": "string", "required": True},
+        {"name": "password", "type": "string", "required": True},
+    ]
+
+    endpoint = clearskies_aws.endpoints.SecretsManagerRotation(
+        create_secret=create_secret,
+        schema=schema,
+    )
+    ```
+    """
     schema = SchemaConfig(default=None)
 
     @parameters_to_properties
@@ -44,6 +164,7 @@ class SecretsManagerRotation(Endpoint):
         super().__init__()
 
     def configure(self) -> None:
+        """Validate endpoint configuration and configured step handlers."""
         self.finalize_and_validate_configuration()
         class_name = self.__class__.__name__
         if not self.create_secret:
@@ -61,12 +182,14 @@ class SecretsManagerRotation(Endpoint):
                 raise TypeError("Configured rotation step handlers must be callables")
 
     def _parse_request_data(self, input_output: InputOutput) -> dict[str, Any]:
+        """Parse and validate the incoming request body as a JSON object."""
         request_data = json.loads(input_output.get_body())
         if not isinstance(request_data, dict):
             raise ClientError("Invalid payload: request body must be a JSON object")
         return request_data
 
     def _validate_secret_data(self, secret_data: dict[str, Any], input_output: InputOutput, label: str) -> None:
+        """Validate secret data against the configured schema when one is provided."""
         if not self.schema:
             return
         try:
@@ -75,6 +198,7 @@ class SecretsManagerRotation(Endpoint):
             raise ValueError(f"The {label} did not match the configured schema: {error}") from error
 
     def _load_secret_json(self, secret_response: dict[str, Any], label: str) -> dict[str, Any]:
+        """Extract and parse `SecretString` from a Secrets Manager response."""
         secret_string = secret_response.get("SecretString")
         if not isinstance(secret_string, str):
             raise ValueError(f"The {label} is missing a valid SecretString")
@@ -84,6 +208,7 @@ class SecretsManagerRotation(Endpoint):
         return parsed
 
     def handle(self, input_output: InputOutput) -> None:
+        """Execute one Secrets Manager rotation step for the current request."""
         request_data = self._parse_request_data(input_output)
 
         if self.schema:
@@ -139,7 +264,7 @@ class SecretsManagerRotation(Endpoint):
         )
 
     def _validate_secret_and_request(self, step: str, arn: str, metadata: dict[str, Any], request_token: str) -> None:
-        """Perform basic checks suggested by AWS of both the request and the secret to ensure validity."""
+        """Validate AWS rotation metadata and request token state for the requested step."""
         if step not in self.steps:
             raise ClientError(f"Invalid step: {step}")
 
@@ -158,6 +283,7 @@ class SecretsManagerRotation(Endpoint):
             raise ValueError(f"{prefix} it hasn't been set to pending yet, which makes no sense!")
 
     def createSecret(self, **kwargs) -> None:
+        """Run the configured `createSecret` callable and store the pending secret value."""
         if not self.create_secret:
             return
 
@@ -186,16 +312,19 @@ class SecretsManagerRotation(Endpoint):
         )
 
     def setSecret(self, **kwargs) -> None:
+        """Run the configured `setSecret` callable when present."""
         if not self.set_secret:
             return
         self.di.call_function(self.set_secret, **kwargs)
 
     def testSecret(self, **kwargs) -> None:
+        """Run the configured `testSecret` callable when present."""
         if not self.test_secret:
             return
         self.di.call_function(self.test_secret, **kwargs)
 
     def finishSecret(self, **kwargs) -> None:
+        """Run the configured finish callback and promote the pending version to current."""
         if self.finish_secret:
             self.di.call_function(self.finish_secret, **kwargs)
 

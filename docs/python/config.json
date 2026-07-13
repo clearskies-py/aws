@@ -120,8 +120,7 @@
             "classes": [
                 "clearskies_aws.di.inject.Boto3",
                 "clearskies_aws.di.inject.Boto3Session",
-                "clearskies_aws.di.inject.DynamoDbClient",
-                "clearskies_aws.di.inject.DynamoDbResource",
+                "clearskies_aws.di.inject.DynamodbClient",
                 "clearskies_aws.di.inject.ParameterStore",
                 "clearskies_aws.di.inject.SesClient",
                 "clearskies_aws.di.inject.SnsClient",

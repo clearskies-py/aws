@@ -129,20 +129,47 @@ class SES(action_aws.ActionAws[SESClient]):
     """
 
     # Default client for SES service
+    """
+    AWS client wrapper used to send SES requests.
+
+    Defaults to `clearskies_aws.clients.SesClient()`.
+    """
     client = configs.AwsClient(required=True, default=clients.SesClient())
 
+    """Sender email address used for outgoing messages."""
     sender = Email(required=True)
+
+    """Primary recipients (single email, list of emails, or callable)."""
     to = EmailOrEmailListOrCallable(required=False)
+
+    """Carbon-copy recipients (single email, list of emails, or callable)."""
     cc = EmailOrEmailListOrCallable(required=False)
+
+    """Blind carbon-copy recipients (single email, list of emails, or callable)."""
     bcc = EmailOrEmailListOrCallable(required=False)
+
+    """Static email subject."""
     subject = String(required=False)
+
+    """Static email message body."""
     message = String(required=False)
+
+    """Jinja2 template used to render the email subject."""
     subject_template = AnyConfig(required=False)
+
+    """Jinja2 template used to render the email message body."""
     message_template = AnyConfig(required=False)
+
+    """Path to a file containing the Jinja2 subject template."""
     subject_template_file = String(required=False)
+
+    """Path to a file containing the Jinja2 message template."""
     message_template_file = String(required=False)
+
+    """Optional dependencies injected into subject/message template rendering."""
     dependencies_for_template: list[Any] = []
 
+    """Normalized destination map after `to`, `cc`, and `bcc` are processed."""
     destinations: dict[str, list[str | Callable]] = {
         "to": [],
         "cc": [],

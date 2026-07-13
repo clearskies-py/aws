@@ -8,6 +8,19 @@ from clearskies_aws.actions.sns import SNS as BaseSNS
 
 
 class SNS(BaseSNS):
+    """
+    Mock SNS action that records publish calls without contacting AWS.
+
+    ### Usage
+
+    ```python
+    from clearskies_aws.mocks.actions import SNS as MockSNS
+
+    MockSNS.mock(di)
+    ```
+    """
+
+    """Recorded SNS publish payloads captured during test execution."""
     calls: list[dict[str, Any]] | None = None
 
     @classmethod

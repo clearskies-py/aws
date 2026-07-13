@@ -8,6 +8,19 @@ from clearskies_aws.actions.sqs import SQS as BaseSQS
 
 
 class SQS(BaseSQS):
+    """
+    Mock SQS action that records send-message calls without contacting AWS.
+
+    ### Usage
+
+    ```python
+    from clearskies_aws.mocks.actions import SQS as MockSQS
+
+    MockSQS.mock(di)
+    ```
+    """
+
+    """Recorded SQS send-message payloads captured during test execution."""
     calls: list[dict[str, Any]] | None = None
 
     @classmethod

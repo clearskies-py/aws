@@ -121,10 +121,20 @@ class SNS(ActionAws[SNSClient]):
     """
 
     # Default client for SNS service
+    """
+    AWS client wrapper used to publish SNS messages.
+
+    Defaults to `clearskies_aws.clients.SnsClient()`.
+    """
     client = configs.AwsClient(required=True, default=clients.SnsClient())
 
+    """Static SNS topic ARN."""
     topic = String(required=False)
+
+    """Environment key containing the SNS topic ARN."""
     topic_environment_key = String(required=False)
+
+    """Callable returning the SNS topic ARN for a given model."""
     topic_callable = CallableConfig(required=False)
 
     @parameters_to_properties
