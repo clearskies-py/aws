@@ -10,16 +10,6 @@
             ]
         },
         {
-            "title": "Configs",
-            "source": "clearskies.configs.config.Config",
-            "builder": "clearskies_doc_builder.builders.Module",
-            "classes": [
-                "clearskies_aws.configs.AssumeRole",
-                "clearskies_aws.configs.AwsClient",
-                "clearskies_aws.configs.Region"
-            ]
-        },
-        {
             "title": "Contexts",
             "source": "clearskies.contexts.Context",
             "builder": "clearskies_doc_builder.builders.Module",
