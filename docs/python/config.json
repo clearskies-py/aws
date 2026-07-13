@@ -5,7 +5,18 @@
             "source": "clearskies_aws.backends.Backend",
             "builder": "clearskies_doc_builder.builders.Module",
             "classes": [
+                "clearskies_aws.backends.DynamodbBackend",
                 "clearskies_aws.backends.SqsBackend"
+            ]
+        },
+        {
+            "title": "Configs",
+            "source": "clearskies.configs.config.Config",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.configs.AssumeRole",
+                "clearskies_aws.configs.AwsClient",
+                "clearskies_aws.configs.Region"
             ]
         },
         {
@@ -72,10 +83,26 @@
             ]
         },
         {
+            "title": "Input Outputs",
+            "source": "clearskies.input_outputs.InputOutput",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.input_outputs.CliWebSocketMock",
+                "clearskies_aws.input_outputs.LambdaAlb",
+                "clearskies_aws.input_outputs.LambdaApiGateway",
+                "clearskies_aws.input_outputs.LambdaApiGatewayWebSocket",
+                "clearskies_aws.input_outputs.LambdaInvoke",
+                "clearskies_aws.input_outputs.LambdaSns",
+                "clearskies_aws.input_outputs.LambdaSqsStandard",
+                "clearskies_aws.input_outputs.LambdaStepFunction"
+            ]
+        },
+        {
             "title": "Endpoints",
             "source": "clearskies.endpoint.Endpoint",
             "builder": "clearskies_doc_builder.builders.Module",
             "classes": [
+                "clearskies_aws.endpoints.SimpleBodyRouting",
                 "clearskies_aws.endpoints.SecretsManagerRotation"
             ]
         },
@@ -102,7 +129,16 @@
             "source": "clearskies.Model",
             "builder": "clearskies_doc_builder.builders.Module",
             "classes": [
+                "clearskies_aws.models.DynamodbModel",
                 "clearskies_aws.models.WebSocketConnectionModel"
+            ]
+        },
+        {
+            "title": "Query",
+            "source": "clearskies.query.Query",
+            "builder": "clearskies_doc_builder.builders.Module",
+            "classes": [
+                "clearskies_aws.query.DynamodbQuery"
             ]
         },
         {
@@ -125,6 +161,7 @@
                 "clearskies_aws.di.inject.SesClient",
                 "clearskies_aws.di.inject.SnsClient",
                 "clearskies_aws.di.inject.SqsClient",
+                "clearskies_aws.di.inject.SqsRetry",
                 "clearskies_aws.di.inject.StepFunctionsClient"
             ]
         },
