@@ -4,6 +4,7 @@ from typing import Any
 
 from botocore.exceptions import ClientError
 from clearskies.exceptions.not_found import NotFound
+from clearskies.functional.json import get_nested_attribute
 from types_boto3_secretsmanager import SecretsManagerClient
 from types_boto3_secretsmanager.type_defs import SecretListEntryTypeDef
 
@@ -81,13 +82,21 @@ class SecretsManager(secrets.Secrets[SecretsManagerClient]):
         version_id: str | None = None,
         version_stage: str | None = None,
         silent_if_not_found: bool = False,
-    ) -> str | bytes | None:  # ty:ignore[invalid-method-override]
+        refresh: bool = False,
+        json_path: str | None = None,
+        kind: str | None = None,
+    ) -> Any:  # ty:ignore[invalid-method-override]
         """
         Retrieve a secret value from Secrets Manager.
 
         Returns the secret value for the given ID. Optionally retrieves a specific version
         by version_id or version_stage. If silent_if_not_found is True, returns None when
         the secret is not found instead of raising NotFound.
+
+        If json_path is provided, the secret is parsed as JSON and the attribute at the given
+        dot-notation path is returned. `refresh` and `kind` are accepted for compatibility with
+        the base `get()` signature (e.g. as called by `SecretBearer`) and are ignored: values
+        are never cached and Secrets Manager has no secret kinds.
         """
         calling_parameters = {"SecretId": secret_id}
 
@@ -108,9 +117,10 @@ class SecretsManager(secrets.Secrets[SecretsManagerClient]):
                     f"Could not find secret '{secret_id}' with version '{version_id}' and stage '{version_stage}'"
                 )
             raise e
-        if result.get("SecretString"):
-            return result.get("SecretString")
-        return result.get("SecretBinary")
+        value = result.get("SecretString") or result.get("SecretBinary")
+        if json_path:
+            return get_nested_attribute(value, json_path)  # ty:ignore[invalid-argument-type]
+        return value
 
     def list_secrets(self, path: str) -> list[SecretListEntryTypeDef]:  # type: ignore[override]
         """

@@ -6,6 +6,7 @@ from typing import Any
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from clearskies.exceptions.not_found import NotFound
+from clearskies.functional.json import get_nested_attribute
 from types_boto3_ssm import SSMClient
 
 from clearskies_aws.secrets import secrets
@@ -95,12 +96,24 @@ class ParameterStore(secrets.Secrets[SSMClient]):
         """
         return self.update(path, value)
 
-    def get(self, path: str, silent_if_not_found: bool = False) -> str | None:  # ty: ignore[invalid-method-override]
+    def get(
+        self,
+        path: str,
+        silent_if_not_found: bool = False,
+        refresh: bool = False,
+        json_path: str | None = None,
+        kind: str | None = None,
+    ) -> Any:
         """
         Retrieve a parameter value from Parameter Store.
 
         Returns the decrypted parameter value for the given path. If silent_if_not_found
         is True, returns None when the parameter is not found instead of raising NotFound.
+
+        If json_path is provided, the value is parsed as JSON and the attribute at the given
+        dot-notation path is returned. `refresh` and `kind` are accepted for compatibility with
+        the base `get()` signature (e.g. as called by `SecretBearer`) and are ignored: values
+        are never cached and Parameter Store has no secret kinds.
 
         Throttling is handled automatically by boto3's adaptive retry mode configured
         on the client (up to 10 retries with exponential backoff and jitter).
@@ -115,7 +128,10 @@ class ParameterStore(secrets.Secrets[SSMClient]):
                     return None
                 raise NotFound(f"Could not find secret '{path}' in parameter store")
             raise e
-        return result["Parameter"].get("Value", "")
+        value = result["Parameter"].get("Value", "")
+        if json_path:
+            return get_nested_attribute(value, json_path)
+        return value
 
     def list_secrets(self, path: str) -> list[str]:
         """
