@@ -5,7 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.3] - 2026-10-13
+
+### Added
+- Add missing classes to the config.json
+- Add missing docstrings
+
+### Changed
+- Update dependencies
+
+### Fixed
+- Accept SecretBearer keyword arguments in [#21](https://github.com/clearskies-py/aws/pull/21)
+- Tweak doc class list by @cmancone in [#20](https://github.com/clearskies-py/aws/pull/20)
+
 ## [2.1.2] - 2026-07-09
+
+### Changed
+- Bump version to v2.1.2 by @github-actions[bot]
 
 ### Fixed
 - Rename Boto3SDK back to Boto3 and fix DI collision by @tnijboer in [#19](https://github.com/clearskies-py/aws/pull/19)
@@ -173,16 +189,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.3] - 2026-01-05
 
+### Added
+- Add __init__.py and imports for test module
+- Add parameter_store tests
+- Add actions
+- Add AwsAdditionalConfigAutoImport
+
 ### Changed
 - Bump version to v2.0.3 by @github-actions[bot]
 - Merge pull request #7 from clearskies-py/contexts by @cmancone in [#7](https://github.com/clearskies-py/aws/pull/7)
 - Require latest clearskies version per added feature by @cmancone
 - Bring up-to-date by @cmancone
+- Cleanup/tests by @cmancone
+- Working through basics by @cmancone
+- Moving along by @cmancone
+- Moving along by @cmancone
+- Try lambda sqs standard partial batch
+- Combine the v1 / v2 gateway to one
+- Input outputs
+- Use same backend for all
+- Mark failing test as broken
+- More migration work
 
 ### Fixed
 - Inverted flag by @cmancone
 - Tooling by @cmancone
 - Mypy by @cmancone
+- Merge in Tom's stuff by @cmancone
+- Rewrite sqs test
+
+### Removed
+- Remove unneeded dependency
+- Remove clearskies_aws.di
 
 ## [2.0.2] - 2025-10-30
 
@@ -201,10 +239,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add parameter_store tests
 - Add actions
 - Add AwsAdditionalConfigAutoImport
-- Add __init__.py and imports for test module
-- Add parameter_store tests
-- Add actions
-- Add AwsAdditionalConfigAutoImport
 
 ### Changed
 - Bump version to v2.0.1 by @github-actions[bot]
@@ -217,33 +251,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use same backend for all
 - Mark failing test as broken
 - More migration work
-- Cleanup/tests by @cmancone
-- Working through basics by @cmancone
-- Moving along by @cmancone
-- Moving along by @cmancone
-- Try lambda sqs standard partial batch
-- Combine the v1 / v2 gateway to one
-- Input outputs
-- Use same backend for all
-- Mark failing test as broken
-- More migration work
 - First commit: Import from WIP by @cmancone
 
 ### Fixed
-- Rewrite sqs test
-- Merge in Tom's stuff by @cmancone
 - Rewrite sqs test
 
 ### Removed
 - Remove unneeded dependency
 - Remove clearskies_aws.di
-- Remove unneeded dependency
-- Remove clearskies_aws.di
 
 ## New Contributors
-* @cmancone made their first contribution
-* @ made their first contribution
 * @github-actions[bot] made their first contribution
+[2.1.3]: https://github.com/clearskies-py/aws/compare/v2.1.2..v2.1.3
 [2.1.2]: https://github.com/clearskies-py/aws/compare/v2.1.1..v2.1.2
 [2.1.1]: https://github.com/clearskies-py/aws/compare/v2.1.0..v2.1.1
 [2.1.0]: https://github.com/clearskies-py/aws/compare/v2.0.17..v2.1.0
