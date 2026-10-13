@@ -9,6 +9,14 @@ from clearskies_aws.query import DynamodbQuery
 
 
 class DynamodbModel(clearskies.Model):
+    """
+    Base model for tables stored in DynamoDB.
+
+    This model uses the DynamoDB backend and a DynamoDB-aware query object, which adds support for querying
+    against a specific index via `query_with_index`. Note that DynamoDB only supports sorting by the sort key
+    of the table or index being queried, so sorting by a second column is not supported.
+    """
+
     backend = dynamodb_backend.DynamodbBackend()
 
     _query: DynamodbQuery | None = None

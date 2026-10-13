@@ -6,6 +6,14 @@ import clearskies
 
 
 class CliWebSocketMock(clearskies.input_outputs.Cli):
+    """
+    Mock an API Gateway websocket request from the command line.
+
+    This behaves like the standard CLI input/output, but requires a `connection_id` in the JSON request body and
+    exposes it (along with empty placeholders for the event, context, domain, and stage) via `context_specifics`,
+    so that websocket handlers can be exercised locally.
+    """
+
     def context_specifics(self):
         connection_id = json.loads(self.get_body()).get("connection_id")
         if not connection_id:
