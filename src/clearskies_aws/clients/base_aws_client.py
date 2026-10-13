@@ -167,7 +167,7 @@ class BaseAwsClient(Configurable, InjectableProperties):
             if not isinstance(roles, list):
                 roles = [roles]
             for role in roles:
-                boto3_module = role(boto3_module)  # type: ignore
+                boto3_module = role(boto3_module)
 
         region = aws_region or self.get_region()
 

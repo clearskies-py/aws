@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from clearskies_aws.di.inject.client import Client
+from clearskies.di.inject import ByName
 
 if TYPE_CHECKING:
     from clearskies_aws.helpers import SqsRetry as SqsRetryHelper
 
 
-class SqsRetry(Client):
+class SqsRetry(ByName):
     """
     Injectable for SQS retry helper.
 
@@ -55,12 +55,11 @@ class SqsRetry(Client):
         ```
     """
 
-    @property
-    def client_class(self) -> type[SqsRetryHelper]:
-        return SqsRetryHelper
+    def __init__(self, cache: bool = True):
+        super().__init__("sqs_retry", cache=cache)
 
     def __get__(self, instance, parent) -> SqsRetryHelper:
         if instance is None:
-            return self  # type: ignore
+            return self  # ty:ignore[invalid-return-type]
 
-        return self.build_client(instance)
+        return super().__get__(instance, parent)
